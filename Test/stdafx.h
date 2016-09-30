@@ -17,7 +17,6 @@
 #include <atlstr.h>
 
 // TODO: プログラムに必要な追加ヘッダーをここで参照してください
-#include <mfapi.h>
 #include <win32/stdafx.h>
 #include <win32/ComUtils.h>
 
