@@ -8,6 +8,7 @@
 #include <mfapi.h>
 #include <mftransform.h>
 #include <dmoreg.h>
+#include <medparam.h>
 
 #include <log4cplus/configurator.h>
 
@@ -112,6 +113,24 @@ HRESULT enumDMOs()
 			StringFromGUID2(guid, strGuid, ARRAYSIZE(strGuid));
 			std::wcout << L"  " << strGuid << L":" << (SUCCEEDED(hr) ? L"MFT " : L"    ") << pStr << std::endl;
 			CoTaskMemFree(pStr);
+			CComPtr<IMediaParamInfo> pi;
+			if (SUCCEEDED(dmo.QueryInterface(&pi))) {
+				DWORD paramCount;
+				pi->GetParamCount(&paramCount);
+				for (DWORD p = 0; p < paramCount; p++) {
+					MP_PARAMINFO info;
+					pi->GetParamInfo(p, &info);
+					LPCWSTR type = L"?";
+					switch (info.mpType) {
+					case MPT_INT:	type = L"MPT_INT  "; break;
+					case MPT_FLOAT:	type = L"MPT_FLOAT"; break;
+					case MPT_BOOL:	type = L"MPT_BOOL "; break;
+					case MPT_ENUM:	type = L"MPT_ENUM "; break;
+					}
+					std::wcout << L"    " << type << L" " << info.szLabel << L"(" << info.szUnitText << L")="
+								<< info.mpdMinValue << L"~" << info.mpdMaxValue << L":" << info.mpdNeutralValue << std::endl;
+				}
+			}
 		}
 	}
 
