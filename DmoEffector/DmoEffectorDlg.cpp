@@ -58,6 +58,7 @@ CDmoEffectorDlg::CDmoEffectorDlg(CWnd* pParent /*=NULL*/)
 void CDmoEffectorDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_COMBO_INPUT_DEVIES, m_inputDeviceSel);
 }
 
 BEGIN_MESSAGE_MAP(CDmoEffectorDlg, CDialogEx)
@@ -99,6 +100,12 @@ BOOL CDmoEffectorDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
+	HRESULT hr = CDevice::createDeviceList(m_inputDeviceList);
+	for (CDevice::device_list_t::const_iterator i = m_inputDeviceList.begin(); i != m_inputDeviceList.end(); i++) {
+		CDevice* dev = i->get();
+		m_inputDeviceSel.AddString(dev->getName());
+	}
+	if (!m_inputDeviceList.empty()) m_inputDeviceSel.SetCurSel(0);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }

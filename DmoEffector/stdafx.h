@@ -52,3 +52,17 @@
 #endif
 
 
+#include <dshow.h>
+#include <atlbase.h>
+#include <atlcom.h>
+#include <log4cplus/loggingmacros.h>
+#include <log4cplus/logger.h>
+
+#include <win32/stdafx.h>
+#include <win32/ComUtils.h>
+
+#ifdef UNICODE
+typedef std::wstring tstring;
+#else
+typedef std::string tstring;
+#endif

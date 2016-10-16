@@ -6,6 +6,8 @@
 #include "DmoEffector.h"
 #include "DmoEffectorDlg.h"
 
+#include <log4cplus/configurator.h>
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -51,6 +53,11 @@ BOOL CDmoEffectorApp::InitInstance()
 
 	CWinApp::InitInstance();
 
+	// Configure log4cplus
+	log4cplus::PropertyConfigurator::doConfigure(_T("log4cplus.properties"));
+
+	// Prepare using COM for DirectShow.
+	CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
 	AfxEnableControlContainer();
 
@@ -104,3 +111,12 @@ BOOL CDmoEffectorApp::InitInstance()
 	return FALSE;
 }
 
+
+
+int CDmoEffectorApp::ExitInstance()
+{
+	// TODO: ここに特定なコードを追加するか、もしくは基底クラスを呼び出してください。
+	CoUninitialize();
+
+	return CWinApp::ExitInstance();
+}
