@@ -5,6 +5,7 @@
 #pragma once
 #include "afxwin.h"
 
+#include "MainController.h"
 #include "Device.h"
 
 
@@ -12,6 +13,7 @@
 class CDmoEffectorDlg : public CDialogEx
 {
 protected:
+	CMainController m_mainController;
 	CDevice::device_list_t m_inputDeviceList;
 
 // Construction
@@ -39,4 +41,5 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	CComboBox m_inputDeviceSel;
+	afx_msg void OnBnClickedButtonStart();
 };

@@ -66,6 +66,7 @@ BEGIN_MESSAGE_MAP(CDmoEffectorDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_BN_CLICKED(ID_BUTTON_START, &CDmoEffectorDlg::OnBnClickedButtonStart)
 END_MESSAGE_MAP()
 
 
@@ -162,3 +163,14 @@ HCURSOR CDmoEffectorDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+
+void CDmoEffectorDlg::OnBnClickedButtonStart()
+{
+	UpdateData(TRUE);
+
+	int sel = m_inputDeviceSel.GetCurSel();
+	if ((sel != CB_ERR) && (sel < (int)m_inputDeviceList.size())) {
+		m_mainController.start(m_inputDeviceList[sel].get());
+	}
+}

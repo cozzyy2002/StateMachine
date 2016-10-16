@@ -114,7 +114,7 @@
     </ResourceCompile>
     <PostBuildEvent>
       <Command>xcopy /D /I /Y "$(LOG4CPLUS_DIR)\msvc14\Win32\bin.$(Configuration)_Unicode\*.dll" "$(OutDir)"
-xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(ProjectDir)"</Command>
+xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -167,7 +167,7 @@ xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(ProjectDir)"</Command>
     </ResourceCompile>
     <PostBuildEvent>
       <Command>xcopy /D /I /Y "$(LOG4CPLUS_DIR)\msvc14\Win32\bin.$(Configuration)_Unicode\*.dll" "$(OutDir)"
-xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(ProjectDir)"</Command>
+xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -202,6 +202,7 @@ xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(ProjectDir)"</Command>
     <ClInclude Include="Device.h" />
     <ClInclude Include="DmoEffector.h" />
     <ClInclude Include="DmoEffectorDlg.h" />
+    <ClInclude Include="MainController.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -210,6 +211,7 @@ xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(ProjectDir)"</Command>
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="DmoEffector.cpp" />
     <ClCompile Include="DmoEffectorDlg.cpp" />
+    <ClCompile Include="MainController.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
