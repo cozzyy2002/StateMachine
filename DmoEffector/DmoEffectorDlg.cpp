@@ -101,7 +101,9 @@ BOOL CDmoEffectorDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
-	HRESULT hr = CDevice::createDeviceList(m_inputDeviceList);
+
+	// Get input devices and show them in the input devices list of UI.
+	HRESULT hr = CDevice::createDeviceList(CLSID_AudioInputDeviceCategory, m_inputDeviceList);
 	for (CDevice::device_list_t::const_iterator i = m_inputDeviceList.begin(); i != m_inputDeviceList.end(); i++) {
 		CDevice* dev = i->get();
 		m_inputDeviceSel.AddString(dev->getName());

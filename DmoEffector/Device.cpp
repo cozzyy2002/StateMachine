@@ -16,13 +16,13 @@ protected:
 	VARIANT m_variant;
 };
 
-/*static*/ HRESULT CDevice::createDeviceList(device_list_t& devices)
+/*static*/ HRESULT CDevice::createDeviceList(REFGUID category, device_list_t& devices)
 {
 	CComPtr<ICreateDevEnum> devEnum;
 	HR_ASSERT_OK(devEnum.CoCreateInstance(CLSID_SystemDeviceEnum));
 
 	CComPtr<IEnumMoniker> enumMoniker;
-	HR_ASSERT_OK(devEnum->CreateClassEnumerator(CLSID_AudioInputDeviceCategory, &enumMoniker, 0));
+	HR_ASSERT_OK(devEnum->CreateClassEnumerator(category, &enumMoniker, 0));
 	HRESULT hr;
 	while (true) {
 		CComPtr<IMoniker> moniker;
@@ -41,11 +41,25 @@ CDevice::CDevice(LPCTSTR name, LPCTSTR devicePath)
 
 CDevice::~CDevice() {}
 
+HRESULT CDevice::getBaseFilter(IBaseFilter ** ppBaseFilter)
+{
+	HR_ASSERT(ppBaseFilter, E_POINTER);
+	HR_ASSERT(m_moniker, E_ILLEGAL_METHOD_CALL);
+
+	if (!m_baseFilter) {
+		HR_ASSERT_OK(m_moniker->BindToObject(getBindCtx(), NULL, IID_PPV_ARGS(&m_baseFilter)));
+	}
+	*ppBaseFilter = m_baseFilter;
+	(*ppBaseFilter)->AddRef();
+
+	return S_OK;
+}
+
 LPCTSTR CDevice::getName()
 {
 	if (m_name.empty()) {
 		CComPtr<IPropertyBag> prop;
-		if (SUCCEEDED(HR_EXPECT_OK(m_moniker->BindToStorage(NULL, NULL, IID_PPV_ARGS(&prop))))) {
+		if (SUCCEEDED(HR_EXPECT_OK(m_moniker->BindToStorage(getBindCtx(), NULL, IID_PPV_ARGS(&prop))))) {
 			CSafeVariant wstr;
 			HR_EXPECT_OK(prop->Read(L"FriendlyName", &wstr, 0));
 			CW2T str(wstr);
@@ -59,10 +73,18 @@ LPCTSTR CDevice::getDevicePath()
 {
 	if (m_devicePath.empty()) {
 		LPOLESTR wstr = L"";
-		HR_EXPECT_OK(m_moniker->GetDisplayName(NULL, NULL, &wstr));
+		HR_EXPECT_OK(m_moniker->GetDisplayName(getBindCtx(), NULL, &wstr));
 		CW2T str(wstr);
 		CoTaskMemFree(wstr);
 		m_devicePath = (LPCTSTR)str;
 	}
 	return m_devicePath.c_str();
+}
+
+IBindCtx* CDevice::getBindCtx()
+{
+	if (!m_bindCtx) {
+		HR_EXPECT_OK(CreateBindCtx(0, &m_bindCtx));
+	}
+	return m_bindCtx;
 }
