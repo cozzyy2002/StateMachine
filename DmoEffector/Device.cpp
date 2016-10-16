@@ -3,7 +3,7 @@
 
 #pragma comment(lib, "Strmiids.lib")
 
-static log4cplus::Logger logger = log4cplus::Logger::getInstance(_T("CDevice"));
+static log4cplus::Logger logger = log4cplus::Logger::getInstance(_T("Device"));
 
 class CSafeVariant {
 public:

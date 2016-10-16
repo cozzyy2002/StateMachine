@@ -11,6 +11,7 @@
 #define new DEBUG_NEW
 #endif
 
+static log4cplus::Logger logger = log4cplus::Logger::getInstance(_T("DmoEffectorDlg"));
 
 // CAboutDlg dialog used for App About
 
