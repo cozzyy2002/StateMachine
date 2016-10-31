@@ -3,6 +3,8 @@
 
 #include "Device.h"
 
+static log4cplus::Logger logger = log4cplus::Logger::getInstance(_T("MainController"));
+
 CMainController::CMainController()
 {
 }
@@ -34,6 +36,8 @@ HRESULT CMainController::start(CDevice * inputDevice)
 	HR_ASSERT_OK(graph.QueryInterface(&m_basicAudio));
 
 	HR_ASSERT_OK(m_mediaControl->Run());
+
+	LOG4CPLUS_INFO(logger, "Started.");
 
 	return S_OK;
 }
