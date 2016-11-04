@@ -17,7 +17,9 @@ CMainController::~CMainController()
 
 HRESULT CMainController::start(CDevice * inputDevice, CDevice* outputDevice)
 {
-	LOG4CPLUS_INFO(logger, __FUNCTION__ << "('" << inputDevice->getDevicePath() << "','" << outputDevice->getDevicePath() << "')");
+	CT2A in(inputDevice->getName());
+	CT2A out(outputDevice->getName());
+	LOG4CPLUS_INFO(logger, __FUNCTION__ "('" << (LPCSTR)in << "','" << (LPCSTR)out << "')");
 
 	HR_ASSERT_OK(stop());
 
