@@ -8,7 +8,7 @@ public:
 	CMainController();
 	~CMainController();
 
-	HRESULT start(CDevice* inputDevice);
+	HRESULT start(CDevice* inputDevice, CDevice* outputDevice);
 	HRESULT stop();
 
 protected:

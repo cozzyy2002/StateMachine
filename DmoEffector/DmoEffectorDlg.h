@@ -44,4 +44,5 @@ public:
 	CComboBox m_inputDeviceSel;
 	afx_msg void OnBnClickedButtonStart();
 	CComboBox m_outputDeviceSel;
+	afx_msg void OnBnClickedButtonStop();
 };

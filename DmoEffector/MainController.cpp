@@ -15,8 +15,10 @@ CMainController::~CMainController()
 	HR_EXPECT_OK(stop());
 }
 
-HRESULT CMainController::start(CDevice * inputDevice)
+HRESULT CMainController::start(CDevice * inputDevice, CDevice* outputDevice)
 {
+	LOG4CPLUS_INFO(logger, __FUNCTION__ << "('" << inputDevice->getDevicePath() << "','" << outputDevice->getDevicePath() << "')");
+
 	HR_ASSERT_OK(stop());
 
 	CComPtr<IGraphBuilder> graph;
@@ -30,28 +32,30 @@ HRESULT CMainController::start(CDevice * inputDevice)
 	CComPtr<IBaseFilter> inputFilter;
 	HR_ASSERT_OK(inputDevice->getBaseFilter(&inputFilter));
 	HR_ASSERT_OK(graph->AddFilter(inputFilter, NULL));
-	HR_ASSERT_OK(m_graphBuilder->RenderStream(&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Audio, inputFilter, NULL, NULL));
+	CComPtr<IBaseFilter> outputFilter;
+	HR_ASSERT_OK(outputDevice->getBaseFilter(&outputFilter));
+	HR_ASSERT_OK(graph->AddFilter(outputFilter, NULL));
+	HR_ASSERT_OK(m_graphBuilder->RenderStream(&PIN_CATEGORY_PREVIEW, &MEDIATYPE_Audio, inputFilter, NULL, outputFilter));
 
 	HR_ASSERT_OK(graph.QueryInterface(&m_mediaControl));
 	HR_ASSERT_OK(graph.QueryInterface(&m_basicAudio));
 
 	HR_ASSERT_OK(m_mediaControl->Run());
 
-	LOG4CPLUS_INFO(logger, "Started.");
-
 	return S_OK;
 }
 
 HRESULT CMainController::stop()
 {
+	LOG4CPLUS_INFO(logger, __FUNCTION__ << "(" << (m_mediaControl ? "Running" : "Stopped") << ")");
+
 	if (m_mediaControl) {
 		HR_EXPECT_OK(m_mediaControl->Stop());
 		m_mediaControl.Release();
 	}
 
-	if (m_graphBuilder) {
-		m_graphBuilder.Release();
-	}
+	m_graphBuilder.Release();
+	m_basicAudio.Release();
 
 	return S_OK;
 }

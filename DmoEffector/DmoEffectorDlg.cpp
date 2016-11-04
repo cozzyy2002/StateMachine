@@ -68,6 +68,7 @@ BEGIN_MESSAGE_MAP(CDmoEffectorDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(ID_BUTTON_START, &CDmoEffectorDlg::OnBnClickedButtonStart)
+	ON_BN_CLICKED(ID_BUTTON_STOP, &CDmoEffectorDlg::OnBnClickedButtonStop)
 END_MESSAGE_MAP()
 
 
@@ -105,19 +106,31 @@ BOOL CDmoEffectorDlg::OnInitDialog()
 	// TODO: Add extra initialization here
 
 	// Get input/output devices and show them in the device list of UI.
+	static LPCTSTR noDeiceMessage = _T("<No device found>");
+	int index;
 	HR_EXPECT_OK(CDevice::createDeviceList(CLSID_AudioInputDeviceCategory, m_inputDeviceList));
 	for (CDevice::device_list_t::const_iterator i = m_inputDeviceList.begin(); i != m_inputDeviceList.end(); i++) {
 		CDevice* dev = i->get();
-		m_inputDeviceSel.AddString(dev->getName());
+		index = m_inputDeviceSel.AddString(dev->getName());
+		m_inputDeviceSel.SetItemDataPtr(index, dev);
 	}
-	if (0 < m_inputDeviceSel.GetCount()) m_inputDeviceSel.SetCurSel(0);
+	if (0 == m_inputDeviceSel.GetCount()) {
+		m_inputDeviceSel.AddString(noDeiceMessage);
+		m_inputDeviceSel.SetItemDataPtr(0, NULL);
+	}
+	m_inputDeviceSel.SetCurSel(0);
 
 	HR_EXPECT_OK(CDevice::createDeviceList(CLSID_AudioRendererCategory, m_outputDeviceList));
 	for (CDevice::device_list_t::const_iterator i = m_outputDeviceList.begin(); i != m_outputDeviceList.end(); i++) {
 		CDevice* dev = i->get();
-		m_outputDeviceSel.AddString(dev->getName());
+		index = m_outputDeviceSel.AddString(dev->getName());
+		m_outputDeviceSel.SetItemDataPtr(index, dev);
 	}
-	if (0 < m_outputDeviceSel.GetCount()) m_outputDeviceSel.SetCurSel(0);
+	if (0 == m_outputDeviceSel.GetCount()) {
+		m_outputDeviceSel.AddString(noDeiceMessage);
+		m_outputDeviceSel.SetItemDataPtr(0, NULL);
+	}
+	m_outputDeviceSel.SetCurSel(0);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -198,18 +211,24 @@ HRESULT loadAsio(IASIO** ppAsio)
 
 void CDmoEffectorDlg::OnBnClickedButtonStart()
 {
-	CComPtr<IASIO> asio;
-	if (SUCCEEDED(loadAsio(&asio))) {
-		LOG4CPLUS_INFO(logger, "IASIO::init(): " << (asio->init(m_hWnd) ? "OK" : "NG"));
-	}
-	return;
+	//CComPtr<IASIO> asio;
+	//if (SUCCEEDED(loadAsio(&asio))) {
+	//	LOG4CPLUS_INFO(logger, "IASIO::init(): " << (asio->init(m_hWnd) ? "OK" : "NG"));
+	//}
+	//return;
 
 	UpdateData(TRUE);
 
-	int sel = m_inputDeviceSel.GetCurSel();
-	if ((0 <= sel) && (sel < (int)m_inputDeviceList.size())) {
-		m_mainController.start(m_inputDeviceList[sel].get());
-	} else {
-		LOG4CPLUS_ERROR(logger, "Invalid device selection: " << sel);
+	CDevice* inputDevice = (CDevice*)m_inputDeviceSel.GetItemDataPtr(m_inputDeviceSel.GetCurSel());
+	CDevice* outputDevice = (CDevice*)m_outputDeviceSel.GetItemDataPtr(m_outputDeviceSel.GetCurSel());
+
+	if (inputDevice && outputDevice) {
+		m_mainController.start(inputDevice, outputDevice);
 	}
+}
+
+
+void CDmoEffectorDlg::OnBnClickedButtonStop()
+{
+	m_mainController.stop();
 }
