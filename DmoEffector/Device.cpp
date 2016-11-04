@@ -22,8 +22,8 @@ protected:
 	HR_ASSERT_OK(devEnum.CoCreateInstance(CLSID_SystemDeviceEnum));
 
 	CComPtr<IEnumMoniker> enumMoniker;
-	HR_ASSERT_OK(devEnum->CreateClassEnumerator(category, &enumMoniker, 0));
-	HRESULT hr;
+	HRESULT hr = HR_EXPECT_OK(devEnum->CreateClassEnumerator(category, &enumMoniker, 0));
+	if (hr != S_OK) return hr;
 	while (true) {
 		CComPtr<IMoniker> moniker;
 		hr = HR_EXPECT_OK(enumMoniker->Next(1, &moniker, NULL));

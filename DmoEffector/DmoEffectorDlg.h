@@ -15,6 +15,7 @@ class CDmoEffectorDlg : public CDialogEx
 protected:
 	CMainController m_mainController;
 	CDevice::device_list_t m_inputDeviceList;
+	CDevice::device_list_t m_outputDeviceList;
 
 // Construction
 public:
@@ -42,4 +43,5 @@ protected:
 public:
 	CComboBox m_inputDeviceSel;
 	afx_msg void OnBnClickedButtonStart();
+	CComboBox m_outputDeviceSel;
 };

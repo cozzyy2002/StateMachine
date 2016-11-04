@@ -60,6 +60,7 @@ void CDmoEffectorDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_COMBO_INPUT_DEVIES, m_inputDeviceSel);
+	DDX_Control(pDX, IDC_COMBO_OUTPUT_DEVIES, m_outputDeviceSel);
 }
 
 BEGIN_MESSAGE_MAP(CDmoEffectorDlg, CDialogEx)
@@ -103,13 +104,20 @@ BOOL CDmoEffectorDlg::OnInitDialog()
 
 	// TODO: Add extra initialization here
 
-	// Get input devices and show them in the input devices list of UI.
-	HRESULT hr = CDevice::createDeviceList(CLSID_AudioInputDeviceCategory, m_inputDeviceList);
+	// Get input/output devices and show them in the device list of UI.
+	HR_EXPECT_OK(CDevice::createDeviceList(CLSID_AudioInputDeviceCategory, m_inputDeviceList));
 	for (CDevice::device_list_t::const_iterator i = m_inputDeviceList.begin(); i != m_inputDeviceList.end(); i++) {
 		CDevice* dev = i->get();
 		m_inputDeviceSel.AddString(dev->getName());
 	}
-	if (!m_inputDeviceList.empty()) m_inputDeviceSel.SetCurSel(0);
+	if (0 < m_inputDeviceSel.GetCount()) m_inputDeviceSel.SetCurSel(0);
+
+	HR_EXPECT_OK(CDevice::createDeviceList(CLSID_AudioRendererCategory, m_outputDeviceList));
+	for (CDevice::device_list_t::const_iterator i = m_outputDeviceList.begin(); i != m_outputDeviceList.end(); i++) {
+		CDevice* dev = i->get();
+		m_outputDeviceSel.AddString(dev->getName());
+	}
+	if (0 < m_outputDeviceSel.GetCount()) m_outputDeviceSel.SetCurSel(0);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
