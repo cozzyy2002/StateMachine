@@ -184,51 +184,24 @@ HCURSOR CDmoEffectorDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-#include <initguid.h>
-#include <../../ASIOSDK2.3/common/iasiodrv.h>
-
-DEFINE_GUID(clsidAsio, 0x232685C6, 0x6548, 0x49D8, 0x84, 0x6D, 0x41, 0x41, 0xA3, 0xEF, 0x75, 0x60);
-//DEFINE_GUID(clsidAsio, 0xa91eaba1, 0xcf4c, 0x11d3, 0xb9, 0x6a, 0x00, 0xa0, 0xc9, 0xc7, 0xb6, 0x1a);
-
-HRESULT loadAsio(IASIO** ppAsio)
-{
-	HMODULE hModule = LoadLibraryA("C:\\Program Files (x86)\\ASIO4ALL v2\\asio4all.dll");
-	WIN32_ASSERT(hModule);
-	LPFNGETCLASSOBJECT DllGetClassObject;
-	WIN32_ASSERT(DllGetClassObject = (LPFNGETCLASSOBJECT)GetProcAddress(hModule, "DllGetClassObject"));
-
-	CComPtr<IClassFactory> factory;
-	HR_ASSERT_OK(DllGetClassObject(clsidAsio, IID_PPV_ARGS(&factory)));
-	CComPtr<IASIO> asio;
-	HR_ASSERT_OK(factory->CreateInstance(NULL, clsidAsio, (void**)&asio));
-	char driverName[100] = "";
-	asio->getDriverName(driverName);
-	LOG4CPLUS_INFO(logger, "Loaded '" << driverName << "' version " << asio->getDriverVersion());
-	*ppAsio = asio.Detach();
-
-	return S_OK;
-}
-
 void CDmoEffectorDlg::OnBnClickedButtonStart()
 {
-	//CComPtr<IASIO> asio;
-	//if (SUCCEEDED(loadAsio(&asio))) {
-	//	LOG4CPLUS_INFO(logger, "IASIO::init(): " << (asio->init(m_hWnd) ? "OK" : "NG"));
-	//}
-	//return;
-
 	UpdateData(TRUE);
 
-	CDevice* inputDevice = (CDevice*)m_inputDeviceSel.GetItemDataPtr(m_inputDeviceSel.GetCurSel());
-	CDevice* outputDevice = (CDevice*)m_outputDeviceSel.GetItemDataPtr(m_outputDeviceSel.GetCurSel());
+	m_mainController.setup(m_hWnd);
 
-	if (inputDevice && outputDevice) {
-		m_mainController.start(inputDevice, outputDevice);
-	}
+	//CDevice* inputDevice = (CDevice*)m_inputDeviceSel.GetItemDataPtr(m_inputDeviceSel.GetCurSel());
+	//CDevice* outputDevice = (CDevice*)m_outputDeviceSel.GetItemDataPtr(m_outputDeviceSel.GetCurSel());
+
+	//if (inputDevice && outputDevice) {
+	//	m_mainController.start(inputDevice, outputDevice);
+	//}
 }
 
 
 void CDmoEffectorDlg::OnBnClickedButtonStop()
 {
-	m_mainController.stop();
+	//m_mainController.stop();
+
+	m_mainController.shutdown();
 }

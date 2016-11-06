@@ -52,6 +52,8 @@
 #endif
 
 
+#include <common/iasiodrv.h>
+
 #include <dshow.h>
 #include <atlbase.h>
 #include <atlcom.h>

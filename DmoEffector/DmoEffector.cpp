@@ -57,7 +57,7 @@ BOOL CDmoEffectorApp::InitInstance()
 	log4cplus::PropertyConfigurator::doConfigure(_T("log4cplus.properties"));
 
 	// Prepare using COM for DirectShow.
-	CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 
 	AfxEnableControlContainer();
 
