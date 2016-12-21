@@ -14,8 +14,6 @@ public:
 	HRESULT stop();
 
 protected:
-	CComPtr<IASIO> m_asio;
-
 	CComPtr<ICaptureGraphBuilder2> m_graphBuilder;
 	CComPtr<IMediaControl> m_mediaControl;
 	CComPtr<IBasicAudio> m_basicAudio;

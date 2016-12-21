@@ -3,10 +3,9 @@
 
 #include "Device.h"
 
-#include <initguid.h>
-DEFINE_GUID(clsidAsio, 0x232685C6, 0x6548, 0x49D8, 0x84, 0x6D, 0x41, 0x41, 0xA3, 0xEF, 0x75, 0x60);
-
 static log4cplus::Logger logger = log4cplus::Logger::getInstance(_T("MainController"));
+
+
 
 CMainController::CMainController()
 {
@@ -20,13 +19,7 @@ CMainController::~CMainController()
 
 HRESULT CMainController::setup(HWND hwnd)
 {
-	m_asio.Release();
-	HR_ASSERT_OK(CoCreateInstance(clsidAsio, NULL, CLSCTX_INPROC_SERVER, clsidAsio, (LPVOID*)&m_asio));
-	HR_ASSERT(m_asio->init(hwnd), E_ABORT);
 
-	char driverName[100];
-	m_asio->getDriverName(driverName);
-	LOG4CPLUS_INFO(logger, "Loaded '" << driverName << "' version=" << m_asio->getDriverVersion());
 	return S_OK;
 }
 
@@ -34,7 +27,6 @@ HRESULT CMainController::shutdown()
 {
 	HR_EXPECT_OK(stop());
 
-	m_asio.Release();
 	return S_OK;
 }
 
