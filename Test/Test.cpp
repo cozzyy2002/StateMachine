@@ -67,7 +67,7 @@ HRESULT enumMFTransforms()
 			CComHeapPtr<WCHAR> name;
 			if (SUCCEEDED(MFTGetInfo(pClsId[n], &name, NULL, NULL, NULL, NULL, NULL))) {
 				StringFromGUID2(pClsId[n], strGuid, ARRAYSIZE(strGuid));
-				std::wcout << L"  " << n << L": " << strGuid << L":" << name.m_pData << std::endl;
+				std::wcout << L"  " << n << L": " << strGuid << L":" << (LPCWSTR)name << std::endl;
 			}
 		}
 	}
@@ -111,7 +111,7 @@ HRESULT enumDMOs()
 			CComPtr<IMFTransform> mft;
 			hr = dmo.QueryInterface(&mft);
 			StringFromGUID2(guid, strGuid, ARRAYSIZE(strGuid));
-			std::wcout << L"  " << strGuid << L":" << (SUCCEEDED(hr) ? L"MFT " : L"    ") << pStr.m_pData << std::endl;
+			std::wcout << L"  " << strGuid << L":" << (SUCCEEDED(hr) ? L"MFT " : L"    ") << (LPCWSTR)pStr << std::endl;
 
 			// Enumerate parameters.
 			CComPtr<IMediaParamInfo> pi;
@@ -129,7 +129,13 @@ HRESULT enumDMOs()
 					case MPT_ENUM:	type = L"MPT_ENUM "; break;
 					}
 					std::wcout << L"    " << type << L" " << info.szLabel << L"(" << info.szUnitText << L")="
-								<< info.mpdMinValue << L"~" << info.mpdMaxValue << L":" << info.mpdNeutralValue << std::endl;
+								<< info.mpdMinValue << L"~" << info.mpdMaxValue << L":" << info.mpdNeutralValue;
+
+					CComPtr<IMediaParams> params;
+					HR_ASSERT_OK(dmo.QueryInterface(&params));
+					MP_DATA value;
+					HR_ASSERT_OK(params->GetParam(p, &value));
+					std::wcout << L", default=" << value << std::endl;
 				}
 			}
 		}
