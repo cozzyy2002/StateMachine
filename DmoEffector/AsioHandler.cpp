@@ -17,6 +17,7 @@ CAsioHandler* CAsioHandler::m_instance = NULL;
 CAsioHandler::CAsioHandler(int numChannels)
 	: m_numChannels(numChannels)
 {
+	// Allocate buffer infos for channel * 2(in and out).
 	m_asioBufferInfos.reset(new ASIOBufferInfo[numChannels * 2]);
 
 	m_instance = this;
@@ -39,14 +40,18 @@ CAsioHandler * CAsioHandler::getInstance(int numChannels)
 
 HRESULT CAsioHandler::setup(HWND hwnd)
 {
+	// Create IASIO object and initialize it.
 	m_asio.Release();
 	HR_ASSERT_OK(CoCreateInstance(clsidAsio, NULL, CLSCTX_INPROC_SERVER, clsidAsio, (LPVOID*)&m_asio));
 	ASIO_ASSERT(m_asio->init(hwnd), E_ABORT);
 
+	// Show name and version of ASIO driver created.
 	char driverName[100];
 	m_asio->getDriverName(driverName);
 	LOG4CPLUS_INFO(logger, "Loaded '" << driverName << "' version=" << m_asio->getDriverVersion());
 
+	// Initialize all ASIOBufferInfo prior to calling IASIO::createBuffers().
+	// Buffers are prepared for each in/out, channel and double buffer index 0/1
 	forInChannels([this](long channel, ASIOBufferInfo&in, ASIOBufferInfo&out) {
 		in.isInput = ASIOTrue;
 		out.isInput = ASIOFalse;
@@ -55,6 +60,7 @@ HRESULT CAsioHandler::setup(HWND hwnd)
 		return S_OK;
 	});
 
+	// Create buffers.
 	long minSize, maxSize, preferredSize, granularity;
 	ASIO_ASSERT_OK(m_asio->getBufferSize(&minSize, &maxSize, &preferredSize, &granularity));
 	m_bufferSize = preferredSize;
@@ -109,6 +115,9 @@ HRESULT CAsioHandler::stop()
 	return S_OK;
 }
 
+/*
+	Call function for each channels(from 0 to m_numChannels - 1).
+*/
 HRESULT CAsioHandler::forInChannels(std::function<HRESULT(long channel, ASIOBufferInfo&in, ASIOBufferInfo&out)> func)
 {
 	for (long channel = 0; channel < m_numChannels; channel++) {

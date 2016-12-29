@@ -57,22 +57,19 @@ HRESULT enumMFTransforms()
 	for (int i = 0; i < ARRAYSIZE(g_mftCategories); i++) {
 		const GuidEntry& entry = g_mftCategories[i];
 		StringFromGUID2(entry.guid, strGuid, ARRAYSIZE(strGuid));
-		CLSID* pClsId;
+		CComHeapPtr<CLSID> pClsId;
 		UINT32 count;
 		HR_ASSERT_OK(MFTEnum(entry.guid, 0, NULL, NULL, NULL, &pClsId, &count));
 
 		std::wcout << L"\n" << strGuid << L":" << entry.name << L": Count=" << count << std::endl;
 
 		for (UINT32 n = 0; n < count; n++) {
-			LPWSTR name;
+			CComHeapPtr<WCHAR> name;
 			if (SUCCEEDED(MFTGetInfo(pClsId[n], &name, NULL, NULL, NULL, NULL, NULL))) {
 				StringFromGUID2(pClsId[n], strGuid, ARRAYSIZE(strGuid));
-				std::wcout << L"  " << n << L": " << strGuid << L":" << name << std::endl;
-				CoTaskMemFree(name);
+				std::wcout << L"  " << n << L": " << strGuid << L":" << name.m_pData << std::endl;
 			}
 		}
-
-		CoTaskMemFree(pClsId);
 	}
 
 	return S_OK;
@@ -101,18 +98,22 @@ HRESULT enumDMOs()
 						0, NULL,
 						0, NULL,
 						&enumDmo));
+
 		while (true) {
 			GUID guid;
-			WCHAR* pStr;
+			CComHeapPtr<WCHAR> pStr;
 			HRESULT hr = HR_EXPECT_OK(enumDmo->Next(1, &guid, &pStr, NULL));
 			if (hr != S_OK) break;
 			CComPtr<IMediaObject> dmo;
 			HR_ASSERT_OK(dmo.CoCreateInstance(guid));
+
+			// Check if the DMO exposes IMFTransform.
 			CComPtr<IMFTransform> mft;
 			hr = dmo.QueryInterface(&mft);
 			StringFromGUID2(guid, strGuid, ARRAYSIZE(strGuid));
-			std::wcout << L"  " << strGuid << L":" << (SUCCEEDED(hr) ? L"MFT " : L"    ") << pStr << std::endl;
-			CoTaskMemFree(pStr);
+			std::wcout << L"  " << strGuid << L":" << (SUCCEEDED(hr) ? L"MFT " : L"    ") << pStr.m_pData << std::endl;
+
+			// Enumerate parameters.
 			CComPtr<IMediaParamInfo> pi;
 			if (SUCCEEDED(dmo.QueryInterface(&pi))) {
 				DWORD paramCount;
