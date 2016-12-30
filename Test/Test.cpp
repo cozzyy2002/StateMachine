@@ -50,24 +50,22 @@ static const GuidEntry g_mftCategories[] = {
 	GUID_ENTRY(MFT_CATEGORY_VIDEO_PROCESSOR),
 };
 
-static OLECHAR strGuid[40];
-
 HRESULT enumMFTransforms()
 {
 	for (int i = 0; i < ARRAYSIZE(g_mftCategories); i++) {
 		const GuidEntry& entry = g_mftCategories[i];
-		StringFromGUID2(entry.guid, strGuid, ARRAYSIZE(strGuid));
+		CComBSTR strGuid(entry.guid);
 		CComHeapPtr<CLSID> pClsId;
 		UINT32 count;
 		HR_ASSERT_OK(MFTEnum(entry.guid, 0, NULL, NULL, NULL, &pClsId, &count));
 
-		std::wcout << L"\n" << strGuid << L":" << entry.name << L": Count=" << count << std::endl;
+		std::wcout << L"\n" << (LPCWSTR)strGuid << L":" << entry.name << L": Count=" << count << std::endl;
 
 		for (UINT32 n = 0; n < count; n++) {
 			CComHeapPtr<WCHAR> name;
 			if (SUCCEEDED(MFTGetInfo(pClsId[n], &name, NULL, NULL, NULL, NULL, NULL))) {
-				StringFromGUID2(pClsId[n], strGuid, ARRAYSIZE(strGuid));
-				std::wcout << L"  " << n << L": " << strGuid << L":" << (LPCWSTR)name << std::endl;
+				CComBSTR strGuid(pClsId[n]);
+				std::wcout << L"  " << n << L": " << (LPCWSTR)strGuid << L":" << (LPCWSTR)name << std::endl;
 			}
 		}
 	}
@@ -90,8 +88,8 @@ HRESULT enumDMOs()
 	for (int i = 0; i < ARRAYSIZE(g_dmoCategories); i++) {
 		const GuidEntry& entry = g_dmoCategories[i];
 
-		StringFromGUID2(entry.guid, strGuid, ARRAYSIZE(strGuid));
-		std::wcout << L"\n" << strGuid << L":" << entry.name << std::endl;
+		CComBSTR strGuid(entry.guid);
+		std::wcout << L"\n" << (LPCWSTR)strGuid << L":" << entry.name << std::endl;
 
 		CComPtr<IEnumDMO> enumDmo;
 		HR_ASSERT_OK(DMOEnum(entry.guid, DMO_ENUMF_INCLUDE_KEYED,
@@ -110,8 +108,8 @@ HRESULT enumDMOs()
 			// Check if the DMO exposes IMFTransform.
 			CComPtr<IMFTransform> mft;
 			hr = dmo.QueryInterface(&mft);
-			StringFromGUID2(guid, strGuid, ARRAYSIZE(strGuid));
-			std::wcout << L"  " << strGuid << L":" << (SUCCEEDED(hr) ? L"MFT " : L"    ") << (LPCWSTR)pStr << std::endl;
+			CComBSTR strGuid(guid);
+			std::wcout << L"  " << (LPCWSTR)strGuid << L":" << (SUCCEEDED(hr) ? L"MFT " : L"    ") << (LPCWSTR)pStr << std::endl;
 
 			// Enumerate parameters.
 			CComPtr<IMediaParamInfo> pi;
