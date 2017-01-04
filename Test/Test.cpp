@@ -121,12 +121,12 @@ HRESULT enumDMOs()
 					pi->GetParamInfo(p, &info);
 					LPCWSTR type = L"?";
 					switch (info.mpType) {
-					case MPT_INT:	type = L"MPT_INT  "; break;
-					case MPT_FLOAT:	type = L"MPT_FLOAT"; break;
-					case MPT_BOOL:	type = L"MPT_BOOL "; break;
-					case MPT_ENUM:	type = L"MPT_ENUM "; break;
+					case MPT_INT:	type = L"INT  "; break;
+					case MPT_FLOAT:	type = L"FLOAT"; break;
+					case MPT_BOOL:	type = L"BOOL "; break;
+					case MPT_ENUM:	type = L"ENUM "; break;
 					}
-					std::wcout << L"    " << type << L" " << info.szLabel << L"(" << info.szUnitText << L")="
+					std::wcout << L"    " << p << L": " << type << L" " << info.szLabel << L"(" << info.szUnitText << L")="
 								<< info.mpdMinValue << L"~" << info.mpdMaxValue << L":" << info.mpdNeutralValue;
 
 					CComPtr<IMediaParams> params;
