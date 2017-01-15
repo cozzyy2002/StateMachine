@@ -6,6 +6,7 @@
 DEFINE_GUID(clsidAsio, 0x232685C6, 0x6548, 0x49D8, 0x84, 0x6D, 0x41, 0x41, 0xA3, 0xEF, 0x75, 0x60);
 
 static log4cplus::Logger logger = log4cplus::Logger::getInstance(_T("AsioHandler"));
+static HRESULT logChannelInfo(IASIO* asio, long channel, ASIOBool isInput);
 
 CAsioHandler* CAsioHandler::m_instance = NULL;
 
@@ -68,11 +69,15 @@ HRESULT CAsioHandler::setup(HWND hwnd)
 	LOG4CPLUS_INFO(logger, "Prepared ASIO: " << m_numChannels << "channels, Buffer size=" << m_bufferSize);
 
 	// Set 0 to all buffers.
-	forInChannels([this](long /*channel*/, ASIOBufferInfo&in, ASIOBufferInfo&out) {
+	forInChannels([this](long channel, ASIOBufferInfo&in, ASIOBufferInfo&out) {
 		ZeroMemory(in.buffers[0], m_bufferSize);
 		ZeroMemory(in.buffers[1], m_bufferSize);
 		ZeroMemory(out.buffers[0], m_bufferSize);
 		ZeroMemory(out.buffers[1], m_bufferSize);
+
+		logChannelInfo(m_asio, channel, ASIOTrue);
+		logChannelInfo(m_asio, channel, ASIOFalse);
+
 		return S_OK;
 	});
 
@@ -169,7 +174,45 @@ long CAsioHandler::asioMessage(long selector, long value, void * message, double
 {
 	if (FAILED(HR_EXPECT(m_asio, E_ILLEGAL_METHOD_CALL))) return 0;
 
-	return 0;
+	long ret = ASIOFalse;
+	LPCSTR strSelector = "UNKNOWN";
+	switch (selector) {
+	case kAsioSelectorSupported:
+		strSelector = "kAsioSelectorSupported";
+		switch (value) {
+		case kAsioSupportsTimeInfo:
+		case kAsioEngineVersion:
+			ret = ASIOTrue;
+			break;
+		}
+		break;
+	case kAsioEngineVersion:
+		strSelector = "kAsioEngineVersion";
+		ret = 2;
+		break;
+	case kAsioResetRequest:
+	case kAsioBufferSizeChange:
+	case kAsioResyncRequest:
+	case kAsioLatenciesChanged:
+		break;
+	case kAsioSupportsTimeInfo:
+		// Tell the driver that we support bufferSwitchTimeInfo() callback.
+		strSelector = "kAsioSupportsTimeInfo";
+		ret = ASIOTrue;
+		break;
+	case kAsioSupportsTimeCode:
+	case kAsioMMCCommand:
+	case kAsioSupportsInputMonitor:
+	case kAsioSupportsInputGain:
+	case kAsioSupportsInputMeter:
+	case kAsioSupportsOutputGain:
+	case kAsioSupportsOutputMeter:
+	case kAsioOverload:
+		break;
+	}
+
+	LOG4CPLUS_INFO(logger, __FUNCTION__ "(" << strSelector << ":" << selector << ",value=" << value << ") returned " << ret);
+	return ret;
 }
 
 void CAsioHandler::s_bufferSwitch(long doubleBufferIndex, ASIOBool directProcess)
@@ -203,6 +246,21 @@ long CAsioHandler::s_asioMessage(long selector, long value, void * message, doub
 ASIOCallbacks CAsioHandler::m_callbacks = {
 	s_bufferSwitch, s_sampleRateDidChange, s_asioMessage, s_bufferSwitchTimeInfo
 };
+
+/*static*/ HRESULT logChannelInfo(IASIO* asio, long channel, ASIOBool isInput)
+{
+	ASIOChannelInfo info;
+	ZeroMemory(&info, sizeof(info));
+	info.channel = channel;
+	info.isInput = isInput;
+
+	ASIO_ASSERT_OK(asio->getChannelInfo(&info));
+	LOG4CPLUS_INFO(logger, "Channel " << channel << (isInput ? ":IN " : ":OUT")
+							<< "=Group " << info.channelGroup << ",Sample type=" << info.type
+							<< " '" << info.name << "'");
+
+	return S_OK;
+}
 
 struct ErrorMessage {
 	LPCTSTR symbol;

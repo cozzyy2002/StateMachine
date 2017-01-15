@@ -1,5 +1,7 @@
 #pragma once
 
+#include "AsioHandler.h"
+
 class CDevice;
 
 class CMainController
@@ -14,7 +16,5 @@ public:
 	HRESULT stop();
 
 protected:
-	CComPtr<ICaptureGraphBuilder2> m_graphBuilder;
-	CComPtr<IMediaControl> m_mediaControl;
-	CComPtr<IBasicAudio> m_basicAudio;
+	std::unique_ptr<CAsioHandler> m_asioHandler;
 };
