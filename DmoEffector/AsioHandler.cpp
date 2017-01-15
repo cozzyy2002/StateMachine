@@ -91,11 +91,11 @@ HRESULT CAsioHandler::setup(HWND hwnd)
 */
 HRESULT CAsioHandler::shutdown()
 {
-	HRESULT hr = HR_EXPECT_OK(stop());
+	// Returning S_FALSE means that this method has done nothing.
+	HRESULT hr = S_FALSE;
 
 	if (m_asio) {
-		HRESULT hr1 = ASIO_EXPECT_OK(m_asio->disposeBuffers());
-		if (SUCCEEDED(hr)) hr = hr1;
+		hr = ASIO_EXPECT_OK(m_asio->disposeBuffers());
 		m_asio.Release();
 	}
 
@@ -113,7 +113,8 @@ HRESULT CAsioHandler::start()
 
 HRESULT CAsioHandler::stop()
 {
-	HR_ASSERT(m_asio, E_ILLEGAL_METHOD_CALL);
+	// Returning S_FALSE means that this method has done nothing.
+	if(!m_asio) return S_FALSE;
 
 	ASIO_ASSERT_OK(m_asio->stop());
 
