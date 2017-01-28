@@ -52,6 +52,8 @@ static const GuidEntry g_mftCategories[] = {
 
 HRESULT enumMFTransforms()
 {
+	std::wcout << "\n==== Enumerating Media Foundation transforms(MFTs) in the regstry. ====\n";
+
 	for (int i = 0; i < ARRAYSIZE(g_mftCategories); i++) {
 		const GuidEntry& entry = g_mftCategories[i];
 		CComBSTR strGuid(entry.guid);
@@ -85,6 +87,8 @@ static const GuidEntry g_dmoCategories[] = {
 
 HRESULT enumDMOs()
 {
+	std::wcout << "\n==== Enumerating DMOs listed in the registry. ====\n";
+
 	for (int i = 0; i < ARRAYSIZE(g_dmoCategories); i++) {
 		const GuidEntry& entry = g_dmoCategories[i];
 

@@ -21,6 +21,8 @@ CAsioHandler::CAsioHandler(int numChannels)
 	// Allocate buffer infos for channel * 2(in and out).
 	m_asioBufferInfos.reset(new ASIOBufferInfo[numChannels * 2]);
 
+	ZeroMemory(&m_statistics, sizeof(m_statistics));
+
 	m_instance = this;
 }
 
@@ -111,13 +113,21 @@ HRESULT CAsioHandler::start()
 	return S_OK;
 }
 
-HRESULT CAsioHandler::stop()
+HRESULT CAsioHandler::stop(const Statistics** ppStatistics /*= NULL*/)
 {
 	// Returning S_FALSE means that this method has done nothing.
 	if(!m_asio) return S_FALSE;
 
 	ASIO_ASSERT_OK(m_asio->stop());
 
+	if (ppStatistics) *ppStatistics = &m_statistics;
+	return S_OK;
+}
+
+HRESULT CAsioHandler::getProperty(Property * pProperty)
+{
+	HR_ASSERT(pProperty, E_POINTER);
+	HR_ASSERT(m_asio, E_ILLEGAL_METHOD_CALL);
 	return S_OK;
 }
 
@@ -152,6 +162,8 @@ void CAsioHandler::bufferSwitch(long doubleBufferIndex, ASIOBool directProcess)
 ASIOTime * CAsioHandler::bufferSwitchTimeInfo(ASIOTime * params, long doubleBufferIndex, ASIOBool directProcess)
 {
 	if (FAILED(HR_EXPECT(m_asio, E_ILLEGAL_METHOD_CALL))) return NULL;
+
+	m_statistics.bufferSwitch[doubleBufferIndex]++;
 
 	if (directProcess) {
 		forInChannels([this, doubleBufferIndex](long /*channel*/, ASIOBufferInfo&in, ASIOBufferInfo&out) {

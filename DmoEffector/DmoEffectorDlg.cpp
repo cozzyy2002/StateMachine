@@ -201,7 +201,7 @@ void CDmoEffectorDlg::OnBnClickedButtonStart()
 
 void CDmoEffectorDlg::OnBnClickedButtonStop()
 {
-	//m_mainController.stop();
+	m_mainController.stop();
 
 	m_mainController.shutdown();
 }

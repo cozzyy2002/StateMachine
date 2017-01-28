@@ -16,7 +16,17 @@ public:
 	HRESULT setup(HWND hwnd);
 	HRESULT shutdown();
 	HRESULT start();
-	HRESULT stop();
+
+	struct Statistics {
+		long bufferSwitch[2];	// Count of bufferSwitchTimeInfo() called for each doubleBufferIndex.
+	};
+	HRESULT stop(const Statistics** ppStatistics = NULL);
+
+	struct Property {
+
+	};
+
+	HRESULT getProperty(Property* pProperty);
 
 protected:
 	CComPtr<IASIO> m_asio;
@@ -24,6 +34,7 @@ protected:
 	int m_numChannels;
 	std::unique_ptr<ASIOBufferInfo[]> m_asioBufferInfos;
 	long m_bufferSize;
+	Statistics m_statistics;
 
 	ASIOBufferInfo& getInputBufferInfo(int channel) { return m_asioBufferInfos.get()[channel]; }
 	ASIOBufferInfo& getOutputBufferInfo(int channel) { return m_asioBufferInfos.get()[channel + m_numChannels]; }
