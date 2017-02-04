@@ -190,12 +190,12 @@ void CDmoEffectorDlg::OnBnClickedButtonStart()
 
 	m_mainController.setup(m_hWnd);
 
-	//CDevice* inputDevice = (CDevice*)m_inputDeviceSel.GetItemDataPtr(m_inputDeviceSel.GetCurSel());
-	//CDevice* outputDevice = (CDevice*)m_outputDeviceSel.GetItemDataPtr(m_outputDeviceSel.GetCurSel());
+	CDevice* inputDevice = (CDevice*)m_inputDeviceSel.GetItemDataPtr(m_inputDeviceSel.GetCurSel());
+	CDevice* outputDevice = (CDevice*)m_outputDeviceSel.GetItemDataPtr(m_outputDeviceSel.GetCurSel());
 
-	//if (inputDevice && outputDevice) {
-	//	m_mainController.start(inputDevice, outputDevice);
-	//}
+	if (inputDevice && outputDevice) {
+		m_mainController.start(inputDevice, outputDevice);
+	}
 }
 
 

@@ -48,7 +48,7 @@ HRESULT CMainController::start(CDevice * inputDevice, CDevice* outputDevice)
 HRESULT CMainController::stop()
 {
 	const CAsioHandler::Statistics* pStatistics;
-	m_asioHandler->stop(&pStatistics);
+	HR_ASSERT_OK(m_asioHandler->stop(&pStatistics));
 
 	return S_OK;
 }

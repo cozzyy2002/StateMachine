@@ -16,7 +16,7 @@ CAsioHandler* CAsioHandler::m_instance = NULL;
 	Call getInstance() static method to create or get CAsioHandler object.
 */
 CAsioHandler::CAsioHandler(int numChannels)
-	: m_numChannels(numChannels)
+	: m_state(State::NotLoaded), m_numChannels(numChannels)
 {
 	// Allocate buffer infos for channel * 2(in and out).
 	m_asioBufferInfos.reset(new ASIOBufferInfo[numChannels * 2]);
@@ -43,6 +43,8 @@ CAsioHandler * CAsioHandler::getInstance(int numChannels)
 
 HRESULT CAsioHandler::setup(HWND hwnd)
 {
+	HR_ASSERT(m_state == State::NotLoaded, E_ILLEGAL_METHOD_CALL);
+
 	// Create IASIO object and initialize it.
 	m_asio.Release();
 	HR_ASSERT_OK(CoCreateInstance(clsidAsio, NULL, CLSCTX_INPROC_SERVER, clsidAsio, (LPVOID*)&m_asio));
@@ -83,6 +85,7 @@ HRESULT CAsioHandler::setup(HWND hwnd)
 		return S_OK;
 	});
 
+	m_state = State::Prepared;
 	return S_OK;
 }
 /*
@@ -93,6 +96,10 @@ HRESULT CAsioHandler::setup(HWND hwnd)
 */
 HRESULT CAsioHandler::shutdown()
 {
+	// shutdown() method could not be called while running.
+	// Call stop() prior this method.
+	HR_ASSERT(m_state != State::Running, E_ILLEGAL_METHOD_CALL);
+
 	// Returning S_FALSE means that this method has done nothing.
 	HRESULT hr = S_FALSE;
 
@@ -101,33 +108,40 @@ HRESULT CAsioHandler::shutdown()
 		m_asio.Release();
 	}
 
+	m_state = State::NotLoaded;
 	return hr;
 }
 
 HRESULT CAsioHandler::start()
 {
-	HR_ASSERT(m_asio, E_ILLEGAL_METHOD_CALL);
+	HR_ASSERT(m_state == State::Prepared, E_ILLEGAL_METHOD_CALL);
 
 	ASIO_ASSERT_OK(m_asio->start());
 
+	m_state = State::Running;
 	return S_OK;
 }
 
 HRESULT CAsioHandler::stop(const Statistics** ppStatistics /*= NULL*/)
 {
 	// Returning S_FALSE means that this method has done nothing.
-	if(!m_asio) return S_FALSE;
+	if(m_state != State::Running) return S_FALSE;
 
 	ASIO_ASSERT_OK(m_asio->stop());
 
 	if (ppStatistics) *ppStatistics = &m_statistics;
+
+	m_state = State::Prepared;
 	return S_OK;
 }
 
 HRESULT CAsioHandler::getProperty(Property * pProperty)
 {
 	HR_ASSERT(pProperty, E_POINTER);
-	HR_ASSERT(m_asio, E_ILLEGAL_METHOD_CALL);
+
+	pProperty->state = m_state;
+	pProperty->numChannels = m_numChannels;
+	pProperty->bufferSize = m_bufferSize;
 	return S_OK;
 }
 

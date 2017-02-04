@@ -62,6 +62,7 @@
 
 #include <win32/stdafx.h>
 #include <win32/ComUtils.h>
+#include <win32/Enum.h>
 
 #ifdef UNICODE
 typedef std::wstring tstring;

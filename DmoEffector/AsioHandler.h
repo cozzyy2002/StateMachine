@@ -13,6 +13,13 @@ public:
 
 	static CAsioHandler* getInstance(int numChannels);
 
+	// State of this class.
+	ENUM(State,
+		NotLoaded,		// Asio is not loaded or has been released.
+		Prepared,		// Asio has been loaded, initialized and prepared. Ready to run.
+		Running			// Asio is running.
+	);
+
 	HRESULT setup(HWND hwnd);
 	HRESULT shutdown();
 	HRESULT start();
@@ -23,7 +30,9 @@ public:
 	HRESULT stop(const Statistics** ppStatistics = NULL);
 
 	struct Property {
-
+		State state;
+		int numChannels;
+		long bufferSize;
 	};
 
 	HRESULT getProperty(Property* pProperty);
@@ -31,6 +40,7 @@ public:
 protected:
 	CComPtr<IASIO> m_asio;
 
+	State m_state;
 	int m_numChannels;
 	std::unique_ptr<ASIOBufferInfo[]> m_asioBufferInfos;
 	long m_bufferSize;
