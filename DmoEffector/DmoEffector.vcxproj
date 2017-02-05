@@ -199,6 +199,7 @@ xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(OutDir)"</Command>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AsioDriver.h" />
     <ClInclude Include="AsioHandler.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="DmoEffector.h" />
@@ -209,6 +210,7 @@ xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(OutDir)"</Command>
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AsioDriver.cpp" />
     <ClCompile Include="AsioHandler.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="DmoEffector.cpp" />

@@ -20,6 +20,8 @@ public:
 		Running			// Asio is running.
 	);
 
+	inline const State& getState() const { return m_state; }
+
 	HRESULT setup(HWND hwnd);
 	HRESULT shutdown();
 	HRESULT start();

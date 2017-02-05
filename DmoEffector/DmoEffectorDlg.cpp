@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "DmoEffector.h"
 #include "DmoEffectorDlg.h"
+#include "AsioDriver.h"
 #include "afxdialogex.h"
 
 #ifdef _DEBUG
@@ -104,6 +105,10 @@ BOOL CDmoEffectorDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
+
+	// Get Asio driver list
+	CAsioDriver::driver_list_t asioDriverList;
+	HR_EXPECT_OK(CAsioDriver::createDriverList(asioDriverList));
 
 	// Get input/output devices and show them in the device list of UI.
 	static LPCTSTR noDeiceMessage = _T("<No device found>");

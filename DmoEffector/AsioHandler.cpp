@@ -124,12 +124,12 @@ HRESULT CAsioHandler::start()
 
 HRESULT CAsioHandler::stop(const Statistics** ppStatistics /*= NULL*/)
 {
+	if (ppStatistics) *ppStatistics = &m_statistics;
+
 	// Returning S_FALSE means that this method has done nothing.
 	if(m_state != State::Running) return S_FALSE;
 
 	ASIO_ASSERT_OK(m_asio->stop());
-
-	if (ppStatistics) *ppStatistics = &m_statistics;
 
 	m_state = State::Prepared;
 	return S_OK;
