@@ -2,6 +2,7 @@
 
 #include "AsioHandler.h"
 
+class CAsioDriver;
 class CDevice;
 
 class CMainController
@@ -10,7 +11,7 @@ public:
 	CMainController();
 	~CMainController();
 
-	HRESULT setup(HWND hwnd);
+	HRESULT setup(const CAsioDriver* pAsioDriver, HWND hwnd);
 	HRESULT shutdown();
 	HRESULT start(CDevice* inputDevice, CDevice* outputDevice);
 	HRESULT stop();

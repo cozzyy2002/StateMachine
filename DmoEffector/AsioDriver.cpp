@@ -60,7 +60,9 @@ CAsioDriver::~CAsioDriver()
 	LOG4CPLUS_DEBUG(logger, __FUNCTION__ "('" << m_description.c_str() << "')");
 }
 
-HRESULT CAsioDriver::create()
+HRESULT CAsioDriver::create(IASIO** ppAsio) const
 {
-	return E_NOTIMPL;
+	LOG4CPLUS_INFO(logger, "Creating '" << m_description.c_str() << "'");
+	HR_ASSERT_OK(CoCreateInstance(m_clsid, NULL, CLSCTX_INPROC_SERVER, m_clsid, (LPVOID*)ppAsio));
+	return S_OK;
 }

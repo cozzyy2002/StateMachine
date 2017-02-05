@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "AsioHandler.h"
-
+#include "AsioDriver.h"
 
 #include <initguid.h>
 DEFINE_GUID(clsidAsio, 0x232685C6, 0x6548, 0x49D8, 0x84, 0x6D, 0x41, 0x41, 0xA3, 0xEF, 0x75, 0x60);
@@ -41,13 +41,14 @@ CAsioHandler * CAsioHandler::getInstance(int numChannels)
 	return m_instance;
 }
 
-HRESULT CAsioHandler::setup(HWND hwnd)
+HRESULT CAsioHandler::setup(const CAsioDriver* pAsioDriver, HWND hwnd)
 {
+	HR_ASSERT(pAsioDriver, E_POINTER);
 	HR_ASSERT(m_state == State::NotLoaded, E_ILLEGAL_METHOD_CALL);
 
 	// Create IASIO object and initialize it.
 	m_asio.Release();
-	HR_ASSERT_OK(CoCreateInstance(clsidAsio, NULL, CLSCTX_INPROC_SERVER, clsidAsio, (LPVOID*)&m_asio));
+	HR_ASSERT_OK(pAsioDriver->create(&m_asio));
 	ASIO_ASSERT(m_asio->init(hwnd), E_ABORT);
 
 	// Show name and version of ASIO driver created.

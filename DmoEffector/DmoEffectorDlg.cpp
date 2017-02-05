@@ -5,7 +5,6 @@
 #include "stdafx.h"
 #include "DmoEffector.h"
 #include "DmoEffectorDlg.h"
-#include "AsioDriver.h"
 #include "afxdialogex.h"
 
 #ifdef _DEBUG
@@ -107,8 +106,7 @@ BOOL CDmoEffectorDlg::OnInitDialog()
 	// TODO: Add extra initialization here
 
 	// Get Asio driver list
-	CAsioDriver::driver_list_t asioDriverList;
-	HR_EXPECT_OK(CAsioDriver::createDriverList(asioDriverList));
+	HR_EXPECT_OK(CAsioDriver::createDriverList(m_asioDriverList));
 
 	// Get input/output devices and show them in the device list of UI.
 	static LPCTSTR noDeiceMessage = _T("<No device found>");
@@ -193,7 +191,8 @@ void CDmoEffectorDlg::OnBnClickedButtonStart()
 {
 	UpdateData(TRUE);
 
-	m_mainController.setup(m_hWnd);
+	CAsioDriver* pAsioDriver = m_asioDriverList.empty() ? nullptr : m_asioDriverList[0].get();
+	m_mainController.setup(pAsioDriver, m_hWnd);
 
 	CDevice* inputDevice = (CDevice*)m_inputDeviceSel.GetItemDataPtr(m_inputDeviceSel.GetCurSel());
 	CDevice* outputDevice = (CDevice*)m_outputDeviceSel.GetItemDataPtr(m_outputDeviceSel.GetCurSel());

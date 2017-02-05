@@ -1,4 +1,7 @@
 #pragma once
+
+struct IASIO;
+
 class CAsioDriver
 {
 public:
@@ -11,7 +14,7 @@ public:
 	~CAsioDriver();
 
 	// Creates COM object of Asio driver.
-	HRESULT create();
+	HRESULT create(IASIO** ppAsio) const;
 
 protected:
 	// Constructor

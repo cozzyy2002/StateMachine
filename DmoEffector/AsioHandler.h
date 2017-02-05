@@ -2,6 +2,8 @@
 
 #include <functional>
 
+class CAsioDriver;
+
 class CAsioHandler
 {
 protected:
@@ -22,7 +24,7 @@ public:
 
 	inline const State& getState() const { return m_state; }
 
-	HRESULT setup(HWND hwnd);
+	HRESULT setup(const CAsioDriver* pAsioDriver, HWND hwnd);
 	HRESULT shutdown();
 	HRESULT start();
 
