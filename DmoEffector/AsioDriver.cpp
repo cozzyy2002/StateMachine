@@ -6,23 +6,26 @@ static log4cplus::Logger logger = log4cplus::Logger::getInstance(_T("AsioDriver"
 /*static*/ const HKEY CAsioDriver::RegRootHandle = HKEY_LOCAL_MACHINE;
 /*static*/ LPCTSTR CAsioDriver::RegTopKeyName = _T("SOFTWARE\\ASIO");
 
+#define CREGKEY_ASSERT(exp, result) HR_ASSERT(exp, HRESULT_FROM_WIN32(result))
 #define CREGKEY_ASSERT_OK(exp) HR_ASSERT_OK(HRESULT_FROM_WIN32(exp))
-#define CREGKEY_EXPECT_OK(exp) HR_EXPECT_OK(HRESULT_FROM_WIN32(exp))
 
 HRESULT CAsioDriver::createDriverList(driver_list_t & drivers)
 {
+	// Open root registry key of Asio
 	CRegKey rootKey;
 	CREGKEY_ASSERT_OK(rootKey.Open(RegRootHandle, RegTopKeyName, KEY_READ));
 
 	DWORD index = 0;
-	long result;
-	do {
+	while(true) {
 		TCHAR name[MAX_PATH];
 		DWORD nameLength = ARRAYSIZE(name);
-		result = CREGKEY_EXPECT_OK(rootKey.EnumKey(index++, name, &nameLength));
+		long result = rootKey.EnumKey(index++, name, &nameLength);
 		if(result == ERROR_SUCCESS) {
+			// Open key of each driver contains CLSID and description.
 			CRegKey key;
 			CREGKEY_ASSERT_OK(key.Open(rootKey, name, KEY_READ));
+
+			// Read values in the key.
 			ULONG len;
 			TCHAR clsid[50];
 			TCHAR description[MAX_PATH];
@@ -34,21 +37,27 @@ HRESULT CAsioDriver::createDriverList(driver_list_t & drivers)
 			len = ARRAYSIZE(description);
 			CREGKEY_ASSERT_OK(key.QueryStringValue(_T("Description"), description, &len));
 
+			// Create CAsioDriver instance and add it to the list.
 			drivers.push_back(driver_list_t::value_type(new CAsioDriver(_clsid, description)));
+		} else {
+			CREGKEY_ASSERT(result == ERROR_NO_MORE_ITEMS, result);
+			break;
 		}
-	} while (result == ERROR_SUCCESS);
+	}
 
-	LOG4CPLUS_INFO(logger, "Found " << drivers.size() << " Asio drivers.");
+	LOG4CPLUS_DEBUG(logger, "Found " << drivers.size() << " Asio driver(s).");
 	return S_OK;
 }
 
 CAsioDriver::CAsioDriver(const CLSID& clsid, LPCTSTR description)
 	: m_clsid(clsid), m_description(description)
 {
+	LOG4CPLUS_DEBUG(logger, __FUNCTION__ "('" << m_description.c_str() << "')");
 }
 
 CAsioDriver::~CAsioDriver()
 {
+	LOG4CPLUS_DEBUG(logger, __FUNCTION__ "('" << m_description.c_str() << "')");
 }
 
 HRESULT CAsioDriver::create()

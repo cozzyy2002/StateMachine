@@ -15,7 +15,7 @@ public:
 
 protected:
 	// Constructor
-	// Only createDriverList() method can create instance of this class.
+	// Call createDriverList() method to create instance of this class.
 	CAsioDriver(const CLSID& clsid, LPCTSTR descriptio);
 
 	CLSID m_clsid;
