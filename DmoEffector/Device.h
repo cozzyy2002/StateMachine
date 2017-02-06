@@ -2,8 +2,8 @@
 class CDevice
 {
 public:
-	typedef std::vector<std::unique_ptr<CDevice>> device_list_t;
-	static HRESULT createDeviceList(REFGUID category, device_list_t& devices);
+	typedef std::vector<std::unique_ptr<CDevice>> list_t;
+	static HRESULT createDeviceList(REFGUID category, list_t& devices);
 
 	CDevice(IMoniker* moniker);
 	CDevice(LPCTSTR name, LPCTSTR devicePath);

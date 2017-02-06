@@ -61,6 +61,7 @@ void CDmoEffectorDlg::DoDataExchange(CDataExchange* pDX)
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_COMBO_INPUT_DEVIES, m_inputDeviceSel);
 	DDX_Control(pDX, IDC_COMBO_OUTPUT_DEVIES, m_outputDeviceSel);
+	DDX_Control(pDX, IDC_COMBO_ASIO_DRIVER, m_asioDriverSel);
 }
 
 BEGIN_MESSAGE_MAP(CDmoEffectorDlg, CDialogEx)
@@ -71,6 +72,20 @@ BEGIN_MESSAGE_MAP(CDmoEffectorDlg, CDialogEx)
 	ON_BN_CLICKED(ID_BUTTON_STOP, &CDmoEffectorDlg::OnBnClickedButtonStop)
 END_MESSAGE_MAP()
 
+template<class T>
+static void setupComboBox(T& list, LPCTSTR emptyItemName, CComboBox& combo)
+{
+	for (T::const_iterator i = list.begin(); i != list.end(); i++) {
+		T::value_type::pointer item = i->get();
+		int index = combo.AddString(item->getName());
+		combo.SetItemDataPtr(index, item);
+	}
+	if (0 == combo.GetCount()) {
+		combo.AddString(emptyItemName);
+		combo.SetItemDataPtr(0, NULL);
+	}
+	combo.SetCurSel(0);
+}
 
 // CDmoEffectorDlg message handlers
 
@@ -105,35 +120,18 @@ BOOL CDmoEffectorDlg::OnInitDialog()
 
 	// TODO: Add extra initialization here
 
-	// Get Asio driver list
+	// Get Asio driver list and show them in the ASIO driver list of UI.
+	static LPCTSTR noDriverMessage = _T("<No ASIO driver found>");
 	HR_EXPECT_OK(CAsioDriver::createDriverList(m_asioDriverList));
+	setupComboBox(m_asioDriverList, noDriverMessage, m_asioDriverSel);
 
 	// Get input/output devices and show them in the device list of UI.
 	static LPCTSTR noDeiceMessage = _T("<No device found>");
-	int index;
 	HR_EXPECT_OK(CDevice::createDeviceList(CLSID_AudioInputDeviceCategory, m_inputDeviceList));
-	for (CDevice::device_list_t::const_iterator i = m_inputDeviceList.begin(); i != m_inputDeviceList.end(); i++) {
-		CDevice* dev = i->get();
-		index = m_inputDeviceSel.AddString(dev->getName());
-		m_inputDeviceSel.SetItemDataPtr(index, dev);
-	}
-	if (0 == m_inputDeviceSel.GetCount()) {
-		m_inputDeviceSel.AddString(noDeiceMessage);
-		m_inputDeviceSel.SetItemDataPtr(0, NULL);
-	}
-	m_inputDeviceSel.SetCurSel(0);
+	setupComboBox(m_inputDeviceList, noDeiceMessage, m_inputDeviceSel);
 
 	HR_EXPECT_OK(CDevice::createDeviceList(CLSID_AudioRendererCategory, m_outputDeviceList));
-	for (CDevice::device_list_t::const_iterator i = m_outputDeviceList.begin(); i != m_outputDeviceList.end(); i++) {
-		CDevice* dev = i->get();
-		index = m_outputDeviceSel.AddString(dev->getName());
-		m_outputDeviceSel.SetItemDataPtr(index, dev);
-	}
-	if (0 == m_outputDeviceSel.GetCount()) {
-		m_outputDeviceSel.AddString(noDeiceMessage);
-		m_outputDeviceSel.SetItemDataPtr(0, NULL);
-	}
-	m_outputDeviceSel.SetCurSel(0);
+	setupComboBox(m_outputDeviceList, noDeiceMessage, m_outputDeviceSel);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -191,7 +189,7 @@ void CDmoEffectorDlg::OnBnClickedButtonStart()
 {
 	UpdateData(TRUE);
 
-	CAsioDriver* pAsioDriver = m_asioDriverList.empty() ? nullptr : m_asioDriverList[0].get();
+	CAsioDriver* pAsioDriver = (CAsioDriver*)m_asioDriverSel.GetItemDataPtr(m_asioDriverSel.GetCurSel());
 	m_mainController.setup(pAsioDriver, m_hWnd);
 
 	CDevice* inputDevice = (CDevice*)m_inputDeviceSel.GetItemDataPtr(m_inputDeviceSel.GetCurSel());

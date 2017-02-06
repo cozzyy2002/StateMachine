@@ -15,9 +15,9 @@ class CDmoEffectorDlg : public CDialogEx
 {
 protected:
 	CMainController m_mainController;
-	CAsioDriver::driver_list_t m_asioDriverList;
-	CDevice::device_list_t m_inputDeviceList;
-	CDevice::device_list_t m_outputDeviceList;
+	CAsioDriver::list_t m_asioDriverList;
+	CDevice::list_t m_inputDeviceList;
+	CDevice::list_t m_outputDeviceList;
 
 // Construction
 public:
@@ -47,4 +47,5 @@ public:
 	afx_msg void OnBnClickedButtonStart();
 	CComboBox m_outputDeviceSel;
 	afx_msg void OnBnClickedButtonStop();
+	CComboBox m_asioDriverSel;
 };

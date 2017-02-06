@@ -16,7 +16,7 @@ protected:
 	VARIANT m_variant;
 };
 
-/*static*/ HRESULT CDevice::createDeviceList(REFGUID category, device_list_t& devices)
+/*static*/ HRESULT CDevice::createDeviceList(REFGUID category, list_t& devices)
 {
 	CComPtr<ICreateDevEnum> devEnum;
 	HR_ASSERT_OK(devEnum.CoCreateInstance(CLSID_SystemDeviceEnum));
@@ -28,7 +28,7 @@ protected:
 		CComPtr<IMoniker> moniker;
 		hr = HR_EXPECT_OK(enumMoniker->Next(1, &moniker, NULL));
 		if (hr != S_OK) break;
-		devices.push_back(device_list_t::value_type(new CDevice(moniker)));
+		devices.push_back(list_t::value_type(new CDevice(moniker)));
 	}
 
 	return S_OK;
