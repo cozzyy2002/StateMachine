@@ -2,9 +2,6 @@
 #include "AsioHandler.h"
 #include "AsioDriver.h"
 
-#include <initguid.h>
-DEFINE_GUID(clsidAsio, 0x232685C6, 0x6548, 0x49D8, 0x84, 0x6D, 0x41, 0x41, 0xA3, 0xEF, 0x75, 0x60);
-
 static log4cplus::Logger logger = log4cplus::Logger::getInstance(_T("AsioHandler"));
 static HRESULT logChannelInfo(IASIO* asio, long channel, ASIOBool isInput);
 
