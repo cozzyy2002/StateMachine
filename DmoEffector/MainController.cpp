@@ -8,7 +8,7 @@ static log4cplus::Logger logger = log4cplus::Logger::getInstance(_T("MainControl
 
 
 CMainController::CMainController()
-	: m_asioHandler(CAsioHandler::getInstance(2))
+	: m_asioHandler(CAsioHandler::getInstance())
 {
 }
 

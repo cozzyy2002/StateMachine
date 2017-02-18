@@ -9,6 +9,7 @@ static log4cplus::Logger logger = log4cplus::Logger::getInstance(_T("AsioDriver"
 #define CREGKEY_ASSERT(exp, result) HR_ASSERT(exp, HRESULT_FROM_WIN32(result))
 #define CREGKEY_ASSERT_OK(exp) HR_ASSERT_OK(HRESULT_FROM_WIN32(exp))
 
+// Creates list for the drivers registered in the registry.
 HRESULT CAsioDriver::createDriverList(list_t & drivers)
 {
 	// Open root registry key of Asio
@@ -60,6 +61,7 @@ CAsioDriver::~CAsioDriver()
 	LOG4CPLUS_DEBUG(logger, __FUNCTION__ "('" << m_description.c_str() << "')");
 }
 
+// Creates instance of ASIO driver using CLSID.
 HRESULT CAsioDriver::create(IASIO** ppAsio) const
 {
 	LOG4CPLUS_INFO(logger, "Creating '" << m_description.c_str() << "'");

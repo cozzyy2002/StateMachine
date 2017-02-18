@@ -2,6 +2,12 @@
 
 struct IASIO;
 
+/*
+	Class that manages ASIO driver registered in registry.
+
+	Registry key HKLM\SOFTARE\ASIO contains keys for each driver.
+	Each driver has CLSID and Description value.
+*/
 class CAsioDriver
 {
 public:

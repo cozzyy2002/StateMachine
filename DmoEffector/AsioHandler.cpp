@@ -3,7 +3,8 @@
 #include "AsioDriver.h"
 
 static log4cplus::Logger logger = log4cplus::Logger::getInstance(_T("AsioHandler"));
-static HRESULT logChannelInfo(IASIO* asio, long channel, ASIOBool isInput);
+static long getSampleSize(ASIOSampleType type);
+static void logChannelInfo(const ASIOChannelInfo& info);
 
 CAsioHandler* CAsioHandler::m_instance = NULL;
 
@@ -19,6 +20,7 @@ CAsioHandler::CAsioHandler(int numChannels)
 	m_asioBufferInfos.reset(new ASIOBufferInfo[numChannels * 2]);
 
 	ZeroMemory(&m_statistics, sizeof(m_statistics));
+	ZeroMemory(&m_driverInfo, sizeof(m_driverInfo));
 
 	m_instance = this;
 }
@@ -32,7 +34,7 @@ CAsioHandler::~CAsioHandler()
 /*
 	Returns singleton CAioHandler object.
 */
-CAsioHandler * CAsioHandler::getInstance(int numChannels)
+CAsioHandler * CAsioHandler::getInstance(int numChannels /*= 0*/)
 {
 	if (!m_instance) m_instance = new CAsioHandler(numChannels);
 	return m_instance;
@@ -53,6 +55,16 @@ HRESULT CAsioHandler::setup(const CAsioDriver* pAsioDriver, HWND hwnd)
 	m_asio->getDriverName(driverName);
 	LOG4CPLUS_INFO(logger, "Loaded '" << driverName << "' version=" << m_asio->getDriverVersion());
 
+	// Get number of channels and assert that we have enough channels.
+	long numInputChannels, numOutputChannels;
+	ASIO_ASSERT_OK(m_asio->getChannels(&numInputChannels, &numOutputChannels));
+	LOG4CPLUS_INFO(logger, "Input " << numInputChannels << " channels, Output " << numOutputChannels << " channels");
+	if (0 < m_numChannels) {
+		HR_ASSERT((m_numChannels <= numInputChannels) && (m_numChannels <= numOutputChannels), E_INVALIDARG);
+	} else {
+		m_numChannels = min(numInputChannels, numOutputChannels);
+	}
+
 	// Initialize all ASIOBufferInfo prior to calling IASIO::createBuffers().
 	// Buffers are prepared for each in/out, channel and double buffer index 0/1
 	forInChannels([this](long channel, ASIOBufferInfo&in, ASIOBufferInfo&out) {
@@ -63,12 +75,14 @@ HRESULT CAsioHandler::setup(const CAsioDriver* pAsioDriver, HWND hwnd)
 		return S_OK;
 	});
 
-	// Create buffers.
+	m_driverInfo.isOutputReadySupported = (m_asio->outputReady() == ASE_OK);
+
+	// Create buffers for input and output.
 	long minSize, maxSize, preferredSize, granularity;
 	ASIO_ASSERT_OK(m_asio->getBufferSize(&minSize, &maxSize, &preferredSize, &granularity));
 	m_bufferSize = preferredSize;
 	ASIO_ASSERT_OK(m_asio->createBuffers(m_asioBufferInfos.get(), m_numChannels * 2, m_bufferSize, &m_callbacks));
-	LOG4CPLUS_INFO(logger, "Prepared ASIO: " << m_numChannels << "channels, Buffer size=" << m_bufferSize);
+	LOG4CPLUS_INFO(logger, "Created buffers: " << m_numChannels << "channels, Prepared buffer size=" << m_bufferSize);
 
 	// Set 0 to all buffers.
 	forInChannels([this](long channel, ASIOBufferInfo&in, ASIOBufferInfo&out) {
@@ -76,9 +90,6 @@ HRESULT CAsioHandler::setup(const CAsioDriver* pAsioDriver, HWND hwnd)
 		ZeroMemory(in.buffers[1], m_bufferSize);
 		ZeroMemory(out.buffers[0], m_bufferSize);
 		ZeroMemory(out.buffers[1], m_bufferSize);
-
-		logChannelInfo(m_asio, channel, ASIOTrue);
-		logChannelInfo(m_asio, channel, ASIOFalse);
 
 		return S_OK;
 	});
@@ -182,6 +193,11 @@ ASIOTime * CAsioHandler::bufferSwitchTimeInfo(ASIOTime * params, long doubleBuff
 			CopyMemory(out.buffers[doubleBufferIndex], in.buffers[doubleBufferIndex], m_bufferSize);
 			return S_OK;
 		});
+
+		// Notify the driver that output data is available if supported.
+		if (m_driverInfo.isOutputReadySupported) {
+			ASIO_EXPECT_OK(m_asio->outputReady());
+		}
 	} else {
 		// Process should be deferred.
 	}
@@ -272,19 +288,73 @@ ASIOCallbacks CAsioHandler::m_callbacks = {
 	s_bufferSwitch, s_sampleRateDidChange, s_asioMessage, s_bufferSwitchTimeInfo
 };
 
-/*static*/ HRESULT logChannelInfo(IASIO* asio, long channel, ASIOBool isInput)
+HRESULT CAsioHandler::initializeChannelInfo(long channel)
 {
-	ASIOChannelInfo info;
-	ZeroMemory(&info, sizeof(info));
-	info.channel = channel;
-	info.isInput = isInput;
+	ASIOChannelInfo input, output;
+	ZeroMemory(&input, sizeof(input));
+	ZeroMemory(&output, sizeof(output));
+	input.channel = output.channel = channel;
+	input.isInput = ASIOTrue;
+	output.isInput = ASIOFalse;
+	ASIO_ASSERT_OK(m_asio->getChannelInfo(&input));
+	logChannelInfo(input);
+	ASIO_ASSERT_OK(m_asio->getChannelInfo(&output));
+	logChannelInfo(output);
 
-	ASIO_ASSERT_OK(asio->getChannelInfo(&info));
-	LOG4CPLUS_INFO(logger, "Channel " << channel << (isInput ? ":IN " : ":OUT")
-							<< "=Group " << info.channelGroup << ",Sample type=" << info.type
-							<< " '" << info.name << "'");
+	// Input and output type should equal.
+	ASIO_ASSERT(input.type == output.type, E_ABORT);
+
+	long sampleSize = getSampleSize(input.type);
+	ASIO_ASSERT(0 < sampleSize, E_INVALIDARG);
 
 	return S_OK;
+}
+
+/*static*/ long getSampleSize(ASIOSampleType type)
+{
+	long size = 0;
+	switch (type) {
+	case ASIOSTDSDInt8LSB1:
+	case ASIOSTDSDInt8MSB1:
+	case ASIOSTDSDInt8NER8:
+		size = 1;
+		break;
+	case ASIOSTInt16MSB:
+	case ASIOSTInt16LSB:
+		size = 2;
+		break;
+	case ASIOSTInt24MSB:
+	case ASIOSTInt24LSB:
+		size = 3;
+		break;
+	case ASIOSTInt32MSB:
+	case ASIOSTFloat32MSB:
+	case ASIOSTInt32MSB16:
+	case ASIOSTInt32MSB18:
+	case ASIOSTInt32MSB20:
+	case ASIOSTInt32MSB24:
+	case ASIOSTInt32LSB:
+	case ASIOSTFloat32LSB:
+	case ASIOSTInt32LSB16:
+	case ASIOSTInt32LSB18:
+	case ASIOSTInt32LSB20:
+	case ASIOSTInt32LSB24:
+		size = 4;
+		break;
+	case ASIOSTFloat64MSB:
+	case ASIOSTFloat64LSB:
+		size = 8;
+		break;
+	}
+
+	return size;
+}
+
+/*static*/ void logChannelInfo(const ASIOChannelInfo& info)
+{
+	LOG4CPLUS_INFO(logger, "Channel " << info.channel << (info.isInput ? ":IN " : ":OUT")
+							<< "=Group " << info.channelGroup << ",Sample type=" << info.type
+							<< " '" << info.name << "'");
 }
 
 struct ErrorMessage {

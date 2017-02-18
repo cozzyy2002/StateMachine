@@ -73,14 +73,15 @@ BEGIN_MESSAGE_MAP(CDmoEffectorDlg, CDialogEx)
 END_MESSAGE_MAP()
 
 template<class T>
-static void setupComboBox(T& list, LPCTSTR emptyItemName, CComboBox& combo)
+static void setupComboBox(const T& list, LPCTSTR emptyItemName, CComboBox& combo)
 {
-	for (T::const_iterator i = list.begin(); i != list.end(); i++) {
-		T::value_type::pointer item = i->get();
-		int index = combo.AddString(item->getName());
-		combo.SetItemDataPtr(index, item);
-	}
-	if (0 == combo.GetCount()) {
+	if (!list.empty()) {
+		for (T::const_iterator i = list.begin(); i != list.end(); i++) {
+			T::value_type::pointer item = i->get();
+			int index = combo.AddString(item->getName());
+			combo.SetItemDataPtr(index, item);
+		}
+	} else {
 		combo.AddString(emptyItemName);
 		combo.SetItemDataPtr(0, NULL);
 	}

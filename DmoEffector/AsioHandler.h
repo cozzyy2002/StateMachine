@@ -13,7 +13,7 @@ protected:
 public:
 	~CAsioHandler();
 
-	static CAsioHandler* getInstance(int numChannels);
+	static CAsioHandler* getInstance(int numChannels = 0);
 
 	// State of this class.
 	ENUM(State,
@@ -44,6 +44,11 @@ public:
 protected:
 	CComPtr<IASIO> m_asio;
 
+	struct DriverInfo {
+		bool isOutputReadySupported;
+	};
+	DriverInfo m_driverInfo;
+
 	State m_state;
 	int m_numChannels;
 	std::unique_ptr<ASIOBufferInfo[]> m_asioBufferInfos;
@@ -52,6 +57,7 @@ protected:
 
 	ASIOBufferInfo& getInputBufferInfo(int channel) { return m_asioBufferInfos.get()[channel]; }
 	ASIOBufferInfo& getOutputBufferInfo(int channel) { return m_asioBufferInfos.get()[channel + m_numChannels]; }
+	HRESULT initializeChannelInfo(long channel);
 
 	HRESULT forInChannels(std::function<HRESULT(long channel, ASIOBufferInfo& in, ASIOBufferInfo& out)> func);
 
