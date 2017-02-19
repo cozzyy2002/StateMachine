@@ -113,7 +113,13 @@ HRESULT enumDMOs()
 			CComPtr<IMFTransform> mft;
 			hr = dmo.QueryInterface(&mft);
 			CComBSTR strGuid(guid);
-			std::wcout << L"  " << (LPCWSTR)strGuid << L":" << (SUCCEEDED(hr) ? L"MFT " : L"    ") << (LPCWSTR)pStr << std::endl;
+
+			DWORD inStreams, outStreams;
+			HR_ASSERT_OK(dmo->GetStreamCount(&inStreams, &outStreams));
+
+			std::wcout << L"  " << (LPCWSTR)strGuid << L":" << (SUCCEEDED(hr) ? L"MFT " : L"    ")
+				<< inStreams << L"/" << outStreams << L" streams, "
+				<< (LPCWSTR)pStr << std::endl;
 
 			// Enumerate parameters.
 			CComPtr<IMediaParamInfo> pi;
