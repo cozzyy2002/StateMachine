@@ -1,7 +1,8 @@
 #include "stdafx.h"
 #include "AsioHandlerEvent.h"
 
-CAsioHandlerEvent::CAsioHandlerEvent()
+CAsioHandlerEvent::CAsioHandlerEvent(Types type, bool isUserEvent)
+	: type(type), isUserEvent(isUserEvent)
 {
 }
 

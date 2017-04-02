@@ -44,6 +44,8 @@ public:
 
 	HRESULT getProperty(Property* pProperty);
 
+	HRESULT triggerEvent(CAsioHandlerEvent* event);
+
 #pragma region IMFAsyncCallback
 	virtual HRESULT STDMETHODCALLTYPE GetParameters(
 		/* [out] */ __RPC__out DWORD *pdwFlags,
@@ -56,7 +58,7 @@ public:
 	// Calls CUnknownImpl methods.
 	IUNKNOWN_METHODS;
 
-protected:
+public:
 	CComPtr<IASIO> m_asio;
 
 	struct DriverInfo {
@@ -90,6 +92,7 @@ protected:
 	static ASIOCallbacks m_callbacks;
 
 	std::unique_ptr<CAsioHandlerState> m_currentState;
+	DWORD m_workQueueId;
 
 	HRESULT handleEvent(const CAsioHandlerEvent* event);
 

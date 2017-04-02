@@ -43,56 +43,16 @@ CAsioHandler * CAsioHandler::getInstance(int numChannels /*= 0*/)
 HRESULT CAsioHandler::setup(const CAsioDriver* pAsioDriver, HWND hwnd)
 {
 	HR_ASSERT(pAsioDriver, E_POINTER);
-	HR_ASSERT(m_state == State::NotLoaded, E_ILLEGAL_METHOD_CALL);
 
-	// Create IASIO object and initialize it.
-	m_asio.Release();
-	HR_ASSERT_OK(pAsioDriver->create(&m_asio));
-	ASIO_ASSERT(m_asio->init(hwnd), E_ABORT);
+	// Create work queue and initial state object.
+	HR_ASSERT_OK(MFAllocateWorkQueue(&m_workQueueId));
+	m_currentState.reset(CAsioHandlerState::createInitialState(this));
 
-	// Show name and version of ASIO driver created.
-	char driverName[100];
-	m_asio->getDriverName(driverName);
-	LOG4CPLUS_INFO(logger, "Loaded '" << driverName << "' version=" << m_asio->getDriverVersion());
+	// Trigger setup event.
+	CComPtr<CAsioHandlerEvent> event(new SetupEvent(pAsioDriver, hwnd, m_numChannels));
+	return triggerEvent(event);
 
-	// Get number of channels and assert that we have enough channels.
-	long numInputChannels, numOutputChannels;
-	ASIO_ASSERT_OK(m_asio->getChannels(&numInputChannels, &numOutputChannels));
-	LOG4CPLUS_INFO(logger, "Input " << numInputChannels << " channels, Output " << numOutputChannels << " channels");
-	if (0 < m_numChannels) {
-		HR_ASSERT((m_numChannels <= numInputChannels) && (m_numChannels <= numOutputChannels), E_INVALIDARG);
-	} else {
-		m_numChannels = min(numInputChannels, numOutputChannels);
-	}
 
-	// Initialize all ASIOBufferInfo prior to calling IASIO::createBuffers().
-	// Buffers are prepared for each in/out, channel and double buffer index 0/1
-	forInChannels([this](long channel, ASIOBufferInfo&in, ASIOBufferInfo&out) {
-		in.isInput = ASIOTrue;
-		out.isInput = ASIOFalse;
-		in.channelNum = out.channelNum = channel;
-		in.buffers[0] = in.buffers[1] = out.buffers[0] = out.buffers[1] = NULL;
-		return S_OK;
-	});
-
-	m_driverInfo.isOutputReadySupported = (m_asio->outputReady() == ASE_OK);
-
-	// Create buffers for input and output.
-	long minSize, maxSize, preferredSize, granularity;
-	ASIO_ASSERT_OK(m_asio->getBufferSize(&minSize, &maxSize, &preferredSize, &granularity));
-	m_bufferSize = preferredSize;
-	ASIO_ASSERT_OK(m_asio->createBuffers(m_asioBufferInfos.get(), m_numChannels * 2, m_bufferSize, &m_callbacks));
-	LOG4CPLUS_INFO(logger, "Created buffers: " << m_numChannels << "channels, Prepared buffer size=" << m_bufferSize);
-
-	// Set 0 to all buffers.
-	forInChannels([this](long channel, ASIOBufferInfo&in, ASIOBufferInfo&out) {
-		ZeroMemory(in.buffers[0], m_bufferSize);
-		ZeroMemory(in.buffers[1], m_bufferSize);
-		ZeroMemory(out.buffers[0], m_bufferSize);
-		ZeroMemory(out.buffers[1], m_bufferSize);
-
-		return S_OK;
-	});
 
 	m_state = State::Prepared;
 	return S_OK;
@@ -157,11 +117,19 @@ HRESULT CAsioHandler::getProperty(Property * pProperty)
 HRESULT CAsioHandler::handleEvent(const CAsioHandlerEvent* event)
 {
 	CAsioHandlerState* nextState = NULL;
-	m_currentState->handleEvent(event, &nextState);
-	if (nextState) {
-		m_currentState->exit(event, nextState);
-		nextState->entry(event, m_currentState.get());
-		m_currentState.reset(nextState);
+	HRESULT hr = HR_EXPECT_OK(m_currentState->handleEvent(event, &nextState));
+	if (SUCCEEDED(hr)) {
+		if (nextState) {
+			// State transition
+			HR_ASSERT_OK(m_currentState->exit(event, nextState));
+			HR_ASSERT_OK(nextState->entry(event, m_currentState.get()));
+			m_currentState.reset(nextState);
+		}
+	} else {
+		// Failed to handle event.
+		if (event->isUserEvent) {
+			// TODO: notify error to user.
+		}
 	}
 
 	return S_OK;
