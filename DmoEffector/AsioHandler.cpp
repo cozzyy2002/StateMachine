@@ -154,6 +154,41 @@ HRESULT CAsioHandler::getProperty(Property * pProperty)
 	return S_OK;
 }
 
+HRESULT CAsioHandler::handleEvent(const CAsioHandlerEvent* event)
+{
+	CAsioHandlerState* nextState = NULL;
+	m_currentState->handleEvent(event, &nextState);
+	if (nextState) {
+		m_currentState->exit(event, nextState);
+		nextState->entry(event, m_currentState.get());
+		m_currentState.reset(nextState);
+	}
+
+	return S_OK;
+}
+
+/*
+	Implementation of IMFAsyncCallback::GetParameters().
+ */
+HRESULT STDMETHODCALLTYPE CAsioHandler::GetParameters(DWORD *pdwFlags, DWORD *pdwQueue)
+{
+	return E_NOTIMPL;
+}
+
+/*
+	Implementation of IMFAsyncCallback::Invoke().
+	Calls handleEvent() method with CAsioEvent object.
+	CAsioEvent object is obtained from state of IMFAsyncResult.
+*/
+HRESULT STDMETHODCALLTYPE CAsioHandler::Invoke(IMFAsyncResult *pAsyncResult)
+{
+	CComPtr<IUnknown> unkState;
+	HR_ASSERT_OK(pAsyncResult->GetState(&unkState));
+	CComPtr<CAsioHandlerEvent> event;
+	HR_ASSERT_OK(unkState->QueryInterface(&event));
+	return handleEvent(event);
+}
+
 /*
 	Call function for each channels(from 0 to m_numChannels - 1).
 */

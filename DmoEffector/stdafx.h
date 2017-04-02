@@ -54,6 +54,9 @@
 
 #include <common/iasiodrv.h>
 
+#include <mfapi.h>
+#include <mfobjects.h>
+
 #include <dshow.h>
 #include <atlbase.h>
 #include <atlcom.h>
@@ -69,3 +72,7 @@ typedef std::wstring tstring;
 #else
 typedef std::string tstring;
 #endif
+
+#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
+TypeName(const TypeName&);                 \
+void operator=(const TypeName&)

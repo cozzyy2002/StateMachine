@@ -201,6 +201,8 @@ xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(OutDir)"</Command>
   <ItemGroup>
     <ClInclude Include="AsioDriver.h" />
     <ClInclude Include="AsioHandler.h" />
+    <ClInclude Include="AsioHandlerEvent.h" />
+    <ClInclude Include="AsioHandlerState.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="DmoEffector.h" />
     <ClInclude Include="DmoEffectorDlg.h" />
@@ -212,6 +214,8 @@ xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(OutDir)"</Command>
   <ItemGroup>
     <ClCompile Include="AsioDriver.cpp" />
     <ClCompile Include="AsioHandler.cpp" />
+    <ClCompile Include="AsioHandlerEvent.cpp" />
+    <ClCompile Include="AsioHandlerState.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="DmoEffector.cpp" />
     <ClCompile Include="DmoEffectorDlg.cpp" />

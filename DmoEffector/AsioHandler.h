@@ -1,10 +1,13 @@
 #pragma once
 
+#include "AsioHandlerEvent.h"
+#include "AsioHandlerState.h"
+
 #include <functional>
 
 class CAsioDriver;
 
-class CAsioHandler
+class CAsioHandler : public IMFAsyncCallback, public CUnknownImpl
 {
 protected:
 	static CAsioHandler* m_instance;
@@ -41,6 +44,18 @@ public:
 
 	HRESULT getProperty(Property* pProperty);
 
+#pragma region IMFAsyncCallback
+	virtual HRESULT STDMETHODCALLTYPE GetParameters(
+		/* [out] */ __RPC__out DWORD *pdwFlags,
+		/* [out] */ __RPC__out DWORD *pdwQueue);
+
+	virtual HRESULT STDMETHODCALLTYPE Invoke(
+		/* [in] */ __RPC__in_opt IMFAsyncResult *pAsyncResult);
+#pragma endregion
+
+	// Calls CUnknownImpl methods.
+	IUNKNOWN_METHODS;
+
 protected:
 	CComPtr<IASIO> m_asio;
 
@@ -73,6 +88,15 @@ protected:
 	static long s_asioMessage(long selector, long value, void* message, double* opt);
 
 	static ASIOCallbacks m_callbacks;
+
+	std::unique_ptr<CAsioHandlerState> m_currentState;
+
+	HRESULT handleEvent(const CAsioHandlerEvent* event);
+
+#pragma warning(push)
+#pragma warning(disable: 4838)
+	IUNKNOWN_INTERFACES(QITABENT(CAsioHandler, IMFAsyncCallback));
+#pragma warning(pop)
 };
 
 #define ASIO_ASSERT HR_ASSERT
