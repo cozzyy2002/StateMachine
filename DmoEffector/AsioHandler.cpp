@@ -51,11 +51,6 @@ HRESULT CAsioHandler::setup(const CAsioDriver* pAsioDriver, HWND hwnd)
 	// Trigger setup event.
 	CComPtr<CAsioHandlerEvent> event(new SetupEvent(pAsioDriver, hwnd, m_numChannels));
 	return triggerEvent(event);
-
-
-
-	m_state = State::Prepared;
-	return S_OK;
 }
 /*
 	Shutdown the ASIO driver.
@@ -83,25 +78,14 @@ HRESULT CAsioHandler::shutdown()
 
 HRESULT CAsioHandler::start()
 {
-	HR_ASSERT(m_state == State::Prepared, E_ILLEGAL_METHOD_CALL);
-
-	ASIO_ASSERT_OK(m_asio->start());
-
-	m_state = State::Running;
-	return S_OK;
+	CComPtr<CAsioHandlerEvent> event(new UserEvent(CAsioHandlerEvent::Types::Start));
+	return triggerEvent(event);
 }
 
-HRESULT CAsioHandler::stop(const Statistics** ppStatistics /*= NULL*/)
+HRESULT CAsioHandler::stop()
 {
-	if (ppStatistics) *ppStatistics = &m_statistics;
-
-	// Returning S_FALSE means that this method has done nothing.
-	if(m_state != State::Running) return S_FALSE;
-
-	ASIO_ASSERT_OK(m_asio->stop());
-
-	m_state = State::Prepared;
-	return S_OK;
+	CComPtr<CAsioHandlerEvent> event(new UserEvent(CAsioHandlerEvent::Types::Stop));
+	return triggerEvent(event);
 }
 
 HRESULT CAsioHandler::getProperty(Property * pProperty)
@@ -127,7 +111,7 @@ HRESULT CAsioHandler::handleEvent(const CAsioHandlerEvent* event)
 {
 	CAsioHandlerState* nextState = NULL;
 	HRESULT hr = HR_EXPECT_OK(m_currentState->handleEvent(event, &nextState));
-	if (SUCCEEDED(hr) && nextState) {
+	if (nextState) {
 		// State transition
 		HR_PRESERVE_ERROR(hr, m_currentState->exit(event, nextState));
 		HR_PRESERVE_ERROR(hr, nextState->entry(event, m_currentState.get()));
@@ -194,24 +178,10 @@ void CAsioHandler::bufferSwitch(long doubleBufferIndex, ASIOBool directProcess)
 
 ASIOTime * CAsioHandler::bufferSwitchTimeInfo(ASIOTime * params, long doubleBufferIndex, ASIOBool directProcess)
 {
-	if (FAILED(HR_EXPECT(m_asio, E_ILLEGAL_METHOD_CALL))) return NULL;
-
 	m_statistics.bufferSwitch[doubleBufferIndex]++;
 
-	if (directProcess) {
-		forInChannels([this, doubleBufferIndex](long /*channel*/, ASIOBufferInfo&in, ASIOBufferInfo&out) {
-			CopyMemory(out.buffers[doubleBufferIndex], in.buffers[doubleBufferIndex], m_bufferSize);
-			return S_OK;
-		});
-
-		// Notify the driver that output data is available if supported.
-		if (m_driverInfo.isOutputReadySupported) {
-			ASIO_EXPECT_OK(m_asio->outputReady());
-		}
-	} else {
-		// Process should be deferred.
-	}
-
+	CComPtr<CAsioHandlerEvent> event(new DataEvent(params, doubleBufferIndex));
+	HR_EXPECT_OK(triggerEvent(event));
 	return nullptr;
 }
 

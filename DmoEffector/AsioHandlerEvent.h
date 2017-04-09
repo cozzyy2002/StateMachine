@@ -64,3 +64,14 @@ public:
 	const HWND hwnd;
 	const int numChannels;
 };
+
+class DataEvent : public InternalEvent
+{
+public:
+	DataEvent(const ASIOTime * params, long doubleBufferIndex)
+		: InternalEvent(Types::Data)
+		, params(*params), doubleBufferIndex(doubleBufferIndex) {}
+
+	const ASIOTime params;
+	const long doubleBufferIndex;
+};

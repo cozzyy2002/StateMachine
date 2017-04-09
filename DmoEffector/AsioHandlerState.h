@@ -57,4 +57,7 @@ public:
 	RunningState(CAsioHandlerState* previousState) : CAsioHandlerState(Types::Running, previousState) {}
 
 	virtual HRESULT handleEvent(const CAsioHandlerEvent* event, CAsioHandlerState** nextState);
+
+protected:
+	HRESULT handleData(const ASIOTime& params, long doubleBufferIndex);
 };

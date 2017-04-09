@@ -27,6 +27,8 @@ CAsioHandlerState::~CAsioHandlerState()
 HRESULT CAsioHandlerState::handleEvent(const CAsioHandlerEvent * event, CAsioHandlerState ** nextState)
 {
 	switch (event->type) {
+	case CAsioHandlerEvent::Types::Shutdown:
+		break;
 	case CAsioHandlerEvent::Types::AsioResetRequest:
 		break;
 	case CAsioHandlerEvent::Types::AsioResyncRequest:
@@ -116,5 +118,50 @@ HRESULT NotInitializedState::setup(const SetupEvent * event)
 
 HRESULT StandbyState::handleEvent(const CAsioHandlerEvent * event, CAsioHandlerState ** nextState)
 {
-	return E_NOTIMPL;
+	switch (event->type) {
+	case CAsioHandlerEvent::Types::Start:
+		ASIO_ASSERT_OK(m_asioHandler->m_asio->start());
+		*nextState = new RunningState(this);
+		break;
+	default:
+		return CAsioHandlerState::handleEvent(event, nextState);
+	}
+	return S_OK;
+}
+
+HRESULT RunningState::handleEvent(const CAsioHandlerEvent * event, CAsioHandlerState ** nextState)
+{
+	switch (event->type) {
+	case CAsioHandlerEvent::Types::Stop:
+		ASIO_ASSERT_OK(m_asioHandler->m_asio->stop());
+
+		// TODO: Notify CAsioHandler::Statistics to user.
+
+		*nextState = new StandbyState(this);
+		break;
+	case CAsioHandlerEvent::Types::Data:
+		{
+			const DataEvent* ev = static_cast<const DataEvent*>(event);
+			HR_ASSERT_OK(handleData(ev->params, ev->doubleBufferIndex));
+		}
+		break;
+	default:
+		return CAsioHandlerState::handleEvent(event, nextState);
+	}
+	return S_OK;
+}
+
+HRESULT RunningState::handleData(const ASIOTime & params, long doubleBufferIndex)
+{
+	m_asioHandler->forInChannels([this, doubleBufferIndex](long /*channel*/, ASIOBufferInfo&in, ASIOBufferInfo&out) {
+		CopyMemory(out.buffers[doubleBufferIndex], in.buffers[doubleBufferIndex], m_asioHandler->m_bufferSize);
+		return S_OK;
+	});
+
+	// Notify the driver that output data is available if supported.
+	if (m_asioHandler->m_driverInfo.isOutputReadySupported) {
+		ASIO_EXPECT_OK(m_asioHandler->m_asio->outputReady());
+	}
+
+	return S_OK;
 }

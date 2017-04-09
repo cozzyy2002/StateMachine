@@ -34,7 +34,7 @@ public:
 	struct Statistics {
 		long bufferSwitch[2];	// Count of bufferSwitchTimeInfo() called for each doubleBufferIndex.
 	};
-	HRESULT stop(const Statistics** ppStatistics = NULL);
+	HRESULT stop();
 
 	struct Property {
 		State state;
