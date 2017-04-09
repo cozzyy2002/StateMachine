@@ -18,18 +18,16 @@ public:
 
 	virtual ~CAsioHandlerState();
 
-	virtual HRESULT handleEvent(CAsioHandlerEvent* event, CAsioHandlerState** nextState) = 0;
-	virtual HRESULT entry(CAsioHandlerEvent* event, const CAsioHandlerState* previousState) { return S_OK; }
-	virtual HRESULT exit(CAsioHandlerEvent* event, const CAsioHandlerState* nextState) { return S_OK; }
+	virtual HRESULT handleEvent(const CAsioHandlerEvent* event, CAsioHandlerState** nextState);
+	virtual HRESULT entry(const CAsioHandlerEvent* event, const CAsioHandlerState* previousState) { return S_OK; }
+	virtual HRESULT exit(const CAsioHandlerEvent* event, const CAsioHandlerState* nextState) { return S_OK; }
 
 	LPCTSTR toString() const { return type.toString(); }
 
 	const Types type;
 
 protected:
-	CAsioHandlerState(CAsioHandlerState* previousState);
-
-	HRESULT onUnexpectedEvent(CAsioHandlerEvent* event);
+	CAsioHandlerState(Types type, CAsioHandlerState* previousState);
 
 	// CAsioHandler object that holds context values.
 	CAsioHandler* m_asioHandler;
@@ -38,9 +36,25 @@ protected:
 class NotInitializedState : public CAsioHandlerState
 {
 public:
-	NotInitializedState(CAsioHandler* asioHandler) : CAsioHandlerState(NULL) { m_asioHandler = asioHandler; }
-	virtual HRESULT handleEvent(CAsioHandlerEvent* event, CAsioHandlerState** nextState);
+	NotInitializedState(CAsioHandler* asioHandler) : CAsioHandlerState(Types::NotInitialized, NULL) { m_asioHandler = asioHandler; }
+	virtual HRESULT handleEvent(const CAsioHandlerEvent* event, CAsioHandlerState** nextState);
 
 protected:
-	HRESULT setup(SetupEvent* event);
+	HRESULT setup(const SetupEvent* event);
+};
+
+class StandbyState : public CAsioHandlerState
+{
+public:
+	StandbyState(CAsioHandlerState* previousState) : CAsioHandlerState(Types::Standby, previousState) {}
+
+	virtual HRESULT handleEvent(const CAsioHandlerEvent* event, CAsioHandlerState** nextState);
+};
+
+class RunningState : public CAsioHandlerState
+{
+public:
+	RunningState(CAsioHandlerState* previousState) : CAsioHandlerState(Types::Running, previousState) {}
+
+	virtual HRESULT handleEvent(const CAsioHandlerEvent* event, CAsioHandlerState** nextState);
 };

@@ -10,7 +10,17 @@ CAsioHandlerEvent : public IUnknown, public CUnknownImpl
 	DISALLOW_COPY_AND_ASSIGN(CAsioHandlerEvent);
 
 public:
-	ENUM(Types, Setup, Shutdown, Start, Stop, Data);
+	ENUM(Types,
+		Setup,						/// CAsioHandler::setup() method has been called by user.
+		Shutdown,					/// CAsioHandler::shutdonw() method has been called by user.
+		Start,						/// CAsioHandler::start() method has been called by user.
+		Stop,						/// CAsioHandler::stop() method has been called by user.
+		Data,						/// CAsioHandler::bufferSwitchTimeInfo() callback has been called by ASIO driver.
+		AsioResetRequest,			/// ASIO driver requests a reset.
+		//AsioBufferSizeChange,		/// ASIO buffer sizes will change, issued by the user. - Done by AsioRestRequest
+		AsioResyncRequest,			/// ASIO driver detected underruns and requires a resynchronization.
+		AsioLatenciesChanged		/// ASIO driver detected a latancy change.
+	);
 
 public:
 	virtual ~CAsioHandlerEvent();

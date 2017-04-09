@@ -114,22 +114,29 @@ HRESULT CAsioHandler::getProperty(Property * pProperty)
 	return S_OK;
 }
 
+HRESULT CAsioHandler::triggerEvent(CAsioHandlerEvent * event)
+{
+	HR_ASSERT_OK(MFPutWorkItem(m_workQueueId, this, event));
+	return E_NOTIMPL;
+}
+
+// Set result of exp to hr1 unless hr1 is error.
+#define HR_PRESERVE_ERROR(hr1, exp) do { HRESULT hr2 = HR_EXPECT_OK(exp); if(SUCCEEDED(hr1)) hr1 = hr2; } while(false)
+
 HRESULT CAsioHandler::handleEvent(const CAsioHandlerEvent* event)
 {
 	CAsioHandlerState* nextState = NULL;
 	HRESULT hr = HR_EXPECT_OK(m_currentState->handleEvent(event, &nextState));
-	if (SUCCEEDED(hr)) {
-		if (nextState) {
-			// State transition
-			HR_ASSERT_OK(m_currentState->exit(event, nextState));
-			HR_ASSERT_OK(nextState->entry(event, m_currentState.get()));
-			m_currentState.reset(nextState);
-		}
-	} else {
-		// Failed to handle event.
-		if (event->isUserEvent) {
-			// TODO: notify error to user.
-		}
+	if (SUCCEEDED(hr) && nextState) {
+		// State transition
+		HR_PRESERVE_ERROR(hr, m_currentState->exit(event, nextState));
+		HR_PRESERVE_ERROR(hr, nextState->entry(event, m_currentState.get()));
+		m_currentState.reset(nextState);
+	}
+
+	if (FAILED(hr) && event->isUserEvent) {
+		// Failed to handle user event.
+		// TODO: notify error to user.
 	}
 
 	return S_OK;
@@ -219,10 +226,13 @@ long CAsioHandler::asioMessage(long selector, long value, void * message, double
 	if (FAILED(HR_EXPECT(m_asio, E_ILLEGAL_METHOD_CALL))) return 0;
 
 	long ret = ASIOFalse;
+	CComPtr<CAsioHandlerEvent> event;
 	LPCSTR strSelector = "UNKNOWN";
+
+#define CASE(x) case x: strSelector=#x;
+
 	switch (selector) {
-	case kAsioSelectorSupported:
-		strSelector = "kAsioSelectorSupported";
+	CASE(kAsioSelectorSupported)
 		switch (value) {
 		case kAsioSupportsTimeInfo:
 		case kAsioEngineVersion:
@@ -230,29 +240,37 @@ long CAsioHandler::asioMessage(long selector, long value, void * message, double
 			break;
 		}
 		break;
-	case kAsioEngineVersion:
-		strSelector = "kAsioEngineVersion";
+	CASE(kAsioEngineVersion)
 		ret = 2;
 		break;
-	case kAsioResetRequest:
-	case kAsioBufferSizeChange:
-	case kAsioResyncRequest:
-	case kAsioLatenciesChanged:
+	CASE(kAsioResetRequest)
+		event = new InternalEvent(CAsioHandlerEvent::Types::AsioResetRequest);
 		break;
-	case kAsioSupportsTimeInfo:
+	CASE(kAsioBufferSizeChange) break;
+	CASE(kAsioResyncRequest)
+		event = new InternalEvent(CAsioHandlerEvent::Types::AsioResyncRequest);
+		break;
+	CASE(kAsioLatenciesChanged)
+		event = new InternalEvent(CAsioHandlerEvent::Types::AsioLatenciesChanged);
+		break;
+	CASE(kAsioSupportsTimeInfo)
 		// Tell the driver that we support bufferSwitchTimeInfo() callback.
-		strSelector = "kAsioSupportsTimeInfo";
 		ret = ASIOTrue;
 		break;
-	case kAsioSupportsTimeCode:
-	case kAsioMMCCommand:
-	case kAsioSupportsInputMonitor:
-	case kAsioSupportsInputGain:
-	case kAsioSupportsInputMeter:
-	case kAsioSupportsOutputGain:
-	case kAsioSupportsOutputMeter:
-	case kAsioOverload:
-		break;
+	CASE(kAsioSupportsTimeCode) break;
+	CASE(kAsioMMCCommand) break;
+	CASE(kAsioSupportsInputMonitor) break;
+	CASE(kAsioSupportsInputGain) break;
+	CASE(kAsioSupportsInputMeter) break;
+	CASE(kAsioSupportsOutputGain) break;
+	CASE(kAsioSupportsOutputMeter) break;
+	CASE(kAsioOverload) break;
+	}
+
+	if (event) {
+		if (SUCCEEDED(HR_EXPECT_OK(triggerEvent(event)))) {
+			ret = ASIOTrue;
+		}
 	}
 
 	LOG4CPLUS_INFO(logger, __FUNCTION__ "(" << strSelector << ":" << selector << ",value=" << value << ") returned " << ret);

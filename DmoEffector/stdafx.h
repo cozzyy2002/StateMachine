@@ -73,6 +73,6 @@ typedef std::wstring tstring;
 typedef std::string tstring;
 #endif
 
-#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
-TypeName(const TypeName&);                 \
-void operator=(const TypeName&)
+#define DISALLOW_COPY_AND_ASSIGN(TypeName)	\
+			TypeName(const TypeName&);		\
+			void operator=(const TypeName&)
