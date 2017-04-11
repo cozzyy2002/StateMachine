@@ -204,8 +204,11 @@ long CAsioHandler::asioMessage(long selector, long value, void * message, double
 	switch (selector) {
 	CASE(kAsioSelectorSupported)
 		switch (value) {
-		case kAsioSupportsTimeInfo:
 		case kAsioEngineVersion:
+		case kAsioResetRequest:
+		case kAsioResyncRequest:
+		case kAsioLatenciesChanged:
+		case kAsioSupportsTimeInfo:
 			ret = ASIOTrue;
 			break;
 		}
