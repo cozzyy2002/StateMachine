@@ -3,8 +3,6 @@
 #include "AsioDriver.h"
 
 static log4cplus::Logger logger = log4cplus::Logger::getInstance(_T("AsioHandler"));
-static long getSampleSize(ASIOSampleType type);
-static void logChannelInfo(const ASIOChannelInfo& info);
 
 CAsioHandler* CAsioHandler::m_instance = NULL;
 
@@ -14,13 +12,12 @@ CAsioHandler* CAsioHandler::m_instance = NULL;
 	Call getInstance() static method to create or get CAsioHandler object.
 */
 CAsioHandler::CAsioHandler(int numChannels)
-	: m_state(State::NotLoaded), m_numChannels(numChannels)
 {
 	// Allocate buffer infos for channel * 2(in and out).
-	m_asioBufferInfos.reset(new ASIOBufferInfo[numChannels * 2]);
+	asioBufferInfos.reset(new ASIOBufferInfo[numChannels * 2]);
 
-	ZeroMemory(&m_statistics, sizeof(m_statistics));
-	ZeroMemory(&m_driverInfo, sizeof(m_driverInfo));
+	ZeroMemory(&statistics, sizeof(statistics));
+	ZeroMemory(&driverInfo, sizeof(driverInfo));
 
 	m_instance = this;
 }
@@ -49,7 +46,7 @@ HRESULT CAsioHandler::setup(const CAsioDriver* pAsioDriver, HWND hwnd)
 	m_currentState.reset(CAsioHandlerState::createInitialState(this));
 
 	// Trigger setup event.
-	CComPtr<CAsioHandlerEvent> event(new SetupEvent(pAsioDriver, hwnd, m_numChannels));
+	CComPtr<CAsioHandlerEvent> event(new SetupEvent(pAsioDriver, hwnd, numChannels));
 	return triggerEvent(event);
 }
 /*
@@ -67,9 +64,9 @@ HRESULT CAsioHandler::shutdown()
 	// Returning S_FALSE means that this method has done nothing.
 	HRESULT hr = S_FALSE;
 
-	if (m_asio) {
-		hr = ASIO_EXPECT_OK(m_asio->disposeBuffers());
-		m_asio.Release();
+	if (asio) {
+		hr = ASIO_EXPECT_OK(asio->disposeBuffers());
+		asio.Release();
 	}
 
 	m_state = State::NotLoaded;
@@ -86,16 +83,6 @@ HRESULT CAsioHandler::stop()
 {
 	CComPtr<CAsioHandlerEvent> event(new UserEvent(CAsioHandlerEvent::Types::Stop));
 	return triggerEvent(event);
-}
-
-HRESULT CAsioHandler::getProperty(Property * pProperty)
-{
-	HR_ASSERT(pProperty, E_POINTER);
-
-	pProperty->state = m_state;
-	pProperty->numChannels = m_numChannels;
-	pProperty->bufferSize = m_bufferSize;
-	return S_OK;
 }
 
 HRESULT CAsioHandler::triggerEvent(CAsioHandlerEvent * event)
@@ -148,27 +135,13 @@ HRESULT STDMETHODCALLTYPE CAsioHandler::Invoke(IMFAsyncResult *pAsyncResult)
 	return handleEvent(event);
 }
 
-/*
-	Call function for each channels(from 0 to m_numChannels - 1).
-*/
-HRESULT CAsioHandler::forInChannels(std::function<HRESULT(long channel, ASIOBufferInfo&in, ASIOBufferInfo&out)> func)
-{
-	for (long channel = 0; channel < m_numChannels; channel++) {
-		ASIOBufferInfo&in = getInputBufferInfo(channel);
-		ASIOBufferInfo&out = getOutputBufferInfo(channel);
-		HR_ASSERT_OK(func(channel, in, out));
-	}
-
-	return S_OK;
-}
-
 void CAsioHandler::bufferSwitch(long doubleBufferIndex, ASIOBool directProcess)
 {
-	if (FAILED(HR_EXPECT(m_asio, E_ILLEGAL_METHOD_CALL))) return;
+	if (FAILED(HR_EXPECT(asio, E_ILLEGAL_METHOD_CALL))) return;
 
 	ASIOTime time;
 	ZeroMemory(&time, sizeof(time));
-	HRESULT hr = ASIO_EXPECT_OK(m_asio->getSamplePosition(&time.timeInfo.samplePosition, &time.timeInfo.systemTime));
+	HRESULT hr = ASIO_EXPECT_OK(asio->getSamplePosition(&time.timeInfo.samplePosition, &time.timeInfo.systemTime));
 	if (SUCCEEDED(hr)) {
 		time.timeInfo.flags = kSystemTimeValid | kSamplePositionValid;
 	}
@@ -178,7 +151,7 @@ void CAsioHandler::bufferSwitch(long doubleBufferIndex, ASIOBool directProcess)
 
 ASIOTime * CAsioHandler::bufferSwitchTimeInfo(ASIOTime * params, long doubleBufferIndex, ASIOBool directProcess)
 {
-	m_statistics.bufferSwitch[doubleBufferIndex]++;
+	statistics.bufferSwitch[doubleBufferIndex]++;
 
 	CComPtr<CAsioHandlerEvent> event(new DataEvent(params, doubleBufferIndex));
 	HR_EXPECT_OK(triggerEvent(event));
@@ -187,13 +160,13 @@ ASIOTime * CAsioHandler::bufferSwitchTimeInfo(ASIOTime * params, long doubleBuff
 
 void CAsioHandler::sampleRateDidChange(ASIOSampleRate sRate)
 {
-	if (FAILED(HR_EXPECT(m_asio, E_ILLEGAL_METHOD_CALL))) return;
+	if (FAILED(HR_EXPECT(asio, E_ILLEGAL_METHOD_CALL))) return;
 
 }
 
 long CAsioHandler::asioMessage(long selector, long value, void * message, double * opt)
 {
-	if (FAILED(HR_EXPECT(m_asio, E_ILLEGAL_METHOD_CALL))) return 0;
+	if (FAILED(HR_EXPECT(asio, E_ILLEGAL_METHOD_CALL))) return 0;
 
 	long ret = ASIOFalse;
 	CComPtr<CAsioHandlerEvent> event;
@@ -281,118 +254,3 @@ long CAsioHandler::s_asioMessage(long selector, long value, void * message, doub
 ASIOCallbacks CAsioHandler::m_callbacks = {
 	s_bufferSwitch, s_sampleRateDidChange, s_asioMessage, s_bufferSwitchTimeInfo
 };
-
-HRESULT CAsioHandler::initializeChannelInfo(long channel)
-{
-	ASIOChannelInfo input, output;
-	ZeroMemory(&input, sizeof(input));
-	ZeroMemory(&output, sizeof(output));
-	input.channel = output.channel = channel;
-	input.isInput = ASIOTrue;
-	output.isInput = ASIOFalse;
-	ASIO_ASSERT_OK(m_asio->getChannelInfo(&input));
-	logChannelInfo(input);
-	ASIO_ASSERT_OK(m_asio->getChannelInfo(&output));
-	logChannelInfo(output);
-
-	// Input and output type should equal.
-	ASIO_ASSERT(input.type == output.type, E_ABORT);
-
-	long sampleSize = getSampleSize(input.type);
-	ASIO_ASSERT(0 < sampleSize, E_INVALIDARG);
-
-	return S_OK;
-}
-
-/*static*/ long getSampleSize(ASIOSampleType type)
-{
-	long size = 0;
-	switch (type) {
-	case ASIOSTDSDInt8LSB1:
-	case ASIOSTDSDInt8MSB1:
-	case ASIOSTDSDInt8NER8:
-		size = 1;
-		break;
-	case ASIOSTInt16MSB:
-	case ASIOSTInt16LSB:
-		size = 2;
-		break;
-	case ASIOSTInt24MSB:
-	case ASIOSTInt24LSB:
-		size = 3;
-		break;
-	case ASIOSTInt32MSB:
-	case ASIOSTFloat32MSB:
-	case ASIOSTInt32MSB16:
-	case ASIOSTInt32MSB18:
-	case ASIOSTInt32MSB20:
-	case ASIOSTInt32MSB24:
-	case ASIOSTInt32LSB:
-	case ASIOSTFloat32LSB:
-	case ASIOSTInt32LSB16:
-	case ASIOSTInt32LSB18:
-	case ASIOSTInt32LSB20:
-	case ASIOSTInt32LSB24:
-		size = 4;
-		break;
-	case ASIOSTFloat64MSB:
-	case ASIOSTFloat64LSB:
-		size = 8;
-		break;
-	}
-
-	return size;
-}
-
-/*static*/ void logChannelInfo(const ASIOChannelInfo& info)
-{
-	LOG4CPLUS_INFO(logger, "Channel " << info.channel << (info.isInput ? ":IN " : ":OUT")
-							<< "=Group " << info.channelGroup << ",Sample type=" << info.type
-							<< " '" << info.name << "'");
-}
-
-struct ErrorMessage {
-	LPCTSTR symbol;
-	LPCTSTR description;
-};
-
-static const ErrorMessage errorMessages[] = {
-	//	ASE_OK = 0,             // This value will be returned whenever the call succeeded
-	//	ASE_SUCCESS = 0x3f4847a0,	// unique success return value for ASIOFuture calls
-		_T("ASE_NotPresent"),		_T("hardware input or output is not present or available"),
-		_T("ASE_HWMalfunction"),	_T("hardware is malfunctioning (can be returned by any ASIO function)"),
-		_T("ASE_InvalidParameter"),	_T("input parameter invalid"),
-		_T("ASE_InvalidMode"),		_T("hardware is in a bad mode or used in a bad mode"),
-		_T("ASE_SPNotAdvancing"),	_T("hardware is not running when sample position is inquired"),
-		_T("ASE_NoClock"),			_T("sample clock or rate cannot be determined or is not present"),
-		_T("ASE_NoMemory"),			_T("not enough memory for completing the request"),
-};
-
-HRESULT asioCheck(ASIOError expr, LPCTSTR exprStr, LPCTSTR src, int line)
-{
-	HRESULT hr;
-	switch (expr) {
-	case ASE_OK:
-	case ASE_SUCCESS:
-		hr = S_OK;
-		break;
-	default:
-		hr = E_FAIL;
-		{
-			static const int ASE_top = ASE_NotPresent;
-			int i = expr - ASE_top;
-			LPCTSTR symbol = _T("UNKNOWN");
-			LPCTSTR description = _T("Unknown ASIOError value");
-			if (i < ARRAYSIZE(errorMessages)) {
-				const ErrorMessage msg = errorMessages[i];
-				symbol = msg.symbol;
-				description = msg.description;
-			}
-			LOG4CPLUS_ERROR(logger,
-				exprStr << _T(" failed. ") << symbol << _T(": ") << description << _T("(") << expr
-				<< _T(") at:\n") << src << _T("(") << std::dec << line << _T(")"));
-		}
-		break;
-	}
-	return hr;
-}

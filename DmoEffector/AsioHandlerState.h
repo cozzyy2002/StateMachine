@@ -1,10 +1,9 @@
 #pragma once
 
 #include "AsioHandlerEvent.h"
+#include "AsioHandlerContext.h"
 
 #include <win32/Enum.h>
-
-class CAsioHandler;
 
 class CAsioHandlerState
 {
@@ -14,7 +13,7 @@ public:
 	ENUM(Types, NotInitialized, Standby, Running);
 
 public:
-	static CAsioHandlerState* createInitialState(CAsioHandler* asioHandler);
+	static CAsioHandlerState* createInitialState(CAsioHandlerContext* context);
 
 	virtual ~CAsioHandlerState();
 
@@ -30,13 +29,13 @@ protected:
 	CAsioHandlerState(Types type, CAsioHandlerState* previousState);
 
 	// CAsioHandler object that holds context values.
-	CAsioHandler* m_asioHandler;
+	CAsioHandlerContext* context;
 };
 
 class NotInitializedState : public CAsioHandlerState
 {
 public:
-	NotInitializedState(CAsioHandler* asioHandler) : CAsioHandlerState(Types::NotInitialized, NULL) { m_asioHandler = asioHandler; }
+	NotInitializedState(CAsioHandlerContext* context) : CAsioHandlerState(Types::NotInitialized, NULL) { context = context; }
 	virtual HRESULT handleEvent(const CAsioHandlerEvent* event, CAsioHandlerState** nextState);
 
 protected:

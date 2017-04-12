@@ -1,18 +1,17 @@
 #include "stdafx.h"
 #include "AsioHandlerState.h"
-#include "AsioHandler.h"
 #include "AsioDriver.h"
 
 static log4cplus::Logger logger = log4cplus::Logger::getInstance(_T("AsioHandler.State"));
 
 CAsioHandlerState::CAsioHandlerState(Types type, CAsioHandlerState* previousState)
-	: type(type), m_asioHandler(previousState ? previousState->m_asioHandler : NULL)
+	: type(type), context(previousState ? previousState->context : NULL)
 {
 }
 
-/*static*/ CAsioHandlerState * CAsioHandlerState::createInitialState(CAsioHandler* asioHandler)
+/*static*/ CAsioHandlerState * CAsioHandlerState::createInitialState(CAsioHandlerContext* context)
 {
-	return new NotInitializedState(asioHandler);
+	return new NotInitializedState(context);
 }
 
 CAsioHandlerState::~CAsioHandlerState()
@@ -62,9 +61,9 @@ HRESULT NotInitializedState::handleEvent(const CAsioHandlerEvent * event, CAsioH
 HRESULT NotInitializedState::setup(const SetupEvent * event)
 {
 	// Create IASIO object and initialize it.
-	m_asioHandler->m_asio.Release();
-	HR_ASSERT_OK(event->pAsioDriver->create(&m_asioHandler->m_asio));
-	IASIO* asio = m_asioHandler->m_asio;
+	context->asio.Release();
+	HR_ASSERT_OK(event->pAsioDriver->create(&context->asio));
+	IASIO* asio = context->asio;
 	ASIO_ASSERT(asio->init(event->hwnd), E_ABORT);
 
 	// Show name and version of ASIO driver created.
@@ -82,11 +81,11 @@ HRESULT NotInitializedState::setup(const SetupEvent * event)
 	} else {
 		numChannels = min(numInputChannels, numOutputChannels);
 	}
-	m_asioHandler->m_numChannels = numChannels;
+	context->numChannels = numChannels;
 
 	// Initialize all ASIOBufferInfo prior to calling IASIO::createBuffers().
 	// Buffers are prepared for each in/out, channel and double buffer index 0/1
-	m_asioHandler->forInChannels([this](long channel, ASIOBufferInfo&in, ASIOBufferInfo&out) {
+	context->forInChannels([this](long channel, ASIOBufferInfo&in, ASIOBufferInfo&out) {
 		in.isInput = ASIOTrue;
 		out.isInput = ASIOFalse;
 		in.channelNum = out.channelNum = channel;
@@ -94,21 +93,21 @@ HRESULT NotInitializedState::setup(const SetupEvent * event)
 		return S_OK;
 	});
 
-	m_asioHandler->m_driverInfo.isOutputReadySupported = (asio->outputReady() == ASE_OK);
+	context->driverInfo.isOutputReadySupported = (asio->outputReady() == ASE_OK);
 
 	// Create buffers for input and output.
 	long minSize, maxSize, preferredSize, granularity;
 	ASIO_ASSERT_OK(asio->getBufferSize(&minSize, &maxSize, &preferredSize, &granularity));
-	m_asioHandler->m_bufferSize = preferredSize;
-	ASIO_ASSERT_OK(asio->createBuffers(m_asioHandler->m_asioBufferInfos.get(), numChannels * 2, m_asioHandler->m_bufferSize, &m_asioHandler->m_callbacks));
-	LOG4CPLUS_INFO(logger, "Created buffers: " << numChannels << "channels, Prepared buffer size=" << m_asioHandler->m_bufferSize);
+	context->bufferSize = preferredSize;
+	ASIO_ASSERT_OK(asio->createBuffers(context->asioBufferInfos.get(), numChannels * 2, context->bufferSize, context->getAsioCallbacks()));
+	LOG4CPLUS_INFO(logger, "Created buffers: " << numChannels << "channels, Prepared buffer size=" << context->bufferSize);
 
 	// Set 0 to all buffers.
-	m_asioHandler->forInChannels([this](long channel, ASIOBufferInfo&in, ASIOBufferInfo&out) {
-		ZeroMemory(in.buffers[0], m_asioHandler->m_bufferSize);
-		ZeroMemory(in.buffers[1], m_asioHandler->m_bufferSize);
-		ZeroMemory(out.buffers[0], m_asioHandler->m_bufferSize);
-		ZeroMemory(out.buffers[1], m_asioHandler->m_bufferSize);
+	context->forInChannels([this](long channel, ASIOBufferInfo&in, ASIOBufferInfo&out) {
+		ZeroMemory(in.buffers[0], context->bufferSize);
+		ZeroMemory(in.buffers[1], context->bufferSize);
+		ZeroMemory(out.buffers[0], context->bufferSize);
+		ZeroMemory(out.buffers[1], context->bufferSize);
 
 		return S_OK;
 	});
@@ -120,7 +119,7 @@ HRESULT StandbyState::handleEvent(const CAsioHandlerEvent * event, CAsioHandlerS
 {
 	switch (event->type) {
 	case CAsioHandlerEvent::Types::Start:
-		ASIO_ASSERT_OK(m_asioHandler->m_asio->start());
+		ASIO_ASSERT_OK(context->asio->start());
 		*nextState = new RunningState(this);
 		break;
 	default:
@@ -133,9 +132,9 @@ HRESULT RunningState::handleEvent(const CAsioHandlerEvent * event, CAsioHandlerS
 {
 	switch (event->type) {
 	case CAsioHandlerEvent::Types::Stop:
-		ASIO_ASSERT_OK(m_asioHandler->m_asio->stop());
+		ASIO_ASSERT_OK(context->asio->stop());
 
-		// TODO: Notify CAsioHandler::Statistics to user.
+		// TODO: Notify CAsioHandlerContext::Statistics to user.
 
 		*nextState = new StandbyState(this);
 		break;
@@ -153,14 +152,14 @@ HRESULT RunningState::handleEvent(const CAsioHandlerEvent * event, CAsioHandlerS
 
 HRESULT RunningState::handleData(const ASIOTime & params, long doubleBufferIndex)
 {
-	m_asioHandler->forInChannels([this, doubleBufferIndex](long /*channel*/, ASIOBufferInfo&in, ASIOBufferInfo&out) {
-		CopyMemory(out.buffers[doubleBufferIndex], in.buffers[doubleBufferIndex], m_asioHandler->m_bufferSize);
+	context->forInChannels([this, doubleBufferIndex](long /*channel*/, ASIOBufferInfo&in, ASIOBufferInfo&out) {
+		CopyMemory(out.buffers[doubleBufferIndex], in.buffers[doubleBufferIndex], context->bufferSize);
 		return S_OK;
 	});
 
 	// Notify the driver that output data is available if supported.
-	if (m_asioHandler->m_driverInfo.isOutputReadySupported) {
-		ASIO_EXPECT_OK(m_asioHandler->m_asio->outputReady());
+	if (context->driverInfo.isOutputReadySupported) {
+		ASIO_EXPECT_OK(context->asio->outputReady());
 	}
 
 	return S_OK;
