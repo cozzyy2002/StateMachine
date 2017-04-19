@@ -35,11 +35,24 @@ HRESULT CAsioHandlerState::handleEvent(const CAsioHandlerEvent * event, CAsioHan
 	case CAsioHandlerEvent::Types::AsioLatenciesChanged:
 		break;
 	default:
-		LOG4CPLUS_FATAL(logger, "Unexpected event " << event->toString() << " in state " << this->toString());
-		return E_UNEXPECTED;
+		return handleUnexpectedEvent(event, nextState);
 	}
 
 	return S_OK;
+}
+
+HRESULT CAsioHandlerState::handleUnexpectedEvent(const CAsioHandlerEvent* event, CAsioHandlerState** nextState)
+{
+	LOG4CPLUS_FATAL(logger, "Unexpected event " << event->toString() << " in state " << this->toString());
+	return E_UNEXPECTED;
+}
+
+NotInitializedState::NotInitializedState(CAsioHandlerContext * context)
+	: CAsioHandlerState(Types::NotInitialized, NULL)
+{
+	HR_EXPECT(context, E_ABORT);
+
+	this->context = context;
 }
 
 HRESULT NotInitializedState::handleEvent(const CAsioHandlerEvent * event, CAsioHandlerState ** nextState)
@@ -53,7 +66,7 @@ HRESULT NotInitializedState::handleEvent(const CAsioHandlerEvent * event, CAsioH
 		}
 		break;
 	default:
-		return CAsioHandlerState::handleEvent(event, nextState);
+		return handleUnexpectedEvent(event, nextState);
 	}
 	return S_OK;
 }

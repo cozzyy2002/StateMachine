@@ -20,6 +20,7 @@ public:
 	virtual HRESULT handleEvent(const CAsioHandlerEvent* event, CAsioHandlerState** nextState);
 	virtual HRESULT entry(const CAsioHandlerEvent* event, const CAsioHandlerState* previousState) { return S_OK; }
 	virtual HRESULT exit(const CAsioHandlerEvent* event, const CAsioHandlerState* nextState) { return S_OK; }
+	HRESULT handleUnexpectedEvent(const CAsioHandlerEvent* event, CAsioHandlerState** nextState);
 
 	LPCTSTR toString() const { return type.toString(); }
 
@@ -35,7 +36,7 @@ protected:
 class NotInitializedState : public CAsioHandlerState
 {
 public:
-	NotInitializedState(CAsioHandlerContext* context) : CAsioHandlerState(Types::NotInitialized, NULL) { context = context; }
+	NotInitializedState(CAsioHandlerContext* context);
 	virtual HRESULT handleEvent(const CAsioHandlerEvent* event, CAsioHandlerState** nextState);
 
 protected:
