@@ -41,6 +41,8 @@ HRESULT CAsioHandler::setup(const CAsioDriver* pAsioDriver, HWND hwnd)
 {
 	HR_ASSERT(pAsioDriver, E_POINTER);
 
+	HR_ASSERT_OK(MFStartup(MF_VERSION));
+
 	// Create work queue and initial state object.
 	HR_ASSERT_OK(MFAllocateWorkQueue(&m_workQueueId));
 	m_currentState.reset(CAsioHandlerState::createInitialState(this));
@@ -68,6 +70,8 @@ HRESULT CAsioHandler::shutdown()
 		hr = ASIO_EXPECT_OK(asio->disposeBuffers());
 		asio.Release();
 	}
+
+	HR_EXPECT_OK(MFShutdown());
 
 	m_state = State::NotLoaded;
 	return hr;
