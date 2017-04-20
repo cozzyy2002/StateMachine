@@ -25,6 +25,21 @@ public:
 public:
 	virtual ~CAsioHandlerEvent();
 
+	/**
+		Cast 'this' to derived class and check event type.
+	 */
+	template<class T>
+	HRESULT cast(const Types& type, const T** ppEvent) const {
+		if (!ppEvent) return E_POINTER;
+		const T* obj = dynamic_cast<const T*>(this);
+		if (obj && (obj->type == type)) {
+			*ppEvent = obj;
+			return S_OK;
+		} else {
+			return E_INVALIDARG;
+		}
+	}
+
 	LPCTSTR toString() const { return type.toString(); }
 
 	const Types type;

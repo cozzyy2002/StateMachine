@@ -60,7 +60,8 @@ HRESULT NotInitializedState::handleEvent(const CAsioHandlerEvent * event, CAsioH
 	switch (event->type) {
 	case CAsioHandlerEvent::Types::Setup:
 		{
-			const SetupEvent* setupEvent = dynamic_cast<const SetupEvent*>(event);
+			const SetupEvent* setupEvent;
+			HR_ASSERT_OK(event->cast(event->type, &setupEvent));
 			HR_ASSERT_OK(setup(setupEvent));
 			*nextState = new StandbyState(this);
 		}
