@@ -74,10 +74,8 @@ HRESULT NotInitializedState::handleEvent(const CAsioHandlerEvent * event, CAsioH
 
 HRESULT NotInitializedState::setup(const SetupEvent * event)
 {
-	// Create IASIO object and initialize it.
-	context->asio.Release();
-	HR_ASSERT_OK(event->pAsioDriver->create(&context->asio));
-	IASIO* asio = context->asio;
+	// Initialize ASIO object.
+	IASIO* asio = context->asio = event->asio;
 	ASIO_ASSERT(asio->init(event->hwnd), E_ABORT);
 
 	// Show name and version of ASIO driver created.

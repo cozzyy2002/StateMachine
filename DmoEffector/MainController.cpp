@@ -18,9 +18,9 @@ CMainController::~CMainController()
 	HR_EXPECT_OK(shutdown());
 }
 
-HRESULT CMainController::setup(const CAsioDriver* pAsioDriver, HWND hwnd)
+HRESULT CMainController::setup(IASIO* asio, HWND hwnd)
 {
-	HR_ASSERT_OK(m_asioHandler->setup(pAsioDriver, hwnd));
+	HR_ASSERT_OK(m_asioHandler->setup(asio, hwnd));
 	return S_OK;
 }
 

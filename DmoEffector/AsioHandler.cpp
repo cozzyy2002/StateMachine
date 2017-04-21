@@ -37,9 +37,9 @@ CAsioHandler * CAsioHandler::getInstance(int numChannels /*= 0*/)
 	return m_instance;
 }
 
-HRESULT CAsioHandler::setup(const CAsioDriver* pAsioDriver, HWND hwnd)
+HRESULT CAsioHandler::setup(IASIO* asio, HWND hwnd)
 {
-	HR_ASSERT(pAsioDriver, E_POINTER);
+	HR_ASSERT(asio, E_POINTER);
 
 	HR_ASSERT_OK(MFStartup(MF_VERSION));
 
@@ -48,7 +48,7 @@ HRESULT CAsioHandler::setup(const CAsioDriver* pAsioDriver, HWND hwnd)
 	m_currentState.reset(CAsioHandlerState::createInitialState(this));
 
 	// Trigger setup event.
-	CComPtr<CAsioHandlerEvent> event(new SetupEvent(pAsioDriver, hwnd, numChannels));
+	CComPtr<CAsioHandlerEvent> event(new SetupEvent(asio, hwnd, numChannels));
 	return triggerEvent(event);
 }
 /*

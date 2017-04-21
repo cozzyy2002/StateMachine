@@ -191,13 +191,23 @@ void CDmoEffectorDlg::OnBnClickedButtonStart()
 	UpdateData(TRUE);
 
 	CAsioDriver* pAsioDriver = (CAsioDriver*)m_asioDriverSel.GetItemDataPtr(m_asioDriverSel.GetCurSel());
-	m_mainController.setup(pAsioDriver, m_hWnd);
 
-	CDevice* inputDevice = (CDevice*)m_inputDeviceSel.GetItemDataPtr(m_inputDeviceSel.GetCurSel());
-	CDevice* outputDevice = (CDevice*)m_outputDeviceSel.GetItemDataPtr(m_outputDeviceSel.GetCurSel());
+	// Create ASIO object.
+	// Note: ASIO object can not be created in worker thread such as work queue Media Foundation.
+	//       CDmoEffectorApp::InitInstance() initialized COM by COINIT_APARTMENTTHREADED in UI thread,
+	//       and ASIO has been registered so.
+	CComPtr<IASIO> asio;
+	HRESULT hr = HR_EXPECT_OK(pAsioDriver->create(&asio));
 
-	if (inputDevice && outputDevice) {
-		m_mainController.start(inputDevice, outputDevice);
+	if (SUCCEEDED(hr)) {
+		m_mainController.setup(asio, m_hWnd);
+
+		CDevice* inputDevice = (CDevice*)m_inputDeviceSel.GetItemDataPtr(m_inputDeviceSel.GetCurSel());
+		CDevice* outputDevice = (CDevice*)m_outputDeviceSel.GetItemDataPtr(m_outputDeviceSel.GetCurSel());
+
+		if (inputDevice && outputDevice) {
+			m_mainController.start(inputDevice, outputDevice);
+		}
 	}
 }
 

@@ -71,11 +71,11 @@ public:
 class SetupEvent : public UserEvent
 {
 public:
-	SetupEvent(const CAsioDriver* pAsioDriver, HWND hwnd, int numChannels)
+	SetupEvent(IASIO* asio, HWND hwnd, int numChannels)
 		: UserEvent(Types::Setup)
-		, pAsioDriver(pAsioDriver), hwnd(hwnd), numChannels(numChannels) {}
+		, asio(asio), hwnd(hwnd), numChannels(numChannels) {}
 
-	const CAsioDriver* pAsioDriver;
+	CComPtr<IASIO> asio;
 	const HWND hwnd;
 	const int numChannels;
 };

@@ -17,7 +17,7 @@ public:
 
 	static CAsioHandler* getInstance(int numChannels = 0);
 
-	HRESULT setup(const CAsioDriver* pAsioDriver, HWND hwnd);
+	HRESULT setup(IASIO* asio, HWND hwnd);
 	HRESULT shutdown();
 	HRESULT start();
 
