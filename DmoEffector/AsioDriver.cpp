@@ -39,6 +39,7 @@ HRESULT CAsioDriver::createDriverList(list_t & drivers)
 			CREGKEY_ASSERT_OK(key.QueryStringValue(_T("Description"), description, &len));
 
 			// Create CAsioDriver instance and add it to the list.
+			LOG4CPLUS_DEBUG(logger, "Creating CAsioDriver: Registry key=" << name << ", " << clsid << ", '" << description << "'");
 			drivers.push_back(list_t::value_type(new CAsioDriver(_clsid, description)));
 		} else {
 			CREGKEY_ASSERT(result == ERROR_NO_MORE_ITEMS, result);
@@ -61,10 +62,15 @@ CAsioDriver::~CAsioDriver()
 	LOG4CPLUS_DEBUG(logger, __FUNCTION__ "('" << m_description.c_str() << "')");
 }
 
-// Creates instance of ASIO driver using CLSID.
-HRESULT CAsioDriver::create(IASIO** ppAsio) const
+// Returns instance of ASIO driver using CLSID.
+HRESULT CAsioDriver::create(IASIO** ppAsio)
 {
-	LOG4CPLUS_INFO(logger, "Creating '" << m_description.c_str() << "'");
-	HR_ASSERT_OK(CoCreateInstance(m_clsid, NULL, CLSCTX_INPROC_SERVER, m_clsid, (LPVOID*)ppAsio));
+	if (!m_asio) {
+		LOG4CPLUS_INFO(logger, "Creating '" << m_description.c_str() << "'");
+		HR_ASSERT_OK(CoCreateInstance(m_clsid, NULL, CLSCTX_INPROC_SERVER, m_clsid, (LPVOID*)ppAsio));
+	} else {
+		LOG4CPLUS_INFO(logger, "Querying '" << m_description.c_str() << "'");
+		HR_ASSERT_OK(m_asio->QueryInterface(m_clsid, (void**)ppAsio));
+	}
 	return S_OK;
 }

@@ -12,7 +12,10 @@ CAsioHandler* CAsioHandler::m_instance = NULL;
 	Call getInstance() static method to create or get CAsioHandler object.
 */
 CAsioHandler::CAsioHandler(int numChannels)
+	: m_workQueueId(0)
 {
+	this->numChannels = numChannels;
+
 	// Allocate buffer infos for channel * 2(in and out).
 	asioBufferInfos.reset(new ASIOBufferInfo[numChannels * 2]);
 
@@ -33,15 +36,15 @@ CAsioHandler::~CAsioHandler()
 */
 CAsioHandler * CAsioHandler::getInstance(int numChannels /*= 0*/)
 {
-	if (!m_instance) m_instance = new CAsioHandler(numChannels);
-	return m_instance;
+	return (m_instance) ? m_instance : new CAsioHandler(numChannels);
 }
 
 HRESULT CAsioHandler::setup(IASIO* asio, HWND hwnd)
 {
 	HR_ASSERT(asio, E_POINTER);
-
 	HR_ASSERT_OK(MFStartup(MF_VERSION));
+
+	this->asio = asio;
 
 	// Create work queue and initial state object.
 	HR_ASSERT_OK(MFAllocateWorkQueue(&m_workQueueId));
@@ -66,12 +69,16 @@ HRESULT CAsioHandler::shutdown()
 	// Returning S_FALSE means that this method has done nothing.
 	HRESULT hr = S_FALSE;
 
+	if (m_workQueueId) {
+		ASIO_EXPECT_OK(MFUnlockWorkQueue(m_workQueueId));
+		HR_EXPECT_OK(MFShutdown());
+		m_workQueueId = 0;
+	}
+
 	if (asio) {
 		hr = ASIO_EXPECT_OK(asio->disposeBuffers());
 		asio.Release();
 	}
-
-	HR_EXPECT_OK(MFShutdown());
 
 	m_state = State::NotLoaded;
 	return hr;
@@ -79,20 +86,20 @@ HRESULT CAsioHandler::shutdown()
 
 HRESULT CAsioHandler::start()
 {
-	CComPtr<CAsioHandlerEvent> event(new UserEvent(CAsioHandlerEvent::Types::Start));
+	CComPtr<CAsioHandlerEvent> event(new StartEvent());
 	return triggerEvent(event);
 }
 
 HRESULT CAsioHandler::stop()
 {
-	CComPtr<CAsioHandlerEvent> event(new UserEvent(CAsioHandlerEvent::Types::Stop));
+	CComPtr<CAsioHandlerEvent> event(new StopEvent());
 	return triggerEvent(event);
 }
 
 HRESULT CAsioHandler::triggerEvent(CAsioHandlerEvent * event)
 {
 	HR_ASSERT_OK(MFPutWorkItem(m_workQueueId, this, event));
-	return E_NOTIMPL;
+	return S_OK;
 }
 
 // Set result of exp to hr1 unless hr1 is error.
@@ -127,6 +134,7 @@ HRESULT STDMETHODCALLTYPE CAsioHandler::GetParameters(DWORD *pdwFlags, DWORD *pd
 
 /*
 	Implementation of IMFAsyncCallback::Invoke().
+
 	Calls handleEvent() method with CAsioEvent object.
 	CAsioEvent object is obtained from state of IMFAsyncResult.
 */
@@ -194,14 +202,14 @@ long CAsioHandler::asioMessage(long selector, long value, void * message, double
 		ret = 2;
 		break;
 	CASE(kAsioResetRequest)
-		event = new InternalEvent(CAsioHandlerEvent::Types::AsioResetRequest);
+		event = new AsioResetRequestEvent();
 		break;
 	CASE(kAsioBufferSizeChange) break;
 	CASE(kAsioResyncRequest)
-		event = new InternalEvent(CAsioHandlerEvent::Types::AsioResyncRequest);
+		event = new AsioResyncRequestEvent();
 		break;
 	CASE(kAsioLatenciesChanged)
-		event = new InternalEvent(CAsioHandlerEvent::Types::AsioLatenciesChanged);
+		event = new AsioLatenciesChangedEvent();
 		break;
 	CASE(kAsioSupportsTimeInfo)
 		// Tell the driver that we support bufferSwitchTimeInfo() callback.

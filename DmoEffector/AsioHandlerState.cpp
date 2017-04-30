@@ -27,12 +27,16 @@ HRESULT CAsioHandlerState::handleEvent(const CAsioHandlerEvent * event, CAsioHan
 {
 	switch (event->type) {
 	case CAsioHandlerEvent::Types::Shutdown:
+		HR_ASSERT_OK(event->checkType<ShutdownEvent>());
 		break;
 	case CAsioHandlerEvent::Types::AsioResetRequest:
+		HR_ASSERT_OK(event->checkType<AsioResetRequestEvent>());
 		break;
 	case CAsioHandlerEvent::Types::AsioResyncRequest:
+		HR_ASSERT_OK(event->checkType<AsioResyncRequestEvent>());
 		break;
 	case CAsioHandlerEvent::Types::AsioLatenciesChanged:
+		HR_ASSERT_OK(event->checkType<AsioLatenciesChangedEvent>());
 		break;
 	default:
 		return handleUnexpectedEvent(event, nextState);
@@ -50,7 +54,7 @@ HRESULT CAsioHandlerState::handleUnexpectedEvent(const CAsioHandlerEvent* event,
 NotInitializedState::NotInitializedState(CAsioHandlerContext * context)
 	: CAsioHandlerState(Types::NotInitialized, NULL)
 {
-	HR_EXPECT(context, E_ABORT);
+	HR_EXPECT(context, E_POINTER);
 
 	this->context = context;
 }
@@ -61,7 +65,7 @@ HRESULT NotInitializedState::handleEvent(const CAsioHandlerEvent * event, CAsioH
 	case CAsioHandlerEvent::Types::Setup:
 		{
 			const SetupEvent* setupEvent;
-			HR_ASSERT_OK(event->cast(event->type, &setupEvent));
+			HR_ASSERT_OK(event->cast(&setupEvent));
 			HR_ASSERT_OK(setup(setupEvent));
 			*nextState = new StandbyState(this);
 		}
@@ -131,6 +135,7 @@ HRESULT StandbyState::handleEvent(const CAsioHandlerEvent * event, CAsioHandlerS
 {
 	switch (event->type) {
 	case CAsioHandlerEvent::Types::Start:
+		HR_ASSERT_OK(event->checkType<StartEvent>());
 		ASIO_ASSERT_OK(context->asio->start());
 		*nextState = new RunningState(this);
 		break;
@@ -144,6 +149,7 @@ HRESULT RunningState::handleEvent(const CAsioHandlerEvent * event, CAsioHandlerS
 {
 	switch (event->type) {
 	case CAsioHandlerEvent::Types::Stop:
+		HR_ASSERT_OK(event->checkType<StopEvent>());
 		ASIO_ASSERT_OK(context->asio->stop());
 
 		// TODO: Notify CAsioHandlerContext::Statistics to user.
@@ -152,7 +158,8 @@ HRESULT RunningState::handleEvent(const CAsioHandlerEvent * event, CAsioHandlerS
 		break;
 	case CAsioHandlerEvent::Types::Data:
 		{
-			const DataEvent* ev = static_cast<const DataEvent*>(event);
+			const DataEvent* ev;
+			HR_ASSERT_OK(event->cast(&ev));
 			HR_ASSERT_OK(handleData(ev->params, ev->doubleBufferIndex));
 		}
 		break;

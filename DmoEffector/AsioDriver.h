@@ -20,7 +20,7 @@ public:
 	~CAsioDriver();
 
 	// Creates COM object of Asio driver.
-	HRESULT create(IASIO** ppAsio) const;
+	HRESULT create(IASIO** ppAsio);
 
 	// Returns description.
 	// Note: setupComboBox() template function calls getName() method to get string which appears in the combo-box.
@@ -35,4 +35,5 @@ protected:
 
 	CLSID m_clsid;
 	tstring m_description;
+	CComPtr<IASIO> m_asio;
 };

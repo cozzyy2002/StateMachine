@@ -27,18 +27,27 @@ public:
 
 	/**
 		Cast 'this' to derived class and check event type.
+
+		Event type is declared in devived class as `static const Types Type` member.
+
+		Note: Do not release returned object,
+		      because this method does cast, not QueryInterface() nor AddRef().
 	 */
 	template<class T>
-	HRESULT cast(const Types& type, const T** ppEvent) const {
+	HRESULT cast(const T** ppEvent) const {
 		if (!ppEvent) return E_POINTER;
-		const T* obj = dynamic_cast<const T*>(this);
-		if (obj && (obj->type == type)) {
-			*ppEvent = obj;
-			return S_OK;
-		} else {
-			return E_INVALIDARG;
-		}
+		*ppEvent = dynamic_cast<const T*>(this);
+		HR_ASSERT(*ppEvent, E_INVALIDARG);			// dynamic_cast failed.
+		HR_ASSERT_OK(checkType<T>());				// Type mismatch.
+		return S_OK;
 	}
+
+	/**
+		Check Event type
+		Call this method if cast() method is not been called.
+	*/
+	template<class T>
+	HRESULT checkType() const { return (this->type == T::Type) ? S_OK : E_NOINTERFACE; }
 
 	LPCTSTR toString() const { return type.toString(); }
 
@@ -56,23 +65,30 @@ protected:
 	IUNKNOWN_INTERFACES(QITABENT(CAsioHandlerEvent, CAsioHandlerEvent));
 };
 
-class InternalEvent : public CAsioHandlerEvent
+/**
+	Template base class for events.
+ */
+template<CAsioHandlerEvent::Types::Values _type, bool _isUserEvent>
+class EventBase : public CAsioHandlerEvent
 {
 public:
-	InternalEvent(Types type) : CAsioHandlerEvent(type, false) {}
+	EventBase() : CAsioHandlerEvent(_type, _isUserEvent) {}
+
+	static const Types::Values Type = _type;
 };
 
-class UserEvent : public CAsioHandlerEvent
-{
-public:
-	UserEvent(Types type) : CAsioHandlerEvent(type, true) {}
-};
+typedef EventBase<CAsioHandlerEvent::Types::Shutdown, true> ShutdownEvent;
+typedef EventBase<CAsioHandlerEvent::Types::Start, true> StartEvent;
+typedef EventBase<CAsioHandlerEvent::Types::Stop, true> StopEvent;
+typedef EventBase<CAsioHandlerEvent::Types::AsioResetRequest, false> AsioResetRequestEvent;
+typedef EventBase<CAsioHandlerEvent::Types::AsioResyncRequest, false> AsioResyncRequestEvent;
+typedef EventBase<CAsioHandlerEvent::Types::AsioLatenciesChanged, false> AsioLatenciesChangedEvent;
 
-class SetupEvent : public UserEvent
+class SetupEvent : public EventBase<CAsioHandlerEvent::Types::Setup, true>
 {
 public:
 	SetupEvent(IASIO* asio, HWND hwnd, int numChannels)
-		: UserEvent(Types::Setup)
+		: EventBase()
 		, asio(asio), hwnd(hwnd), numChannels(numChannels) {}
 
 	CComPtr<IASIO> asio;
@@ -80,11 +96,11 @@ public:
 	const int numChannels;
 };
 
-class DataEvent : public InternalEvent
+class DataEvent : public EventBase<CAsioHandlerEvent::Types::Data, false>
 {
 public:
 	DataEvent(const ASIOTime * params, long doubleBufferIndex)
-		: InternalEvent(Types::Data)
+		: EventBase()
 		, params(*params), doubleBufferIndex(doubleBufferIndex) {}
 
 	const ASIOTime params;

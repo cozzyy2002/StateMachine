@@ -193,7 +193,7 @@ void CDmoEffectorDlg::OnBnClickedButtonStart()
 	CAsioDriver* pAsioDriver = (CAsioDriver*)m_asioDriverSel.GetItemDataPtr(m_asioDriverSel.GetCurSel());
 
 	// Create ASIO object.
-	// Note: ASIO object can not be created in worker thread such as work queue Media Foundation.
+	// Note: ASIO object can not be created in worker thread such as work queue of Media Foundation.
 	//       CDmoEffectorApp::InitInstance() initialized COM by COINIT_APARTMENTTHREADED in UI thread,
 	//       and ASIO has been registered so.
 	CComPtr<IASIO> asio;
