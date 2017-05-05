@@ -27,7 +27,6 @@ HRESULT CAsioHandlerState::handleEvent(const CAsioHandlerEvent * event, CAsioHan
 {
 	switch (event->type) {
 	case CAsioHandlerEvent::Types::Shutdown:
-		HR_ASSERT_OK(event->checkType<ShutdownEvent>());
 		break;
 	case CAsioHandlerEvent::Types::AsioResetRequest:
 		HR_ASSERT_OK(event->checkType<AsioResetRequestEvent>());

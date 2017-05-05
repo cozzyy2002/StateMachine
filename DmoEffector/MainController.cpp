@@ -15,7 +15,6 @@ CMainController::CMainController()
 
 CMainController::~CMainController()
 {
-	HR_EXPECT_OK(shutdown());
 }
 
 HRESULT CMainController::setup(IASIO* asio, HWND hwnd)

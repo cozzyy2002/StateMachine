@@ -28,6 +28,8 @@ CAsioHandler::CAsioHandler(int numChannels)
 
 CAsioHandler::~CAsioHandler()
 {
+	HR_EXPECT_OK(this->shutdown());
+
 	m_instance = NULL;
 }
 
@@ -70,6 +72,11 @@ HRESULT CAsioHandler::shutdown()
 	HRESULT hr = S_FALSE;
 
 	if (m_workQueueId) {
+		// Shutdown and wait for state to shutdown.
+		CComPtr<CAsioHandlerEvent> event(new ShutdownEvent());
+		HR_ASSERT_OK(triggerEvent(event));
+		WIN32_EXPECT(WAIT_OBJECT_0 == WaitForSingleObject(shutDownEvent, 100));
+
 		ASIO_EXPECT_OK(MFUnlockWorkQueue(m_workQueueId));
 		HR_EXPECT_OK(MFShutdown());
 		m_workQueueId = 0;
@@ -119,6 +126,11 @@ HRESULT CAsioHandler::handleEvent(const CAsioHandlerEvent* event)
 	if (FAILED(hr) && event->isUserEvent) {
 		// Failed to handle user event.
 		// TODO: notify error to user.
+	}
+
+	if (event->type == CAsioHandlerEvent::Types::Shutdown) {
+		// Notify main thread that evnt handling completed.
+		WIN32_EXPECT(SetEvent(shutDownEvent));
 	}
 
 	return S_OK;

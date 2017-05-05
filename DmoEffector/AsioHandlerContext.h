@@ -56,6 +56,8 @@ public:
 	std::unique_ptr<ASIOBufferInfo[]> asioBufferInfos;
 	long bufferSize;
 	Statistics statistics;
+
+	CHandle shutDownEvent;
 };
 
 #define ASIO_ASSERT HR_ASSERT

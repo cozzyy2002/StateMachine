@@ -8,7 +8,9 @@ static void logChannelInfo(const ASIOChannelInfo& info);
 
 CAsioHandlerContext::CAsioHandlerContext()
 	: m_state(State::NotLoaded), numChannels(numChannels)
+	, shutDownEvent(CreateEvent(NULL, FALSE, FALSE, NULL))
 {
+	WIN32_EXPECT(NULL != (HANDLE)shutDownEvent);
 }
 
 
