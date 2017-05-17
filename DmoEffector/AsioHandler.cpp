@@ -128,7 +128,7 @@ HRESULT CAsioHandler::handleEvent(const CAsioHandlerEvent* event)
 		// TODO: notify error to user.
 	}
 
-	if (event->type == CAsioHandlerEvent::Types::Shutdown) {
+	if (event->type == EventTypes::Shutdown) {
 		// Notify main thread that evnt handling completed.
 		WIN32_EXPECT(SetEvent(shutDownEvent));
 	}

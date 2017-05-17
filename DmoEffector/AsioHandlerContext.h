@@ -57,6 +57,7 @@ public:
 	long bufferSize;
 	Statistics statistics;
 
+	// Event handle to notify work queue thread to shutodown. 
 	CHandle shutDownEvent;
 };
 

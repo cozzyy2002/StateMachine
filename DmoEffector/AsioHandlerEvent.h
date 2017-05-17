@@ -4,23 +4,22 @@
 
 class CAsioDriver;
 
+ENUM(EventTypes,
+	Setup,						/// CAsioHandler::setup() method has been called by user.
+	Shutdown,					/// CAsioHandler::shutdonw() method has been called by user.
+	Start,						/// CAsioHandler::start() method has been called by user.
+	Stop,						/// CAsioHandler::stop() method has been called by user.
+	Data,						/// CAsioHandler::bufferSwitchTimeInfo() callback has been called by ASIO driver.
+	AsioResetRequest,			/// ASIO driver requests a reset.
+	//AsioBufferSizeChange,		/// ASIO buffer sizes will change, issued by the user. - Done by AsioRestRequest
+	AsioResyncRequest,			/// ASIO driver detected underruns and requires a resynchronization.
+	AsioLatenciesChanged		/// ASIO driver detected a latancy change.
+);
+
 MIDL_INTERFACE("2A8782E9-2869-442B-9EEC-DDE68415B6D2")
 CAsioHandlerEvent : public IUnknown, public CUnknownImpl
 {
 	DISALLOW_COPY_AND_ASSIGN(CAsioHandlerEvent);
-
-public:
-	ENUM(Types,
-		Setup,						/// CAsioHandler::setup() method has been called by user.
-		Shutdown,					/// CAsioHandler::shutdonw() method has been called by user.
-		Start,						/// CAsioHandler::start() method has been called by user.
-		Stop,						/// CAsioHandler::stop() method has been called by user.
-		Data,						/// CAsioHandler::bufferSwitchTimeInfo() callback has been called by ASIO driver.
-		AsioResetRequest,			/// ASIO driver requests a reset.
-		//AsioBufferSizeChange,		/// ASIO buffer sizes will change, issued by the user. - Done by AsioRestRequest
-		AsioResyncRequest,			/// ASIO driver detected underruns and requires a resynchronization.
-		AsioLatenciesChanged		/// ASIO driver detected a latancy change.
-	);
 
 public:
 	virtual ~CAsioHandlerEvent();
@@ -37,21 +36,14 @@ public:
 	HRESULT cast(const T** ppEvent) const {
 		if (!ppEvent) return E_POINTER;
 		*ppEvent = dynamic_cast<const T*>(this);
-		HR_ASSERT(*ppEvent, E_INVALIDARG);			// dynamic_cast failed.
-		HR_ASSERT_OK(checkType<T>());				// Type mismatch.
+		HR_ASSERT(*ppEvent, E_INVALIDARG);					// dynamic_cast failed.
+		HR_ASSERT(this->type == T::Type, E_NOINTERFACE);	// Type mismatch.
 		return S_OK;
 	}
 
-	/**
-		Check Event type
-		Call this method if cast() method is not been called.
-	*/
-	template<class T>
-	HRESULT checkType() const { return (this->type == T::Type) ? S_OK : E_NOINTERFACE; }
+	virtual LPCTSTR toString() const { return type.toString(); }
 
-	LPCTSTR toString() const { return type.toString(); }
-
-	const Types type;
+	const EventTypes type;
 
 	// Indicates where the event is caused by user.
 	// If true, user is notified error occurred in handling state.
@@ -60,7 +52,13 @@ public:
 	IUNKNOWN_METHODS;
 
 protected:
-	CAsioHandlerEvent(Types type, bool isUserEvent);
+	/**
+		Protected constructor.
+
+		Public constructor is exposed by EventBase template class.
+		Actual event classes are derived from EventBase template class.
+	 */
+	CAsioHandlerEvent(EventTypes type, bool isUserEvent);
 
 	IUNKNOWN_INTERFACES(QITABENT(CAsioHandlerEvent, CAsioHandlerEvent));
 };
@@ -68,23 +66,24 @@ protected:
 /**
 	Template base class for events.
  */
-template<CAsioHandlerEvent::Types::Values _type, bool _isUserEvent>
+template<EventTypes::Values _type, bool _isUserEvent>
 class EventBase : public CAsioHandlerEvent
 {
 public:
 	EventBase() : CAsioHandlerEvent(_type, _isUserEvent) {}
 
-	static const Types::Values Type = _type;
+	// Associated event type used by CAsioHandlerEvent::cast() method.
+	static const EventTypes::Values Type = _type;
 };
 
-typedef EventBase<CAsioHandlerEvent::Types::Shutdown, true> ShutdownEvent;
-typedef EventBase<CAsioHandlerEvent::Types::Start, true> StartEvent;
-typedef EventBase<CAsioHandlerEvent::Types::Stop, true> StopEvent;
-typedef EventBase<CAsioHandlerEvent::Types::AsioResetRequest, false> AsioResetRequestEvent;
-typedef EventBase<CAsioHandlerEvent::Types::AsioResyncRequest, false> AsioResyncRequestEvent;
-typedef EventBase<CAsioHandlerEvent::Types::AsioLatenciesChanged, false> AsioLatenciesChangedEvent;
+typedef EventBase<EventTypes::Shutdown, true> ShutdownEvent;
+typedef EventBase<EventTypes::Start, true> StartEvent;
+typedef EventBase<EventTypes::Stop, true> StopEvent;
+typedef EventBase<EventTypes::AsioResetRequest, false> AsioResetRequestEvent;
+typedef EventBase<EventTypes::AsioResyncRequest, false> AsioResyncRequestEvent;
+typedef EventBase<EventTypes::AsioLatenciesChanged, false> AsioLatenciesChangedEvent;
 
-class SetupEvent : public EventBase<CAsioHandlerEvent::Types::Setup, true>
+class SetupEvent : public EventBase<EventTypes::Setup, true>
 {
 public:
 	SetupEvent(IASIO* asio, HWND hwnd, int numChannels)
@@ -96,7 +95,7 @@ public:
 	const int numChannels;
 };
 
-class DataEvent : public EventBase<CAsioHandlerEvent::Types::Data, false>
+class DataEvent : public EventBase<EventTypes::Data, false>
 {
 public:
 	DataEvent(const ASIOTime * params, long doubleBufferIndex)
