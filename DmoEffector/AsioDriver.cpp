@@ -9,6 +9,13 @@ static log4cplus::Logger logger = log4cplus::Logger::getInstance(_T("AsioDriver"
 #define CREGKEY_ASSERT(exp, result) HR_ASSERT(exp, HRESULT_FROM_WIN32(result))
 #define CREGKEY_ASSERT_OK(exp) HR_ASSERT_OK(HRESULT_FROM_WIN32(exp))
 
+template<size_t size>
+static LONG getString(CRegKey& key, LPCTSTR name, TCHAR (&value)[size])
+{
+	ULONG len = size;
+	return key.QueryStringValue(name, value, &len);
+}
+
 // Creates list for the drivers registered in the registry.
 HRESULT CAsioDriver::createDriverList(list_t & drivers)
 {
@@ -27,16 +34,13 @@ HRESULT CAsioDriver::createDriverList(list_t & drivers)
 			CREGKEY_ASSERT_OK(key.Open(rootKey, name, KEY_READ));
 
 			// Read values in the key.
-			ULONG len;
 			TCHAR clsid[50];
 			TCHAR description[MAX_PATH];
-			len = ARRAYSIZE(clsid);
-			CREGKEY_ASSERT_OK(key.QueryStringValue(_T("CLSID"), clsid, &len));
+			CREGKEY_ASSERT_OK(getString(key, _T("CLSID"), clsid));
 			CT2W wclsid(clsid);
 			CLSID _clsid;
 			HR_ASSERT_OK(CLSIDFromString((LPCOLESTR)wclsid, &_clsid));
-			len = ARRAYSIZE(description);
-			CREGKEY_ASSERT_OK(key.QueryStringValue(_T("Description"), description, &len));
+			CREGKEY_ASSERT_OK(getString(key, _T("Description"), description));
 
 			// Create CAsioDriver instance and add it to the list.
 			LOG4CPLUS_DEBUG(logger, "Creating CAsioDriver: Registry key=" << name << ", " << clsid << ", '" << description << "'");

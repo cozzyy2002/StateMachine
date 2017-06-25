@@ -12,10 +12,8 @@ CAsioHandler* CAsioHandler::m_instance = NULL;
 	Call getInstance() static method to create or get CAsioHandler object.
 */
 CAsioHandler::CAsioHandler(int numChannels)
-	: m_workQueueId(0)
+	: CAsioHandlerContext(numChannels), m_workQueueId(0)
 {
-	this->numChannels = numChannels;
-
 	// Allocate buffer infos for channel * 2(in and out).
 	asioBufferInfos.reset(new ASIOBufferInfo[numChannels * 2]);
 

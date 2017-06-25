@@ -27,7 +27,7 @@ public:
 	/**
 		Cast 'this' to derived class and check event type.
 
-		Event type is declared in devived class as `static const Types Type` member.
+		Event type is declared in devived class as `static const EventTypes Type` member.
 
 		Note: Do not release returned object,
 		      because this method does cast, not QueryInterface() nor AddRef().

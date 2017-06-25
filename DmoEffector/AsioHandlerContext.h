@@ -7,7 +7,7 @@ struct CAsioHandlerEvent;
 class CAsioHandlerContext
 {
 protected:
-	CAsioHandlerContext();
+	CAsioHandlerContext(int numChannels);
 
 public:
 	virtual ~CAsioHandlerContext();

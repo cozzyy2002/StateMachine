@@ -6,7 +6,7 @@ static log4cplus::Logger logger = log4cplus::Logger::getInstance(_T("AsioHandler
 static long getSampleSize(ASIOSampleType type);
 static void logChannelInfo(const ASIOChannelInfo& info);
 
-CAsioHandlerContext::CAsioHandlerContext()
+CAsioHandlerContext::CAsioHandlerContext(int numChannels)
 	: m_state(State::NotLoaded), numChannels(numChannels)
 	, shutDownEvent(CreateEvent(NULL, FALSE, FALSE, NULL))
 {
