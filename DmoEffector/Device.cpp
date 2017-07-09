@@ -72,10 +72,9 @@ LPCTSTR CDevice::getName()
 LPCTSTR CDevice::getDevicePath()
 {
 	if (m_devicePath.empty()) {
-		LPOLESTR wstr = L"";
+		CComHeapPtr<OLECHAR> wstr;
 		HR_EXPECT_OK(m_moniker->GetDisplayName(getBindCtx(), NULL, &wstr));
 		CW2T str(wstr);
-		CoTaskMemFree(wstr);
 		m_devicePath = (LPCTSTR)str;
 	}
 	return m_devicePath.c_str();
