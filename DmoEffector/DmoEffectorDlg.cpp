@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "DmoEffector.h"
+#include "DmoEffector.mc.h"
 #include "DmoEffectorDlg.h"
 #include "afxdialogex.h"
 
@@ -120,6 +121,9 @@ BOOL CDmoEffectorDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
+	TCHAR message[MAX_PATH] = _T("");
+	WIN32_EXPECT(FormatMessage(FORMAT_MESSAGE_FROM_HMODULE, NULL, MSG_BAD_COMMAND, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), message, ARRAYSIZE(message), NULL));
+	LOG4CPLUS_INFO(logger, _T("message='") << message << _T("'"));
 
 	// Get Asio driver list and show them in the ASIO driver list of UI.
 	static LPCTSTR noDriverMessage = _T("<No ASIO driver found>");

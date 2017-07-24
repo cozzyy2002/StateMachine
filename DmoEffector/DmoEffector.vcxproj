@@ -235,6 +235,15 @@ xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(OutDir)"</Command>
     <ResourceCompile Include="DmoEffector.rc" />
   </ItemGroup>
   <ItemGroup>
+    <CustomBuild Include="DmoEffector.mc">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">mc -z %(Filename).mc "%(FullPath)"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).mc.rc;%(Filename).mc.h;%(Filename).mc_MSG0409.bin;%(Filename).mc_MSG0411.bin</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">mc -z %(Filename).mc "%(FullPath)"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).mc.rc;%(Filename).mc.h;%(Filename).mc_MSG0409.bin;%(Filename).mc_MSG0411.bin</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Running message compiler</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Running message compiler</Message>
+    </CustomBuild>
     <None Include="res\DmoEffector.rc2" />
   </ItemGroup>
   <ItemGroup>

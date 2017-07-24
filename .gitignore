@@ -245,3 +245,6 @@ ModelManifest.xml
 .fake/
 *.BAK
 /DmoEffector/log4cplus.properties
+*.bin
+/DmoEffector/DmoEffector.mc.rc
+/DmoEffector/DmoEffector.mc.h

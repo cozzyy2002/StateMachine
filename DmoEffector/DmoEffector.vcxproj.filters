@@ -102,4 +102,9 @@
       <Filter>リソース ファイル</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="DmoEffector.mc">
+      <Filter>リソース ファイル</Filter>
+    </CustomBuild>
+  </ItemGroup>
 </Project>
