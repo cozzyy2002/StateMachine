@@ -14,7 +14,7 @@ public:
 	virtual HRESULT entry(const Event* e, const State* previousState) = 0;
 	virtual HRESULT exit(const Event* e, const State* nextState) = 0;
 
-	virtual LPCTSTR toString() = 0;
+	virtual LPCTSTR toString() const = 0;
 };
 
 } // namespace state_machine

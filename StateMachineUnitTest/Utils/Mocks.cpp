@@ -23,7 +23,7 @@ MockObject::~MockObject()
 {
 	std::cout << "Deleting MockObject: ID=" << m_id << std::endl;
 	if(m_id != -1) {
-		MockObjects_t::iterator it = m_mockObjects.find(m_id);
+		auto it = m_mockObjects.find(m_id);
 		if(it != m_mockObjects.end()) {
 			it->second = nullptr;
 		} else {
@@ -35,11 +35,8 @@ MockObject::~MockObject()
 /*static*/ void MockObject::clear()
 {
 	for each (auto item in m_mockObjects) {
-		MockObject* obj = item.second;
-		if(obj) {
-			obj->m_id = -1;		// Suppress ADD_FFAILURE() in destructor.
-			delete obj;
-		}
+		auto obj = item.second;
+		if(obj) delete obj;
 	}
 	m_mockObjects.clear();
 }
@@ -51,6 +48,15 @@ MockObject::~MockObject()
 
 /*static*/ bool MockObject::deleted(int id)
 {
-	MockObjects_t::const_iterator it = m_mockObjects.find(id);
+	auto it = m_mockObjects.find(id);
 	return (it != m_mockObjects.end()) && !it->second;
+}
+
+LPCTSTR MockState::toString() const
+{
+	if(m_string.empty()) {
+		CA2CT _string(typeid(*this).name());
+		m_string = (LPCTSTR)_string;
+	}
+	return m_string.c_str();
 }

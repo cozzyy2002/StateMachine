@@ -16,3 +16,12 @@
 #include <StateMachine/stdafx.h>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <atlbase.h>
+
+namespace std {
+#if defined(_UNICODE)
+	typedef wstring tstring;
+#else
+	typedef string tstring;
+#endif
+}

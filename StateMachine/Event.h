@@ -8,7 +8,7 @@ public:
 	Event();
 	virtual ~Event();
 
-	virtual LPCTSTR toString() = 0;
+	virtual LPCTSTR toString() const = 0;
 };
 
 } // namespace state_machine

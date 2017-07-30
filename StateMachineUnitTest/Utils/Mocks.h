@@ -27,7 +27,7 @@ public:
 	MockEvent() : MockObject() {}
 	MockEvent(int id) : MockObject(id) {}
 
-	virtual LPCTSTR toString() { return _T(""); }
+	virtual LPCTSTR toString() const { return _T(""); }
 };
 
 class MockState : public state_machine::State, public MockObject
@@ -40,5 +40,6 @@ public:
 	MOCK_METHOD2(entry, HRESULT(const state_machine::Event* e, const state_machine::State* previousState));
 	MOCK_METHOD2(exit, HRESULT(const state_machine::Event* e, const state_machine::State* nextState));
 
-	virtual LPCTSTR toString() { return _T(""); }
+	virtual LPCTSTR toString() const;
+	mutable std::tstring m_string;
 };
