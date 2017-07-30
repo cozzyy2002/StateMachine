@@ -33,7 +33,7 @@ public:
 	MockState* currentState;
 };
 
-TEST_F(StateMacineStateUnitTest, a)
+TEST_F(StateMacineStateUnitTest, no_transition)
 {
 	MockEvent e;
 	EXPECT_CALL(*currentState, handleEvent(&e, currentState, _))
@@ -47,7 +47,21 @@ TEST_F(StateMacineStateUnitTest, a)
 	EXPECT_FALSE(MockObject::deleted(CURRENT_STATE_ID));
 }
 
-TEST_F(StateMacineStateUnitTest, b)
+TEST_F(StateMacineStateUnitTest, no_transition_error)
+{
+	MockEvent e;
+	EXPECT_CALL(*currentState, handleEvent(&e, currentState, _))
+		.WillOnce(Return(E_NOTIMPL));
+	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
+	EXPECT_CALL(*currentState, exit(_, _)).Times(0);
+
+	ASSERT_EQ(E_NOTIMPL, testee.handleEvent(&e));
+
+	EXPECT_EQ(currentState, testee.m_currentState.get());
+	EXPECT_FALSE(MockObject::deleted(CURRENT_STATE_ID));
+}
+
+TEST_F(StateMacineStateUnitTest, transition)
 {
 	MockEvent e;
 	MockState* nextState = new MockState(NEXT_STATE_ID);
@@ -62,5 +76,23 @@ TEST_F(StateMacineStateUnitTest, b)
 
 	EXPECT_EQ(nextState, testee.m_currentState.get());
 	EXPECT_TRUE(MockObject::deleted(CURRENT_STATE_ID));
+	EXPECT_FALSE(MockObject::deleted(NEXT_STATE_ID));
+}
+
+TEST_F(StateMacineStateUnitTest, transition_error)
+{
+	MockEvent e;
+	MockState* nextState = new MockState(NEXT_STATE_ID);
+	EXPECT_CALL(*currentState, handleEvent(&e, currentState, _))
+		.WillOnce(DoAll(SetArgPointee<2>(nextState), Return(E_NOTIMPL)));
+	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
+	EXPECT_CALL(*currentState, exit(&e, nextState)).Times(0);
+	EXPECT_CALL(*nextState, entry(&e, currentState)).Times(0);
+	EXPECT_CALL(*nextState, exit(_, _)).Times(0);
+
+	ASSERT_EQ(E_NOTIMPL, testee.handleEvent(&e));
+
+	EXPECT_EQ(currentState, testee.m_currentState.get());
+	EXPECT_FALSE(MockObject::deleted(CURRENT_STATE_ID));
 	EXPECT_FALSE(MockObject::deleted(NEXT_STATE_ID));
 }

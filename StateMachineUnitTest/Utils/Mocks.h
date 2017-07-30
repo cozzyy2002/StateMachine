@@ -10,7 +10,7 @@ class MockObject
 public:
 	MockObject();
 	MockObject(int id);
-	~MockObject();
+	virtual ~MockObject();
 
 	static void clear();
 	static bool create(int id);

@@ -24,5 +24,5 @@ HRESULT state_machine::StateMachine::handleEvent(const Event* e)
 		m_currentState.reset(nextState);
 		m_currentState->entry(e, previousState.get());
 	}
-	return S_OK;
+	return hr;
 }

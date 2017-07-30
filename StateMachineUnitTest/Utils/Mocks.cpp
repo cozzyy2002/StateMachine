@@ -5,10 +5,12 @@
 
 MockObject::MockObject() : m_id(-1)
 {
+	std::cout << "Creating MockObject: ID=" << m_id << std::endl;
 }
 
 MockObject::MockObject(int id) : m_id(id)
 {
+	std::cout << "Creating MockObject: ID=" << m_id << std::endl;
 	if(m_mockObjects.find(id) == m_mockObjects.end()) {
 		m_mockObjects[id] = this;
 	} else {
