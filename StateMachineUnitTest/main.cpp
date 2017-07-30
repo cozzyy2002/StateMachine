@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 
-int main(int argc, TCHAR** argv)
+int _tmain(int argc, TCHAR** argv)
 {
 	testing::InitGoogleTest(&argc, argv);
 	testing::InitGoogleMock(&argc, argv);

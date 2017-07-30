@@ -19,6 +19,7 @@ MockObject::MockObject(int id) : m_id(id)
 
 MockObject::~MockObject()
 {
+	std::cout << "Deleting MockObject: ID=" << m_id << std::endl;
 	if(m_id != -1) {
 		MockObjects_t::iterator it = m_mockObjects.find(m_id);
 		if(it != m_mockObjects.end()) {

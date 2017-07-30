@@ -24,7 +24,11 @@ public:
 		MockObject::clear();
 	}
 
-	static const int CURRENT_STATE_ID = 1;
+	enum {
+		EVENT_ID = 1,
+		CURRENT_STATE_ID,
+		NEXT_STATE_ID
+	};
 	Testee testee;
 	MockState* currentState;
 };
@@ -46,7 +50,7 @@ TEST_F(StateMacineStateUnitTest, a)
 TEST_F(StateMacineStateUnitTest, b)
 {
 	MockEvent e;
-	MockState* nextState = new MockState();
+	MockState* nextState = new MockState(NEXT_STATE_ID);
 	EXPECT_CALL(*currentState, handleEvent(&e, currentState, _))
 		.WillOnce(DoAll(SetArgPointee<2>(nextState), Return(S_OK)));
 	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
@@ -58,4 +62,5 @@ TEST_F(StateMacineStateUnitTest, b)
 
 	EXPECT_EQ(nextState, testee.m_currentState.get());
 	EXPECT_TRUE(MockObject::deleted(CURRENT_STATE_ID));
+	EXPECT_FALSE(MockObject::deleted(NEXT_STATE_ID));
 }
