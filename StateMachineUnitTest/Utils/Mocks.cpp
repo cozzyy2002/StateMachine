@@ -1,16 +1,18 @@
 #include "stdafx.h"
 #include "Mocks.h"
 
+static log4cplus::Logger logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("Test.Mocks"));
+
 /*static*/ MockObject::MockObjects_t MockObject::m_mockObjects;
 
 MockObject::MockObject() : m_id(-1)
 {
-	std::cout << "Creating MockObject: ID=" << m_id << std::endl;
+	LOG4CPLUS_DEBUG(logger, "Creating MockObject: ID=" << m_id);
 }
 
 MockObject::MockObject(int id) : m_id(id)
 {
-	std::cout << "Creating MockObject: ID=" << m_id << std::endl;
+	LOG4CPLUS_DEBUG(logger, "Creating MockObject: ID=" << m_id);
 	if(m_mockObjects.find(id) == m_mockObjects.end()) {
 		m_mockObjects[id] = this;
 	} else {
@@ -21,7 +23,7 @@ MockObject::MockObject(int id) : m_id(id)
 
 MockObject::~MockObject()
 {
-	std::cout << "Deleting MockObject: ID=" << m_id << std::endl;
+	LOG4CPLUS_DEBUG(logger, "Deleting MockObject: ID=" << m_id);
 	if(m_id != -1) {
 		auto it = m_mockObjects.find(m_id);
 		if(it != m_mockObjects.end()) {
