@@ -10,23 +10,23 @@ class TestEventListener : public testing::EmptyTestEventListener
 {
 public:
 	virtual void OnTestCaseStart(const testing::TestCase& test_case) {
-		LOG4CPLUS_INFO(logger, "==== Test case " << test_case.name() << " start ====");
+		LOG4CPLUS_INFO(logger, "==== " << test_case.name() << ": Test case start ====");
 	}
 	virtual void OnTestStart(const testing::TestInfo& test_info) {
-		LOG4CPLUS_INFO(logger, "---- " << test_info.test_case_name() << "." << test_info.name() << " start ----");
+		LOG4CPLUS_INFO(logger, "---- " << test_info.test_case_name() << "." << test_info.name() << ": Test start ----");
 	}
 	virtual void OnTestEnd(const testing::TestInfo& test_info) {
 		LOG4CPLUS_INFO(logger, "---- " << test_info.test_case_name() << "." << test_info.name() << ": "
-			<< (test_info.result()->Passed() ? "PASSED" : "FAILED") << " ----");
+										<< (test_info.result()->Passed() ? "PASSED" : "FAILED") << " ----");
 	}
 	virtual void OnTestCaseEnd(const testing::TestCase& test_case) {
-		LOG4CPLUS_INFO(logger, "==== Test case " << test_case.name() << " end ====");
+		LOG4CPLUS_INFO(logger, "==== " << test_case.name() << ": Test case end ====");
 	}
 };
 
 int _tmain(int argc, TCHAR** argv)
 {
-	log4cplus::BasicConfigurator::doConfigure();
+	log4cplus::PropertyConfigurator::doConfigure(LOG4CPLUS_TEXT("log4cplus.properties"));
 
 	testing::InitGoogleTest(&argc, argv);
 	testing::InitGoogleMock(&argc, argv);

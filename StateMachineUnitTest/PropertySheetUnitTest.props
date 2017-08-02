@@ -4,7 +4,6 @@
   <PropertyGroup Label="UserMacros">
     <GTestDir>$(SolutionDir)packages\gtest.1.7.0\build\native\</GTestDir>
     <GMockDir>$(SolutionDir)packages\gmock.1.7.0\lib\native</GMockDir>
-    <LOG4CPLUS_DIR>$(SolutionDir)..\log4cplus-1.1.3-rc6</LOG4CPLUS_DIR>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup />
