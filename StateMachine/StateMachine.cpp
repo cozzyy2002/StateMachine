@@ -16,10 +16,40 @@ StateMachine::~StateMachine()
 
 HRESULT state_machine::StateMachine::handleEvent(const Event* e)
 {
+	// Call State::handleEvent()
+	// If event is ignored and the state is sub state, delegate handling event to parent.
+	State* currentState = m_currentState.get();
 	State* nextState = nullptr;
-	HRESULT hr = m_currentState->handleEvent(e, m_currentState.get(), &nextState);
+	HRESULT hr;
+	do {
+		hr = currentState->handleEvent(e, currentState, &nextState);
+		if(FAILED(hr)) {
+			hr = currentState->handleError(e, hr);
+			if(FAILED(hr)) return hr;
+		}
+		if(S_EVENT_IGNORED == hr) hr = currentState->handleIgnoredEvent(e);
+		currentState = currentState->getMasterState().get();
+	} while(currentState && (S_EVENT_IGNORED == hr));
+
+	if(m_currentState->isSubState() && (nextState == State::RETURN_TO_PARENT)) {
+		// If sub state returns RETURN_TO_PARENT constant,
+		// next state is master state.
+		nextState = m_currentState->getMasterState().get();
+	}
 	if(SUCCEEDED(hr) && nextState) {
-		m_currentState->exit(e, nextState);
+		if(nextState->isSubState()) {
+			// Master state to sub state.
+			// Don't call exit() of master state.
+			nextState->getMasterState() = m_currentState;
+		} else {
+			// Current state might be sub state or not.
+			std::shared_ptr<State> masterState(m_currentState);
+			do {
+				std::shared_ptr<State> currentState(masterState);
+				currentState->exit(e, nextState);
+				masterState = currentState->getMasterState();
+			} while(masterState && (masterState.get() != nextState));
+		}
 		std::shared_ptr<State> previousState(m_currentState);
 		m_currentState.reset(nextState);
 		m_currentState->entry(e, previousState.get());

@@ -37,6 +37,8 @@ public:
 	MockState(int id) : MockObject(id) {}
 
 	MOCK_METHOD3(handleEvent, HRESULT(const state_machine::Event* e, const state_machine::State* currentState, state_machine::State** nextState));
+	MOCK_METHOD1(handleIgnoredEvent, HRESULT(const state_machine::Event* e));
+	MOCK_METHOD2(handleError, HRESULT(const state_machine::Event* e, HRESULT hr));
 	MOCK_METHOD2(entry, HRESULT(const state_machine::Event* e, const state_machine::State* previousState));
 	MOCK_METHOD2(exit, HRESULT(const state_machine::Event* e, const state_machine::State* nextState));
 

@@ -52,6 +52,12 @@ TEST_F(StateMacineStateUnitTest, no_transition_error)
 	MockEvent e;
 	EXPECT_CALL(*currentState, handleEvent(&e, currentState, _))
 		.WillOnce(Return(E_NOTIMPL));
+	EXPECT_CALL(*currentState, handleError(&e, E_NOTIMPL))
+		.WillOnce(Invoke([&](const Event* e, HRESULT hr)
+		{
+			// Call default error handler.
+			return currentState->State::handleError(e, hr);
+		}));
 	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
 	EXPECT_CALL(*currentState, exit(_, _)).Times(0);
 
@@ -85,6 +91,12 @@ TEST_F(StateMacineStateUnitTest, transition_error)
 	MockState* nextState = new MockState(NEXT_STATE_ID);
 	EXPECT_CALL(*currentState, handleEvent(&e, currentState, _))
 		.WillOnce(DoAll(SetArgPointee<2>(nextState), Return(E_NOTIMPL)));
+	EXPECT_CALL(*currentState, handleError(&e, E_NOTIMPL))
+		.WillOnce(Invoke([&](const Event* e, HRESULT hr)
+		{
+			// Call default error handler.
+			return currentState->State::handleError(e, hr);
+		}));
 	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
 	EXPECT_CALL(*currentState, exit(&e, nextState)).Times(0);
 	EXPECT_CALL(*nextState, entry(&e, currentState)).Times(0);
