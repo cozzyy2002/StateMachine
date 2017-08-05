@@ -1,3 +1,37 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="..\packages\gmock.1.7.0\lib\native\src\gmock\gmock-all.cc">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\packages\gmock.1.7.0\lib\native\src\gtest\gtest-all.cc">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\Mocks.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCases\StateMachineUnitTest.cpp">
+      <Filter>TestCases</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="Utils\Mocks.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{59dd360f-57e2-4eae-9968-d905534de636}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="TestCases">
+      <UniqueIdentifier>{552efa8b-60cd-4ee5-a2b8-a0e1751a026f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
 </Project>
