@@ -28,13 +28,20 @@ public:
 	*/
 	bool isSubState() const { return m_masterState ? true : false; }
 
-	std::shared_ptr<State>& getMasterState() { return m_masterState; }
+	bool isEntryCalled() const { return m_entryCalled; }
+	void setEntryCalled(bool entryCalled) { m_entryCalled = entryCalled; }
+
+	State* getMasterState() const { return m_masterState.get(); }
+	void setMasterState(std::shared_ptr<State>& master) { m_masterState = master; }
 
 	// Constant to set as next state to tell state machine to go back to the master state.
-	static const State* RETURN_TO_MASTER;
+	static State* RETURN_TO_MASTER;
 
 protected:
 	std::shared_ptr<State> m_masterState;
+
+	// Flag to restrict entry() to be called only once.
+	bool m_entryCalled;
 };
 
 } // namespace state_machine

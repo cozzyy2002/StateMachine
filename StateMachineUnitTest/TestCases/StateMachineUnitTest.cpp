@@ -27,7 +27,10 @@ public:
 	enum {
 		EVENT_ID = 1,
 		CURRENT_STATE_ID,
-		NEXT_STATE_ID
+		NEXT_STATE_ID,
+		MASTER_STATE1_ID,
+		MASTER_STATE2_ID,
+		OTHER_STATE_ID,
 	};
 	Testee testee;
 	MockState* currentState;
@@ -107,4 +110,47 @@ TEST_F(StateMacineStateUnitTest, transition_error)
 	EXPECT_EQ(currentState, testee.m_currentState.get());
 	EXPECT_FALSE(MockObject::deleted(CURRENT_STATE_ID));
 	EXPECT_FALSE(MockObject::deleted(NEXT_STATE_ID));
+}
+
+class StateMacineSubStateUnitTest : public StateMacineStateUnitTest
+{
+public:
+	void SetUp() {
+		StateMacineStateUnitTest::SetUp();
+		masterState1 = new MockState(MASTER_STATE1_ID);
+		masterState2 = new MockState(MASTER_STATE2_ID);
+		std::shared_ptr<State> m1(masterState1), m2(masterState2);
+		currentState->setMasterState(m1);
+		masterState1->setMasterState(m2);
+		otherState = new MockState(OTHER_STATE_ID);
+	}
+	void TearDown() {
+		StateMacineStateUnitTest::TearDown();
+	}
+
+	MockState* masterState1;	// Master of sub state
+	MockState* masterState2;	// Master of master1 state
+	MockState* otherState;
+};
+
+TEST_F(StateMacineSubStateUnitTest, back_to_parent1)
+{
+	MockEvent e;
+
+	EXPECT_CALL(*currentState, handleEvent(&e, currentState, _))
+		.WillOnce(DoAll(SetArgPointee<2>(State::RETURN_TO_MASTER), Return(S_OK)));
+	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
+	EXPECT_CALL(*currentState, exit(_, _)).Times(1);
+	EXPECT_CALL(*masterState1, entry(_, _)).Times(0);
+	EXPECT_CALL(*masterState1, exit(_, _)).Times(0);
+	EXPECT_CALL(*masterState2, entry(_, _)).Times(0);
+	EXPECT_CALL(*masterState2, exit(_, _)).Times(0);
+
+	masterState1->setEntryCalled(true);
+	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(&e));
+
+	EXPECT_EQ(masterState1, testee.m_currentState.get());
+	EXPECT_TRUE(MockObject::deleted(CURRENT_STATE_ID));
+	EXPECT_FALSE(MockObject::deleted(MASTER_STATE1_ID));
+	EXPECT_FALSE(MockObject::deleted(MASTER_STATE2_ID));
 }

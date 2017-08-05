@@ -43,7 +43,7 @@ MockObject::~MockObject()
 	m_mockObjects.clear();
 }
 
-/*static*/ bool MockObject::create(int id)
+/*static*/ bool MockObject::created(int id)
 {
 	return (m_mockObjects.find(id) != m_mockObjects.end());
 }
