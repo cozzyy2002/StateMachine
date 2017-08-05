@@ -30,8 +30,8 @@ public:
 
 	std::shared_ptr<State>& getMasterState() { return m_masterState; }
 
-	// Constant to set as next state to tell state machine to go back to the parent state.
-	static const State* RETURN_TO_PARENT;
+	// Constant to set as next state to tell state machine to go back to the master state.
+	static const State* RETURN_TO_MASTER;
 
 protected:
 	std::shared_ptr<State> m_masterState;

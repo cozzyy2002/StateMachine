@@ -17,7 +17,7 @@ StateMachine::~StateMachine()
 HRESULT state_machine::StateMachine::handleEvent(const Event* e)
 {
 	// Call State::handleEvent()
-	// If event is ignored and the state is sub state, delegate handling event to parent.
+	// If event is ignored and the state is sub state, delegate handling event to master state.
 	State* currentState = m_currentState.get();
 	State* nextState = nullptr;
 	HRESULT hr;
@@ -30,8 +30,8 @@ HRESULT state_machine::StateMachine::handleEvent(const Event* e)
 		currentState = currentState->getMasterState().get();
 	} while(currentState && (S_EVENT_IGNORED == hr));
 
-	if(m_currentState->isSubState() && (nextState == State::RETURN_TO_PARENT)) {
-		// If sub state returns RETURN_TO_PARENT constant,
+	if(m_currentState->isSubState() && (nextState == State::RETURN_TO_MASTER)) {
+		// If sub state returns RETURN_TO_MASTER constant,
 		// next state is master state.
 		nextState = m_currentState->getMasterState().get();
 	}

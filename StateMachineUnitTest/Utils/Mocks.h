@@ -35,6 +35,7 @@ class MockState : public state_machine::State, public MockObject
 public:
 	MockState() : MockObject() {}
 	MockState(int id) : MockObject(id) {}
+	void setMasterState(State* master) { m_masterState.reset(master); }
 
 	MOCK_METHOD3(handleEvent, HRESULT(const state_machine::Event* e, const state_machine::State* currentState, state_machine::State** nextState));
 	MOCK_METHOD1(handleIgnoredEvent, HRESULT(const state_machine::Event* e));
