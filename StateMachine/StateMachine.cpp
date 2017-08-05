@@ -22,10 +22,9 @@ HRESULT state_machine::StateMachine::handleEvent(const Event* e)
 	State* nextState = nullptr;
 	HRESULT hr;
 	do {
-		hr = currentState->handleEvent(e, currentState, &nextState);
+		hr = HR_EXPECT_OK(currentState->handleEvent(e, currentState, &nextState));
 		if(FAILED(hr)) {
-			hr = currentState->handleError(e, hr);
-			if(FAILED(hr)) return hr;
+			HR_ASSERT_OK(currentState->handleError(e, hr));
 		}
 		if(S_EVENT_IGNORED == hr) hr = currentState->handleIgnoredEvent(e);
 		currentState = currentState->getMasterState().get();
