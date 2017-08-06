@@ -5,31 +5,31 @@ static log4cplus::Logger logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT(
 
 /*static*/ MockObject::MockObjects_t MockObject::m_mockObjects;
 
-MockObject::MockObject() : m_id(-1)
+MockObject::MockObject() : m_id(MockObjectId::UNKNOWN)
 {
-	LOG4CPLUS_DEBUG(logger, "Creating MockObject: ID=" << m_id);
+	LOG4CPLUS_DEBUG(logger, "Creating MockObject: ID=" << (int)m_id);
 }
 
-MockObject::MockObject(int id) : m_id(id)
+MockObject::MockObject(MockObjectId id) : m_id(id)
 {
-	LOG4CPLUS_DEBUG(logger, "Creating MockObject: ID=" << m_id);
+	LOG4CPLUS_DEBUG(logger, "Creating MockObject: ID=" << (int)m_id);
 	if(m_mockObjects.find(id) == m_mockObjects.end()) {
 		m_mockObjects[id] = this;
 	} else {
-		ADD_FAILURE() << "MockObject constructor: ID " << id << " exists already.";
+		ADD_FAILURE() << "MockObject constructor: ID " << (int)id << " exists already.";
 	}
 }
 
 
 MockObject::~MockObject()
 {
-	LOG4CPLUS_DEBUG(logger, "Deleting MockObject: ID=" << m_id);
-	if(m_id != -1) {
+	LOG4CPLUS_DEBUG(logger, "Deleting MockObject: ID=" << (int)m_id);
+	if(m_id != MockObjectId::UNKNOWN) {
 		auto it = m_mockObjects.find(m_id);
 		if(it != m_mockObjects.end()) {
 			it->second = nullptr;
 		} else {
-			ADD_FAILURE() << "MockObject destructor: ID " << m_id << " does not exist in the list.";
+			ADD_FAILURE() << "MockObject destructor: ID " << (int)m_id << " does not exist in the list.";
 		}
 	}
 }
@@ -43,12 +43,12 @@ MockObject::~MockObject()
 	m_mockObjects.clear();
 }
 
-/*static*/ bool MockObject::created(int id)
+/*static*/ bool MockObject::created(MockObjectId id)
 {
 	return (m_mockObjects.find(id) != m_mockObjects.end());
 }
 
-/*static*/ bool MockObject::deleted(int id)
+/*static*/ bool MockObject::deleted(MockObjectId id)
 {
 	auto it = m_mockObjects.find(id);
 	return (it != m_mockObjects.end()) && !it->second;

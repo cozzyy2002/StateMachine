@@ -31,13 +31,14 @@ public:
 	bool isEntryCalled() const { return m_entryCalled; }
 	void setEntryCalled(bool entryCalled) { m_entryCalled = entryCalled; }
 
-	State* getMasterState() const { return m_masterState.get(); }
-	void setMasterState(std::shared_ptr<State>& master) { m_masterState = master; }
-
-	// Constant to set as next state to tell state machine to go back to the master state.
-	static State* RETURN_TO_MASTER;
+	std::shared_ptr<State>& masterState() { return m_masterState; }
 
 protected:
+	// Return value to tell state machine to go back to the master state.
+	// This method can be used in handleEvent() method of sub state.
+	// Useage: return backToMaster();
+	State* backToMaster();
+
 	std::shared_ptr<State> m_masterState;
 
 	// Flag to restrict entry() to be called only once.
