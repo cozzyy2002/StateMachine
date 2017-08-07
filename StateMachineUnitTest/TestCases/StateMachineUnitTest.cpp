@@ -137,7 +137,6 @@ TEST_F(StateMacineSubStateUnitTest, back_to_parent1)
 	EXPECT_CALL(*masterState2, entry(_, _)).Times(0);
 	EXPECT_CALL(*masterState2, exit(_, _)).Times(0);
 
-	masterState1->setEntryCalled(true);
 	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(&e));
 
 	EXPECT_EQ(masterState1, testee.m_currentState.get());
@@ -159,7 +158,6 @@ TEST_F(StateMacineSubStateUnitTest, back_to_parent2)
 	EXPECT_CALL(*masterState2, entry(_, _)).Times(0);
 	EXPECT_CALL(*masterState2, exit(_, _)).Times(0);
 
-	masterState1->setEntryCalled(true);
 	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(&e));
 
 	EXPECT_EQ(masterState2, testee.m_currentState.get());

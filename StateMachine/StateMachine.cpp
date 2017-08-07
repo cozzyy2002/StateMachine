@@ -21,16 +21,20 @@ HRESULT state_machine::StateMachine::handleEvent(const Event* e)
 	State* pCurrentState = m_currentState.get();
 	State* pNextState = nullptr;
 	std::shared_ptr<State> nextState;
+	bool backToMaster = false;
 	HRESULT hr;
 	do {
 		hr = HR_EXPECT_OK(pCurrentState->handleEvent(e, pCurrentState, &pNextState));
-		std::shared_ptr<State>* _nextState = findState(pNextState);
-		if(_nextState) {
-			// Back to existing master state.
-			nextState = *_nextState;
-		} else {
-			// Exit to newly created state.
-			nextState.reset(pNextState);
+		if(pNextState) {
+			std::shared_ptr<State>* _nextState = findState(pNextState);
+			if(_nextState) {
+				// Back to existing master state.
+				nextState = *_nextState;
+				backToMaster = true;
+			} else {
+				// Exit to newly created state.
+				nextState.reset(pNextState);
+			}
 		}
 		if(FAILED(hr)) {
 			HR_ASSERT_OK(pCurrentState->handleError(e, hr));
@@ -41,7 +45,7 @@ HRESULT state_machine::StateMachine::handleEvent(const Event* e)
 
 	if(SUCCEEDED(hr) && pNextState) {
 		// State transition occurred.
-		if(pNextState->isSubState() && !pNextState->isEntryCalled()) {
+		if(pNextState->isSubState() && !backToMaster) {
 			// Transition from master state to sub state.
 			// Don't call exit() of master state.
 			pNextState->masterState() = m_currentState;
@@ -62,8 +66,7 @@ HRESULT state_machine::StateMachine::handleEvent(const Event* e)
 		// Note: Current state and it's master state(which is not next state) will be deleted on out of scope.
 		std::shared_ptr<State> previousState(m_currentState);
 		m_currentState = nextState;
-		if(!m_currentState->isEntryCalled()) {
-			m_currentState->setEntryCalled(true);
+		if(!backToMaster) {
 			HR_ASSERT_OK(m_currentState->entry(e, previousState.get()));
 		}
 	}

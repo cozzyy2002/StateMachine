@@ -28,9 +28,6 @@ public:
 	*/
 	bool isSubState() const { return m_masterState ? true : false; }
 
-	bool isEntryCalled() const { return m_entryCalled; }
-	void setEntryCalled(bool entryCalled) { m_entryCalled = entryCalled; }
-
 	std::shared_ptr<State>& masterState() { return m_masterState; }
 
 protected:
@@ -40,9 +37,6 @@ protected:
 	State* backToMaster();
 
 	std::shared_ptr<State> m_masterState;
-
-	// Flag to restrict entry() to be called only once.
-	bool m_entryCalled;
 };
 
 } // namespace state_machine

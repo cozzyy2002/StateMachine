@@ -5,7 +5,6 @@ using namespace state_machine;
 
 State::State(State* previousState /*= nullptr*/, bool isSubState /*= false*/)
 	: m_masterState(isSubState ? previousState : nullptr)
-	, m_entryCalled(false)
 {
 }
 
