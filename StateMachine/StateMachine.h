@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <functional>
 
 namespace state_machine {
 
@@ -16,6 +17,9 @@ public:
 	HRESULT handleEvent(const Event* e);
 
 protected:
+	std::shared_ptr<State>* findState(State* pState);
+	HRESULT for_each_state(std::function<HRESULT(std::shared_ptr<State>& state)> func);
+
 	std::shared_ptr<State> m_currentState;
 };
 

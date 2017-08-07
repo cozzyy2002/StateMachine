@@ -24,7 +24,14 @@ HRESULT state_machine::StateMachine::handleEvent(const Event* e)
 	HRESULT hr;
 	do {
 		hr = HR_EXPECT_OK(pCurrentState->handleEvent(e, pCurrentState, &pNextState));
-		nextState.reset(pNextState);
+		std::shared_ptr<State>* _nextState = findState(pNextState);
+		if(_nextState) {
+			// Back to existing master state.
+			nextState = *_nextState;
+		} else {
+			// Exit to newly created state.
+			nextState.reset(pNextState);
+		}
 		if(FAILED(hr)) {
 			HR_ASSERT_OK(pCurrentState->handleError(e, hr));
 		}
@@ -41,13 +48,15 @@ HRESULT state_machine::StateMachine::handleEvent(const Event* e)
 		} else {
 			// Transition to other state or master state of current state.
 			// Call exit() of current state and master state if any.
-			for(State* pCurrentState = m_currentState.get();
-				pCurrentState && (pCurrentState != pNextState);
-				pCurrentState = pCurrentState->masterState().get())
+			HR_ASSERT_OK(for_each_state([e, pNextState](std::shared_ptr<State>& state)
 			{
-				pCurrentState->setEntryCalled(false);
-				HR_ASSERT_OK(pCurrentState->exit(e, pNextState));
-			}
+				if(state.get() != pNextState) {
+					HR_ASSERT_OK(state->exit(e, pNextState));
+					return S_OK;
+				} else {
+					return S_FALSE;
+				}
+			}));
 		}
 		// Preserve current state as previous state until calling entry() of next stete.
 		// Note: Current state and it's master state(which is not next state) will be deleted on out of scope.
@@ -56,6 +65,36 @@ HRESULT state_machine::StateMachine::handleEvent(const Event* e)
 		if(!m_currentState->isEntryCalled()) {
 			m_currentState->setEntryCalled(true);
 			HR_ASSERT_OK(m_currentState->entry(e, previousState.get()));
+		}
+	}
+	return hr;
+}
+
+std::shared_ptr<State>* state_machine::StateMachine::findState(State* pState)
+{
+	std::shared_ptr<State>* ret = nullptr;
+	for_each_state([this, pState, &ret](std::shared_ptr<State>& state)
+	{
+		if(pState == state.get()) {
+			ret = &state;
+			return S_FALSE;
+		}
+		return S_OK;
+	});
+	return ret;
+}
+
+HRESULT state_machine::StateMachine::for_each_state(std::function<HRESULT(std::shared_ptr<State>& state)> func)
+{
+	HRESULT hr;
+	for(std::shared_ptr<State>* state(&m_currentState); state->get(); state = &(state->get()->masterState())) {
+		hr = func(*state);
+		switch(hr) {
+		case S_OK:
+			break;
+		case S_FALSE:
+		default:
+			return hr;
 		}
 	}
 	return hr;

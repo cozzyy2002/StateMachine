@@ -145,3 +145,25 @@ TEST_F(StateMacineSubStateUnitTest, back_to_parent1)
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::MASTER_STATE1));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::MASTER_STATE2));
 }
+
+TEST_F(StateMacineSubStateUnitTest, back_to_parent2)
+{
+	MockEvent e;
+
+	EXPECT_CALL(*currentState, handleEvent(&e, currentState, _))
+		.WillOnce(DoAll(SetArgPointee<2>(masterState2), Return(S_OK)));
+	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
+	EXPECT_CALL(*currentState, exit(_, _)).Times(1);
+	EXPECT_CALL(*masterState1, entry(_, _)).Times(0);
+	EXPECT_CALL(*masterState1, exit(_, _)).Times(1);
+	EXPECT_CALL(*masterState2, entry(_, _)).Times(0);
+	EXPECT_CALL(*masterState2, exit(_, _)).Times(0);
+
+	masterState1->setEntryCalled(true);
+	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(&e));
+
+	EXPECT_EQ(masterState2, testee.m_currentState.get());
+	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
+	EXPECT_TRUE(MockObject::deleted(MockObjectId::MASTER_STATE1));
+	EXPECT_FALSE(MockObject::deleted(MockObjectId::MASTER_STATE2));
+}
