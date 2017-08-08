@@ -6,31 +6,37 @@
 using namespace state_machine;
 using namespace testing;
 
+class TestContext : public Context {};
+
 class StateMacineStateUnitTest : public Test
 {
 public:
 	class Testee : public StateMachine
 	{
 	public:
-		using StateMachine::m_currentState;
+		using StateMachine::setCurrentState;
+		using StateMachine::getCurrentState;
 	};
 
 	void SetUp() {
 		currentState = new MockState(MockObjectId::CURRENT_STATE);
-		testee.m_currentState.reset(currentState);
+		context.reset(new TestContext());
+		testee.setCurrentState(context.get(), currentState);
+		e.context = context.get();
 	}
 	void TearDown() {
-		testee.m_currentState.reset();
+		context.reset();
 		MockObject::clear();
 	}
 
+	std::unique_ptr<TestContext> context;
 	Testee testee;
 	MockState* currentState;
+	MockEvent e;
 };
 
 TEST_F(StateMacineStateUnitTest, no_transition)
 {
-	MockEvent e;
 	EXPECT_CALL(*currentState, handleEvent(&e, currentState, _))
 		.WillOnce(Return(S_OK));
 	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
@@ -38,13 +44,12 @@ TEST_F(StateMacineStateUnitTest, no_transition)
 
 	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(&e));
 
-	EXPECT_EQ(currentState, testee.m_currentState.get());
+	EXPECT_EQ(currentState, testee.getCurrentState(context.get()));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 }
 
 TEST_F(StateMacineStateUnitTest, no_transition_error)
 {
-	MockEvent e;
 	EXPECT_CALL(*currentState, handleEvent(&e, currentState, _))
 		.WillOnce(Return(E_NOTIMPL));
 	EXPECT_CALL(*currentState, handleError(&e, E_NOTIMPL))
@@ -58,13 +63,12 @@ TEST_F(StateMacineStateUnitTest, no_transition_error)
 
 	ASSERT_EQ(E_NOTIMPL, testee.handleEvent(&e));
 
-	EXPECT_EQ(currentState, testee.m_currentState.get());
+	EXPECT_EQ(currentState, testee.getCurrentState(context.get()));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 }
 
 TEST_F(StateMacineStateUnitTest, transition)
 {
-	MockEvent e;
 	MockState* nextState = new MockState(MockObjectId::NEXT_STATE);
 	EXPECT_CALL(*currentState, handleEvent(&e, currentState, _))
 		.WillOnce(DoAll(SetArgPointee<2>(nextState), Return(S_OK)));
@@ -75,14 +79,13 @@ TEST_F(StateMacineStateUnitTest, transition)
 
 	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(&e));
 
-	EXPECT_EQ(nextState, testee.m_currentState.get());
+	EXPECT_EQ(nextState, testee.getCurrentState(context.get()));
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::NEXT_STATE));
 }
 
 TEST_F(StateMacineStateUnitTest, transition_error)
 {
-	MockEvent e;
 	MockState* nextState = new MockState(MockObjectId::NEXT_STATE);
 	EXPECT_CALL(*currentState, handleEvent(&e, currentState, _))
 		.WillOnce(DoAll(SetArgPointee<2>(nextState), Return(E_NOTIMPL)));
@@ -99,7 +102,7 @@ TEST_F(StateMacineStateUnitTest, transition_error)
 
 	ASSERT_EQ(E_NOTIMPL, testee.handleEvent(&e));
 
-	EXPECT_EQ(currentState, testee.m_currentState.get());
+	EXPECT_EQ(currentState, testee.getCurrentState(context.get()));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::NEXT_STATE));
 }
@@ -126,8 +129,6 @@ public:
 
 TEST_F(StateMacineSubStateUnitTest, back_to_parent1)
 {
-	MockEvent e;
-
 	EXPECT_CALL(*currentState, handleEvent(&e, currentState, _))
 		.WillOnce(DoAll(SetArgPointee<2>(currentState->backToMaster()), Return(S_OK)));
 	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
@@ -139,7 +140,7 @@ TEST_F(StateMacineSubStateUnitTest, back_to_parent1)
 
 	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(&e));
 
-	EXPECT_EQ(masterState1, testee.m_currentState.get());
+	EXPECT_EQ(masterState1, testee.getCurrentState(context.get()));
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::MASTER_STATE1));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::MASTER_STATE2));
@@ -147,8 +148,6 @@ TEST_F(StateMacineSubStateUnitTest, back_to_parent1)
 
 TEST_F(StateMacineSubStateUnitTest, back_to_parent2)
 {
-	MockEvent e;
-
 	EXPECT_CALL(*currentState, handleEvent(&e, currentState, _))
 		.WillOnce(DoAll(SetArgPointee<2>(masterState2), Return(S_OK)));
 	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
@@ -160,7 +159,7 @@ TEST_F(StateMacineSubStateUnitTest, back_to_parent2)
 
 	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(&e));
 
-	EXPECT_EQ(masterState2, testee.m_currentState.get());
+	EXPECT_EQ(masterState2, testee.getCurrentState(context.get()));
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::MASTER_STATE1));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::MASTER_STATE2));
