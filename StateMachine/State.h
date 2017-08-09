@@ -37,9 +37,6 @@ protected:
 	State* backToMaster();
 
 	std::shared_ptr<State> m_masterState;
-
-	// Implementation of Object::getObject()
-	virtual const Object* getObject() const { return this; }
 };
 
 } // namespace state_machine

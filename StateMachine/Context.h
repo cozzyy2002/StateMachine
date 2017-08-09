@@ -37,10 +37,6 @@ public:
 	// If isStateLockEnabled() returns false, this method returns nullptr;
 	std::lock_guard<std::mutex>* geStatetLock();
 
-protected:
-	// Implementation of Object::getObject()
-	virtual const Object* getObject() const { return this; }
-
 private:	// Prevent members from being modified by derived class(User context).
 	std::shared_ptr<State> currentState;
 	StateMachine* stateMachine;

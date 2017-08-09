@@ -36,8 +36,6 @@ class MockEvent : public state_machine::Event, public MockObject
 public:
 	MockEvent() : MockObject() {}
 	MockEvent(MockObjectId id) : MockObject(id) {}
-
-	virtual LPCTSTR toString() const { return _T(""); }
 };
 
 class MockState : public state_machine::State, public MockObject
@@ -52,9 +50,7 @@ public:
 	MOCK_METHOD2(entry, HRESULT(const state_machine::Event* e, const state_machine::State* previousState));
 	MOCK_METHOD2(exit, HRESULT(const state_machine::Event* e, const state_machine::State* nextState));
 
-	// Implementation of Object::getObject()
 	virtual LPCTSTR toString();
-	mutable std::tstring m_string;
 
 	using State::backToMaster;
 };

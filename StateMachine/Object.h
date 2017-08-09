@@ -18,7 +18,7 @@ public:
 	virtual LPCTSTR toString();
 
 protected:
-	virtual const Object* getObject() const = 0;
+	virtual const Object* getObject() const { return this; }
 	std::tstring m_string;
 };
 
