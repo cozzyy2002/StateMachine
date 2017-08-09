@@ -1,12 +1,17 @@
 #include "stdafx.h"
 #include "Utils/Mocks.h"
 
+#include <StateMachine/Context.h>
 #include <StateMachine/StateMachine.h>
 
 using namespace state_machine;
 using namespace testing;
 
-class TestContext : public Context {};
+class TestContext : public Context
+{
+public:
+	TestContext(StateMachine* stateMachine) : Context(stateMachine) {}
+};
 
 class StateMacineStateUnitTest : public Test
 {
@@ -20,7 +25,7 @@ public:
 
 	void SetUp() {
 		currentState = new MockState(MockObjectId::CURRENT_STATE);
-		context.reset(new TestContext());
+		context.reset(new TestContext(&testee));
 		testee.setCurrentState(context.get(), currentState);
 		e.context = context.get();
 	}

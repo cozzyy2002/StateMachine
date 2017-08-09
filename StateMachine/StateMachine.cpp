@@ -15,10 +15,25 @@ StateMachine::~StateMachine()
 {
 }
 
+HRESULT state_machine::StateMachine::start(Context * context, State * initialState)
+{
+	return E_NOTIMPL;
+}
+
+HRESULT state_machine::StateMachine::stop(Context* context)
+{
+	return E_NOTIMPL;
+}
+
 HRESULT state_machine::StateMachine::handleEvent(Event* e)
 {
+	Context* context = e->context;
+
+	// Lock this scope(If necessary)
+	std::unique_ptr<std::lock_guard<std::mutex>> _lock(context->geStatetLock());
+
 	// Current state is contained by Context object in the Event.
-	std::shared_ptr<State>& currentState(e->context->currentState);
+	std::shared_ptr<State>& currentState(context->currentState);
 
 	// Call State::handleEvent()
 	// If event is ignored and the state is sub state, delegate handling event to master state.
@@ -109,3 +124,15 @@ HRESULT state_machine::StateMachine::for_each_state(std::shared_ptr<State>& curr
 	}
 	return hr;
 }
+
+#pragma region Used by unit test.
+void state_machine::StateMachine::setCurrentState(Context * context, State * currentState)
+{
+	context->currentState.reset(currentState);
+}
+
+State * state_machine::StateMachine::getCurrentState(Context * context) const
+{
+	return context->currentState.get();
+}
+#pragma endregion

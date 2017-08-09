@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Context.h"
-#include "State.h"
-#include "Event.h"
-
 #include <functional>
 
 namespace state_machine {
+
+class Event;
+class State;
+class Context;
 
 class StateMachine
 {
@@ -14,6 +14,8 @@ public:
 	StateMachine();
 	~StateMachine();
 
+	HRESULT start(Context* context, State* initialState);
+	HRESULT stop(Context* context);
 	HRESULT handleEvent(Event* e);
 
 protected:
@@ -21,8 +23,8 @@ protected:
 	HRESULT for_each_state(std::shared_ptr<State>& currentState, std::function<HRESULT(std::shared_ptr<State>& state)> func);
 
 #pragma region Used by unit test.
-	void setCurrentState(Context* context, State* currentState) { context->currentState.reset(currentState); }
-	State* getCurrentState(Context* context) const { return context->currentState.get(); }
+	void setCurrentState(Context* context, State* currentState);
+	State* getCurrentState(Context* context) const;
 #pragma endregion
 };
 
