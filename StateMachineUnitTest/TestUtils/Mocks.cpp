@@ -7,29 +7,29 @@ static log4cplus::Logger logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT(
 
 MockObject::MockObject() : m_id(MockObjectId::UNKNOWN)
 {
-	LOG4CPLUS_DEBUG(logger, "Creating MockObject: ID=" << (int)m_id);
+	LOG4CPLUS_DEBUG(logger, "Creating MockObject: " << m_id.toString());
 }
 
 MockObject::MockObject(MockObjectId id) : m_id(id)
 {
-	LOG4CPLUS_DEBUG(logger, "Creating MockObject: ID=" << (int)m_id);
+	LOG4CPLUS_DEBUG(logger, "Creating MockObject: " << m_id.toString());
 	if(m_mockObjects.find(id) == m_mockObjects.end()) {
 		m_mockObjects[id] = this;
 	} else {
-		ADD_FAILURE() << "MockObject constructor: ID " << (int)id << " exists already.";
+		ADD_FAILURE() << "MockObject constructor: " << id << " exists already.";
 	}
 }
 
 
 MockObject::~MockObject()
 {
-	LOG4CPLUS_DEBUG(logger, "Deleting MockObject: ID=" << (int)m_id);
+	LOG4CPLUS_DEBUG(logger, "Deleting MockObject: " << m_id.toString());
 	if(m_id != MockObjectId::UNKNOWN) {
 		auto it = m_mockObjects.find(m_id);
 		if(it != m_mockObjects.end()) {
 			it->second = nullptr;
 		} else {
-			ADD_FAILURE() << "MockObject destructor: ID " << (int)m_id << " does not exist in the list.";
+			ADD_FAILURE() << "MockObject destructor: " << m_id.toString() << " does not exist in the list.";
 		}
 	}
 }
@@ -58,7 +58,7 @@ LPCTSTR MockState::toString()
 {
 	if(m_string.empty()) {
 		std::tstringstream stream;
-		stream << Object::toString() << _T("(ID=") << (int)m_id << _T(")");
+		stream << Object::toString() << _T("(") << m_id.toString() << _T(")");
 		m_string = stream.str();
 	}
 	return m_string.c_str();

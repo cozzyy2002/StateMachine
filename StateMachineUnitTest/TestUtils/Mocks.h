@@ -2,18 +2,18 @@
 
 #include <StateMachine/Event.h>
 #include <StateMachine/State.h>
-
+#include <win32/Enum.h>
 #include <map>
 
-enum class MockObjectId{
-	UNKNOWN = -1,
-	EVENT = 1,
+ENUM(MockObjectId,
+	UNKNOWN,
+	EVENT,
 	CURRENT_STATE,
 	NEXT_STATE,
 	MASTER_STATE1,
 	MASTER_STATE2,
-	OTHER_STATE,
-};
+	OTHER_STATE
+);
 
 class MockObject
 {
@@ -36,6 +36,7 @@ class MockEvent : public state_machine::Event, public MockObject
 public:
 	MockEvent() : MockObject() {}
 	MockEvent(MockObjectId id) : MockObject(id) {}
+	virtual log4cplus::LogLevel getLogLevel() const { return log4cplus::DEBUG_LOG_LEVEL; }
 };
 
 class MockState : public state_machine::State, public MockObject
