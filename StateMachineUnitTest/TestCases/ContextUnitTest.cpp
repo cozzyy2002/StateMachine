@@ -30,12 +30,22 @@ public:
 	MockEvent e;
 };
 
+/*
+	Start/Stop state machine.
+
+	Context::start()
+		entry() of user state is called once.
+		Event::context is equal to user context.
+		Current state is equal to user state.
+	Context::stop():
+		User state is deleted.
+*/
 TEST_F(ContextUnitTest, start_stop)
 {
 	MockState* state = new MockState(MockObjectId::CURRENT_STATE);
 
 	EXPECT_CALL(*state, handleEvent(_, _, _)).Times(0);
-	EXPECT_CALL(*state, entry(_, _)).Times(1);
+	EXPECT_CALL(*state, entry(Field(&Event::context, Eq(testee)), _)).Times(1);
 	EXPECT_CALL(*state, exit(_, _)).Times(0);
 
 	ASSERT_HRESULT_SUCCEEDED(testee->start(state));
@@ -49,6 +59,16 @@ TEST_F(ContextUnitTest, start_stop)
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 }
 
+/*
+	Start/Stop state machine with user event.
+
+	Context::start(User event)
+		entry(User event) of user state is called once.
+		context of user event is equal to user context.
+		Current state is equal to user state.
+	Context::stop():
+		User state is deleted.
+*/
 TEST_F(ContextUnitTest, start_with_user_event_stop)
 {
 	MockState* state = new MockState(MockObjectId::CURRENT_STATE);
@@ -59,6 +79,7 @@ TEST_F(ContextUnitTest, start_with_user_event_stop)
 
 	ASSERT_HRESULT_SUCCEEDED(testee->start(state, &e));
 
+	EXPECT_EQ(testee, e.context);
 	EXPECT_EQ(state, stateMachine.getCurrentState(testee));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 
