@@ -18,7 +18,7 @@ public:
 	virtual ~Context();
 
 	// Set initialState as current state and call initialState->entry().
-	virtual HRESULT start(State* initialState);
+	virtual HRESULT start(State* initialState, Event* userEvent = nullptr);
 
 	// Stops state machine.
 	virtual HRESULT stop();

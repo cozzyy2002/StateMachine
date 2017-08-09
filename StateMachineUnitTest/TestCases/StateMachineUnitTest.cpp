@@ -31,7 +31,6 @@ public:
 	}
 	void TearDown() {
 		context.reset();
-		MockObject::clear();
 	}
 
 	std::unique_ptr<TestContext> context;

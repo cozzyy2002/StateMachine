@@ -6,26 +6,55 @@
 
 using namespace state_machine;
 
+/*
+	Inner class to let state machine call userState->entry().
+	Used to initialize user context.
+*/
+class RootState : public State
+{
+public:
+	RootState(State* userState) : userState(userState) {}
+
+	// Returns user state as next state regardless of the event.
+	// Then state machine calls entry() of user state and sets user state as current state.
+	virtual HRESULT handleEvent(const Event*, const State*, State** nextState) {
+		*nextState = userState;
+		return S_OK;
+	}
+
+protected:
+	State* userState;
+};
+
 StateMachine::StateMachine()
 {
 }
-
 
 StateMachine::~StateMachine()
 {
 }
 
-HRESULT state_machine::StateMachine::start(Context * context, State * initialState)
+/*
+	Start event handling using the context.
+
+	User state initialState->entry() will be called.
+	The method should ignore Event parameter if userEvent is not specified.
+	The method should ignore State parameter.
+*/
+HRESULT StateMachine::start(Context * context, State * initialState, Event* userEvent /*= nullptr*/)
 {
-	return E_NOTIMPL;
+	context->currentState.reset(new RootState(initialState));
+	Event* e = userEvent ? userEvent : new Event();
+	return context->handleEvent(e);
 }
 
-HRESULT state_machine::StateMachine::stop(Context* context)
+HRESULT StateMachine::stop(Context* context)
 {
-	return E_NOTIMPL;
+	context->currentState.reset();
+	return S_OK;
 }
 
-HRESULT state_machine::StateMachine::handleEvent(Event* e)
+HRESULT StateMachine::handleEvent(Event* e)
 {
 	Context* context = e->context;
 
@@ -95,7 +124,7 @@ HRESULT state_machine::StateMachine::handleEvent(Event* e)
 	return hr;
 }
 
-std::shared_ptr<State>* state_machine::StateMachine::findState(std::shared_ptr<State>& currentState, State* pState)
+std::shared_ptr<State>* StateMachine::findState(std::shared_ptr<State>& currentState, State* pState)
 {
 	std::shared_ptr<State>* ret = nullptr;
 	for_each_state(currentState, [this, pState, &ret](std::shared_ptr<State>& state)
@@ -109,7 +138,7 @@ std::shared_ptr<State>* state_machine::StateMachine::findState(std::shared_ptr<S
 	return ret;
 }
 
-HRESULT state_machine::StateMachine::for_each_state(std::shared_ptr<State>& currentState, std::function<HRESULT(std::shared_ptr<State>& state)> func)
+HRESULT StateMachine::for_each_state(std::shared_ptr<State>& currentState, std::function<HRESULT(std::shared_ptr<State>& state)> func)
 {
 	HRESULT hr;
 	for(std::shared_ptr<State>* state(&currentState); state->get(); state = &(state->get()->masterState())) {
@@ -126,12 +155,12 @@ HRESULT state_machine::StateMachine::for_each_state(std::shared_ptr<State>& curr
 }
 
 #pragma region Used by unit test.
-void state_machine::StateMachine::setCurrentState(Context * context, State * currentState)
+void StateMachine::setCurrentState(Context * context, State * currentState)
 {
 	context->currentState.reset(currentState);
 }
 
-State * state_machine::StateMachine::getCurrentState(Context * context) const
+State * StateMachine::getCurrentState(Context * context) const
 {
 	return context->currentState.get();
 }

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Context.h"
+#include "Event.h"
 #include "StateMachine.h"
 
 using namespace state_machine;
@@ -13,18 +14,19 @@ Context::~Context()
 {
 }
 
-HRESULT state_machine::Context::start(State * initialState)
+HRESULT Context::start(State * initialState, Event* userEvent /*= nullptr*/)
 {
-	return stateMachine->start(this, initialState);
+	return stateMachine->start(this, initialState, userEvent);
 }
 
-HRESULT state_machine::Context::stop()
+HRESULT Context::stop()
 {
 	return stateMachine->stop(this);
 }
 
-HRESULT state_machine::Context::handleEvent(Event * e)
+HRESULT Context::handleEvent(Event * e)
 {
+	e->context = this;
 	return stateMachine->handleEvent(e);
 }
 

@@ -12,7 +12,7 @@ public:
 	Event();
 	virtual ~Event();
 
-	virtual LPCTSTR toString() const = 0;
+	virtual LPCTSTR toString() const { return _T("Event"); }
 
 	Context* context;
 };

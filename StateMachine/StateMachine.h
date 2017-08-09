@@ -14,7 +14,7 @@ public:
 	StateMachine();
 	~StateMachine();
 
-	HRESULT start(Context* context, State* initialState);
+	HRESULT start(Context* context, State* initialState, Event* userEvent = nullptr);
 	HRESULT stop(Context* context);
 	HRESULT handleEvent(Event* e);
 

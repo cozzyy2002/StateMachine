@@ -2,6 +2,7 @@
 //
 
 #include "stdafx.h"
+#include "Utils/Mocks.h"
 #include <log4cplus/configurator.h>
 
 static log4cplus::Logger logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("Test.main"));
@@ -16,6 +17,8 @@ public:
 		LOG4CPLUS_INFO(logger, "---- " << test_info.test_case_name() << "." << test_info.name() << ": Test start ----");
 	}
 	virtual void OnTestEnd(const testing::TestInfo& test_info) {
+		MockObject::clear();
+
 		LOG4CPLUS_INFO(logger, "---- " << test_info.test_case_name() << "." << test_info.name() << ": "
 										<< (test_info.result()->Passed() ? "PASSED" : "FAILED") << " ----");
 	}
