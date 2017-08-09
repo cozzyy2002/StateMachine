@@ -4,6 +4,8 @@
 #include "State.h"
 #include "Context.h"
 
+static log4cplus::Logger logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("state_machine.StateMachine"));
+
 using namespace state_machine;
 
 /*
@@ -58,6 +60,11 @@ HRESULT StateMachine::handleEvent(Event* e)
 {
 	Context* context = e->context;
 
+	if(logger.isEnabledFor(e->getLogLevel())) {
+		// Suppress low level log output.
+		LOG4CPLUS_INFO(logger, "Handling " << e->toString() << " in " << context->toString());
+	}
+
 	// Lock this scope(If necessary)
 	std::unique_ptr<std::lock_guard<std::mutex>> _lock(context->geStatetLock());
 
@@ -72,6 +79,7 @@ HRESULT StateMachine::handleEvent(Event* e)
 	bool backToMaster = false;
 	HRESULT hr;
 	do {
+		LOG4CPLUS_INFO(logger, "Calling " << pCurrentState->toString() << "::handleEvent()");
 		hr = HR_EXPECT_OK(pCurrentState->handleEvent(e, pCurrentState, &pNextState));
 		if(pNextState) {
 			std::shared_ptr<State>* _nextState = findState(currentState, pNextState);
@@ -85,9 +93,11 @@ HRESULT StateMachine::handleEvent(Event* e)
 			}
 		}
 		if(FAILED(hr)) {
+			LOG4CPLUS_INFO(logger, "Calling " << pCurrentState->toString() << "::handleError()");
 			HR_ASSERT_OK(pCurrentState->handleError(e, hr));
 		}
 		if(S_EVENT_IGNORED == hr) {
+			LOG4CPLUS_INFO(logger, "Calling " << pCurrentState->toString() << "::handleIgnoredEvent()");
 			hr = HR_EXPECT_OK(pCurrentState->handleIgnoredEvent(e));
 			if(FAILED(hr)) return hr;
 		}
@@ -95,6 +105,7 @@ HRESULT StateMachine::handleEvent(Event* e)
 	} while(pCurrentState && (S_EVENT_IGNORED == hr));
 
 	if(SUCCEEDED(hr) && pNextState) {
+		LOG4CPLUS_INFO(logger, "Next state is " << pNextState->toString() << (pNextState->isSubState() ? "(Sub state)" : ""));
 		// State transition occurred.
 		if(pNextState->isSubState() && !backToMaster) {
 			// Transition from master state to sub state.
@@ -106,6 +117,7 @@ HRESULT StateMachine::handleEvent(Event* e)
 			HR_ASSERT_OK(for_each_state(currentState, [e, pNextState](std::shared_ptr<State>& state)
 			{
 				if(state.get() != pNextState) {
+					LOG4CPLUS_DEBUG(logger, "Calling " << state->toString() << "::exit()");
 					HR_ASSERT_OK(state->exit(e, pNextState));
 					return S_OK;
 				} else {
@@ -118,6 +130,7 @@ HRESULT StateMachine::handleEvent(Event* e)
 		std::shared_ptr<State> previousState(currentState);
 		currentState = nextState;
 		if(!backToMaster) {
+			LOG4CPLUS_DEBUG(logger, "Calling " << currentState->toString() << "::entry()");
 			HR_ASSERT_OK(currentState->entry(e, previousState.get()));
 		}
 	}

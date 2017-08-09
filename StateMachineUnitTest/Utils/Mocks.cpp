@@ -54,11 +54,12 @@ MockObject::~MockObject()
 	return (it != m_mockObjects.end()) && !it->second;
 }
 
-LPCTSTR MockState::toString() const
+LPCTSTR MockState::toString()
 {
 	if(m_string.empty()) {
-		CA2CT _string(typeid(*this).name());
-		m_string = (LPCTSTR)_string;
+		std::tstringstream stream;
+		stream << Object::toString() << _T("(ID=") << (int)m_id << _T(")");
+		m_string = stream.str();
 	}
 	return m_string.c_str();
 }

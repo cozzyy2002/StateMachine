@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Object.h"
 #include <memory>
 #include <mutex>
 
@@ -9,7 +10,7 @@ class Event;
 class State;
 class StateMachine;
 
-class Context
+class Context : public Object
 {
 	friend class StateMachine;
 
@@ -35,6 +36,10 @@ public:
 	//   std::unique_prt<std::lock_guard<std::mutex>> _lock(context->getStateLock());
 	// If isStateLockEnabled() returns false, this method returns nullptr;
 	std::lock_guard<std::mutex>* geStatetLock();
+
+protected:
+	// Implementation of Object::getObject()
+	virtual const Object* getObject() const { return this; }
 
 private:	// Prevent members from being modified by derived class(User context).
 	std::shared_ptr<State> currentState;

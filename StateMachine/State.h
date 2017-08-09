@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Object.h"
 #include <memory>
 
 // Value returned by event handlers when the event has not been handled.
@@ -9,7 +10,7 @@ namespace state_machine {
 
 class Event;
 
-class State
+class State : public Object
 {
 public:
 	State(State* previousState = nullptr, bool isSubState = false);
@@ -20,7 +21,6 @@ public:
 	virtual HRESULT handleError(const Event* e, HRESULT hr) { return hr; }
 	virtual HRESULT entry(const Event* e, const State* previousState) { return S_OK; }
 	virtual HRESULT exit(const Event* e, const State* nextState) { return S_OK; }
-	virtual LPCTSTR toString() const { return _T("State"); };
 
 	/*
 		Returns whether the class is sub state or not.
@@ -37,6 +37,9 @@ protected:
 	State* backToMaster();
 
 	std::shared_ptr<State> m_masterState;
+
+	// Implementation of Object::getObject()
+	virtual const Object* getObject() const { return this; }
 };
 
 } // namespace state_machine

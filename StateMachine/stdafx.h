@@ -14,6 +14,7 @@
 // TODO: reference additional headers your program requires here
 #include <Windows.h>
 #include <tchar.h>
+#include <strstream>
 #include <log4cplus/logger.h>
 #include <log4cplus/loggingmacros.h>
 #include <atlbase.h>

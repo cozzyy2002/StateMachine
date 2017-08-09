@@ -52,7 +52,8 @@ public:
 	MOCK_METHOD2(entry, HRESULT(const state_machine::Event* e, const state_machine::State* previousState));
 	MOCK_METHOD2(exit, HRESULT(const state_machine::Event* e, const state_machine::State* nextState));
 
-	virtual LPCTSTR toString() const;
+	// Implementation of Object::getObject()
+	virtual LPCTSTR toString();
 	mutable std::tstring m_string;
 
 	using State::backToMaster;
