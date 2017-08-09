@@ -167,7 +167,7 @@
     </ClCompile>
     <ClCompile Include="TestCases\ContextUnitTest.cpp" />
     <ClCompile Include="TestCases\StateMachineUnitTest.cpp" />
-    <ClCompile Include="Utils\Mocks.cpp" />
+    <ClCompile Include="TestUtils\Mocks.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -175,7 +175,7 @@
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="Utils\Mocks.h" />
+    <ClInclude Include="TestUtils\Mocks.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

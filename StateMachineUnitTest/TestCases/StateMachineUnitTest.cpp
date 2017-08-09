@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Utils/Mocks.h"
+#include "TestUtils/Mocks.h"
 
 #include <StateMachine/Context.h>
 #include <StateMachine/StateMachine.h>

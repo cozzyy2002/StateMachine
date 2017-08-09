@@ -2,7 +2,7 @@
 //
 
 #include "stdafx.h"
-#include "Utils/Mocks.h"
+#include "TestUtils/Mocks.h"
 #include <log4cplus/configurator.h>
 
 static log4cplus::Logger logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("Test.main"));
