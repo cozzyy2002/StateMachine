@@ -3,7 +3,8 @@
 
 using namespace state_machine;
 
-Event::Event()
+Event::Event(Context* context /*= nullptr*/)
+	: context(context)
 {
 }
 

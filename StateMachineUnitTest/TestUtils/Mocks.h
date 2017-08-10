@@ -34,7 +34,7 @@ public:
 class MockEvent : public state_machine::Event, public MockObject
 {
 public:
-	MockEvent() : MockObject() {}
+	MockEvent(state_machine::Context* context = nullptr) : state_machine::Event(context), MockObject() {}
 	MockEvent(MockObjectId id) : MockObject(id) {}
 	virtual log4cplus::LogLevel getLogLevel() const { return log4cplus::DEBUG_LOG_LEVEL; }
 };

@@ -63,7 +63,7 @@ HRESULT StateMachine::handleEvent(Event* e)
 	HR_ASSERT(!m_isHandlingState, E_ILLEGAL_METHOD_CALL);
 	ScopedStore<bool> _recursive_guard(m_isHandlingState, false, true);
 
-	Context* context = e->context;
+	Context* context = e->getContext();
 
 	if(logger.isEnabledFor(e->getLogLevel())) {
 		// Suppress low level log output.
@@ -161,13 +161,7 @@ HRESULT StateMachine::for_each_state(std::shared_ptr<State>& currentState, std::
 	HRESULT hr;
 	for(std::shared_ptr<State>* state(&currentState); state->get(); state = &(state->get()->masterState())) {
 		hr = func(*state);
-		switch(hr) {
-		case S_OK:
-			break;
-		case S_FALSE:
-		default:
-			return hr;
-		}
+		if(hr != S_OK) return hr;
 	}
 	return hr;
 }

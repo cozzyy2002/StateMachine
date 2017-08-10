@@ -45,7 +45,7 @@ TEST_F(ContextUnitTest, start_stop)
 	MockState* state = new MockState(MockObjectId::CURRENT_STATE);
 
 	EXPECT_CALL(*state, handleEvent(_, _, _)).Times(0);
-	EXPECT_CALL(*state, entry(Field(&Event::context, Eq(testee)), _)).Times(1);
+	EXPECT_CALL(*state, entry(Property(&Event::getContext<Testee>, Eq(testee)), _)).Times(1);
 	EXPECT_CALL(*state, exit(_, _)).Times(0);
 
 	ASSERT_HRESULT_SUCCEEDED(testee->start(state));
@@ -79,7 +79,7 @@ TEST_F(ContextUnitTest, start_with_user_event_stop)
 
 	ASSERT_HRESULT_SUCCEEDED(testee->start(state, &e));
 
-	EXPECT_EQ(testee, e.context);
+	EXPECT_EQ(testee, e.getContext());
 	EXPECT_EQ(state, stateMachine.getCurrentState(testee));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 

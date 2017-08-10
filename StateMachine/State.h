@@ -9,6 +9,7 @@
 namespace state_machine {
 
 class Event;
+class StateMachine;
 
 class State : public Object
 {
@@ -35,6 +36,10 @@ protected:
 	// This method can be used in handleEvent() method of sub state.
 	// Useage: return backToMaster();
 	State* backToMaster();
+
+private:
+	// Derived class(User state) can not modify members of this class.
+	friend class StateMachine;
 
 	std::shared_ptr<State> m_masterState;
 };

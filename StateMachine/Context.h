@@ -12,8 +12,6 @@ class StateMachine;
 
 class Context : public Object
 {
-	friend class StateMachine;
-
 public:
 	Context(StateMachine* stateMachine);
 	virtual ~Context();
@@ -37,7 +35,10 @@ public:
 	// If isStateLockEnabled() returns false, this method returns nullptr;
 	std::lock_guard<std::mutex>* geStatetLock();
 
-private:	// Prevent members from being modified by derived class(User context).
+private:
+	// Derived class(User context) can not modify members of this class.
+	friend class StateMachine;
+
 	std::shared_ptr<State> currentState;
 	StateMachine* stateMachine;
 
