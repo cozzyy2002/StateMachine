@@ -29,6 +29,7 @@ protected:
 };
 
 StateMachine::StateMachine()
+	: m_isHandlingState(false)
 {
 }
 
@@ -58,6 +59,10 @@ HRESULT StateMachine::stop(Context* context)
 
 HRESULT StateMachine::handleEvent(Event* e)
 {
+	// Recursive call check.
+	HR_ASSERT(!m_isHandlingState, E_ILLEGAL_METHOD_CALL);
+	ScopedStore<bool> _recursive_guard(m_isHandlingState, false, true);
+
 	Context* context = e->context;
 
 	if(logger.isEnabledFor(e->getLogLevel())) {
