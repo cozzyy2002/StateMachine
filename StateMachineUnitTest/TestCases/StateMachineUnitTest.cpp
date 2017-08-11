@@ -48,6 +48,7 @@ TEST_F(StateMacineStateUnitTest, no_transition)
 
 	EXPECT_EQ(currentState, testee.getCurrentState(context.get()));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
+	EXPECT_TRUE(e->isHandled);
 }
 
 TEST_F(StateMacineStateUnitTest, no_transition_error)
@@ -67,6 +68,7 @@ TEST_F(StateMacineStateUnitTest, no_transition_error)
 
 	EXPECT_EQ(currentState, testee.getCurrentState(context.get()));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
+	EXPECT_TRUE(e->isHandled);
 }
 
 TEST_F(StateMacineStateUnitTest, transition)
@@ -84,6 +86,7 @@ TEST_F(StateMacineStateUnitTest, transition)
 	EXPECT_EQ(nextState, testee.getCurrentState(context.get()));
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::NEXT_STATE));
+	EXPECT_TRUE(e->isHandled);
 }
 
 TEST_F(StateMacineStateUnitTest, transition_error)
@@ -107,6 +110,7 @@ TEST_F(StateMacineStateUnitTest, transition_error)
 	EXPECT_EQ(currentState, testee.getCurrentState(context.get()));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::NEXT_STATE));
+	EXPECT_TRUE(e->isHandled);
 }
 
 TEST_F(StateMacineStateUnitTest, handleEvent_recursive_call_check)
@@ -126,6 +130,7 @@ TEST_F(StateMacineStateUnitTest, handleEvent_recursive_call_check)
 
 	EXPECT_EQ(currentState, testee.getCurrentState(context.get()));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
+	EXPECT_TRUE(e->isHandled);
 }
 
 class StateMacineSubStateUnitTest : public StateMacineStateUnitTest
@@ -165,6 +170,7 @@ TEST_F(StateMacineSubStateUnitTest, back_to_parent1)
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::MASTER_STATE1));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::MASTER_STATE2));
+	EXPECT_TRUE(e->isHandled);
 }
 
 TEST_F(StateMacineSubStateUnitTest, back_to_parent2)
@@ -184,4 +190,35 @@ TEST_F(StateMacineSubStateUnitTest, back_to_parent2)
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::MASTER_STATE1));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::MASTER_STATE2));
+	EXPECT_TRUE(e->isHandled);
+}
+
+TEST_F(StateMacineSubStateUnitTest, all_events_ignored)
+{
+	EXPECT_CALL(*currentState, handleEvent(e.get(), currentState, _))
+		.WillOnce(Return(currentState->eventIsIgnored()));
+	EXPECT_CALL(*currentState, handleIgnoredEvent(e.get()))
+		.WillOnce(Return(currentState->eventIsIgnored()));
+	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
+	EXPECT_CALL(*currentState, exit(_, _)).Times(0);
+	EXPECT_CALL(*masterState1, handleEvent(e.get(), currentState, _))
+		.WillOnce(Return(masterState1->eventIsIgnored()));
+	EXPECT_CALL(*masterState1, handleIgnoredEvent(e.get()))
+		.WillOnce(Return(masterState1->eventIsIgnored()));
+	EXPECT_CALL(*masterState1, entry(_, _)).Times(0);
+	EXPECT_CALL(*masterState1, exit(_, _)).Times(0);
+	EXPECT_CALL(*masterState2, handleEvent(e.get(), currentState, _))
+		.WillOnce(Return(masterState2->eventIsIgnored()));
+	EXPECT_CALL(*masterState2, handleIgnoredEvent(e.get()))
+		.WillOnce(Return(masterState2->eventIsIgnored()));
+	EXPECT_CALL(*masterState2, entry(_, _)).Times(0);
+	EXPECT_CALL(*masterState2, exit(_, _)).Times(0);
+
+	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(e.get()));
+
+	EXPECT_EQ(currentState, testee.getCurrentState(context.get()));
+	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
+	EXPECT_FALSE(MockObject::deleted(MockObjectId::MASTER_STATE1));
+	EXPECT_FALSE(MockObject::deleted(MockObjectId::MASTER_STATE2));
+	EXPECT_FALSE(e->isHandled);
 }

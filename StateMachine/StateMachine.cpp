@@ -87,7 +87,10 @@ HRESULT StateMachine::handleEvent(Event* e)
 	HRESULT hr;
 	do {
 		LOG4CPLUS_INFO(logger, "Calling " << pCurrentState->toString() << "::handleEvent()");
-		hr = HR_EXPECT_OK(pCurrentState->handleEvent(e, pCurrentState, &pNextState));
+		hr = HR_EXPECT_OK(pCurrentState->handleEvent(e, currentState.get(), &pNextState));
+		// Set Event::isHandled.
+		// If state transition occurs, assume that the event is handled even if S_EVENT_IGNORED was returned.
+		e->isHandled = ((hr != S_EVENT_IGNORED) || pNextState);
 		if(pNextState) {
 			// Note: Object returned to pNextState might be deleted,
 			//       if nextState goes out of scope before it is set as current state.
@@ -107,8 +110,7 @@ HRESULT StateMachine::handleEvent(Event* e)
 		}
 		if(S_EVENT_IGNORED == hr) {
 			LOG4CPLUS_INFO(logger, "Calling " << pCurrentState->toString() << "::handleIgnoredEvent()");
-			hr = HR_EXPECT_OK(pCurrentState->handleIgnoredEvent(e));
-			if(FAILED(hr)) return hr;
+			HR_ASSERT_OK(hr = pCurrentState->handleIgnoredEvent(e));
 		}
 		pCurrentState = pCurrentState->masterState().get();
 	} while(pCurrentState && (S_EVENT_IGNORED == hr));

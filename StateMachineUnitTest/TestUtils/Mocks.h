@@ -54,4 +54,5 @@ public:
 	virtual LPCTSTR toString();
 
 	using State::backToMaster;
+	using State::eventIsIgnored;
 };

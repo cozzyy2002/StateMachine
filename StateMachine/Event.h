@@ -21,6 +21,12 @@ public:
 	template<class T = Context>
 	T* getContext() const { return dynamic_cast<T*>(context); }
 
+	// true if the event is handled by the methods of State class.
+	// State machine doesn't depend on this value, it just sets this value.
+	// This value is set to true by state machine,
+	// when State::handleEvent() returns other than S_EVENT_IGNORED.
+	bool isHandled;
+
 private:
 	// Derived class(User event) can not modify members of this class.
 	friend class Context;
