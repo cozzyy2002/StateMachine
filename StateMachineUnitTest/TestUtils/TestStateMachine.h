@@ -10,5 +10,4 @@ class TestStateMachine : public StateMachine
 public:
 	using StateMachine::setCurrentState;
 	using StateMachine::getCurrentState;
-	using StateMachine::m_isHandlingState;
 };

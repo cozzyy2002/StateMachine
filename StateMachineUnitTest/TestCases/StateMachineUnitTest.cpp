@@ -113,26 +113,6 @@ TEST_F(StateMacineStateUnitTest, transition_error)
 	EXPECT_TRUE(e->isHandled);
 }
 
-TEST_F(StateMacineStateUnitTest, handleEvent_recursive_call_check)
-{
-	EXPECT_CALL(*currentState, handleEvent(e.get(), currentState, _))
-		.WillOnce(Invoke([this](Event* e, State*, State**)
-		{
-			EXPECT_TRUE(testee.m_isHandlingState);
-
-			// Call StateMachine::handleEvent() in State::handleEvent().
-			EXPECT_EQ(E_ILLEGAL_METHOD_CALL, testee.handleEvent(e));
-			return S_OK;
-		}));
-
-	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(e.get()));
-	EXPECT_FALSE(testee.m_isHandlingState);
-
-	EXPECT_EQ(currentState, testee.getCurrentState(context.get()));
-	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
-	EXPECT_TRUE(e->isHandled);
-}
-
 class StateMacineSubStateUnitTest : public StateMacineStateUnitTest
 {
 public:

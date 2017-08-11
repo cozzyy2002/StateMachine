@@ -35,15 +35,21 @@ public:
 	// If isStateLockEnabled() returns false, this method returns nullptr;
 	std::lock_guard<std::mutex>* geStatetLock();
 
+	bool isEventHandling() const { return m_isEventHandling; }
+
 private:
 	// Derived class(User context) can not modify members of this class.
 	friend class StateMachine;
 
 	std::shared_ptr<State> currentState;
-	StateMachine* stateMachine;
+	StateMachine* const stateMachine;
+
+	// true if the state machine is handling event in this context.
+	// Used to recursive call check by state machine.
+	bool m_isEventHandling;
 
 	// Mutex used to lock StateMachine::handleEvent().
-	std::mutex eventQueueLock;
+	std::mutex stateLock;
 };
 
 } // namespace state_machine

@@ -7,6 +7,7 @@ using namespace state_machine;
 
 Context::Context(StateMachine* stateMachine)
 	: stateMachine(stateMachine)
+	, m_isEventHandling(false)
 {
 }
 
@@ -32,5 +33,5 @@ HRESULT Context::handleEvent(Event * e)
 
 std::lock_guard<std::mutex>* Context::geStatetLock()
 {
-	return isStateLockEnabled() ? new std::lock_guard<std::mutex>(eventQueueLock) : nullptr;
+	return isStateLockEnabled() ? new std::lock_guard<std::mutex>(stateLock) : nullptr;
 }

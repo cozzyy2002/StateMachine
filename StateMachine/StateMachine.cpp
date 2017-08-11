@@ -29,7 +29,6 @@ protected:
 };
 
 StateMachine::StateMachine()
-	: m_isHandlingState(false)
 {
 }
 
@@ -61,16 +60,16 @@ HRESULT StateMachine::stop(Context* context)
 
 HRESULT StateMachine::handleEvent(Event* e)
 {
-	// Recursive call check.
-	HR_ASSERT(!m_isHandlingState, E_ILLEGAL_METHOD_CALL);
-	ScopedStore<bool> _recursive_guard(m_isHandlingState, false, true);
-
 	Context* context = e->getContext();
 
 	if(logger.isEnabledFor(e->getLogLevel())) {
 		// Suppress low level log output.
 		LOG4CPLUS_INFO(logger, "Handling " << e->toString() << " in " << context->toString());
 	}
+
+	// Recursive call check.
+	HR_ASSERT(!context->m_isEventHandling, E_ILLEGAL_METHOD_CALL);
+	ScopedStore<bool> _recursive_guard(context->m_isEventHandling, false, true);
 
 	// Lock this scope(If necessary)
 	std::unique_ptr<std::lock_guard<std::mutex>> _lock(context->geStatetLock());
@@ -173,12 +172,12 @@ HRESULT StateMachine::for_each_state(std::shared_ptr<State>& currentState, std::
 }
 
 #pragma region Used by unit test.
-void StateMachine::setCurrentState(Context * context, State * currentState)
+void StateMachine::setCurrentState(Context* context, State* currentState)
 {
 	context->currentState.reset(currentState);
 }
 
-State * StateMachine::getCurrentState(Context * context) const
+State* StateMachine::getCurrentState(Context* context) const
 {
 	return context->currentState.get();
 }
