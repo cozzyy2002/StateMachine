@@ -29,6 +29,10 @@ public:
 	MockObjectId m_id;
 	typedef std::map<MockObjectId, MockObject*> MockObjects_t;
 	static MockObjects_t m_mockObjects;
+
+protected:
+	// Implementation of Object::modifyString() to be called by derived classes.
+	void modifyString(std::tstring& _string) const;
 };
 
 class MockEvent : public state_machine::Event, public MockObject
@@ -37,6 +41,9 @@ public:
 	MockEvent(state_machine::Context* context = nullptr) : state_machine::Event(context), MockObject() {}
 	MockEvent(MockObjectId id) : MockObject(id) {}
 	virtual log4cplus::LogLevel getLogLevel() const { return log4cplus::DEBUG_LOG_LEVEL; }
+
+protected:
+	virtual void modifyString(std::tstring& _string) const { MockObject::modifyString(_string); }
 };
 
 class MockState : public state_machine::State, public MockObject
@@ -51,8 +58,9 @@ public:
 	MOCK_METHOD2(entry, HRESULT(state_machine::Event* e, state_machine::State* previousState));
 	MOCK_METHOD2(exit, HRESULT(state_machine::Event* e, state_machine::State* nextState));
 
-	virtual LPCTSTR toString();
-
 	using State::backToMaster;
 	using State::eventIsIgnored;
+
+protected:
+	virtual void modifyString(std::tstring& _string) const { MockObject::modifyString(_string); }
 };

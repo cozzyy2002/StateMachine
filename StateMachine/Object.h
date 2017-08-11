@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 namespace std {
 #if defined(_UNICODE)
 	typedef wstring tstring;
@@ -12,14 +14,28 @@ namespace std {
 
 namespace state_machine {
 
+/*
+	Base class for Context, State and Event
+*/
 class Object
 {
 public:
-	virtual LPCTSTR toString();
+	// Returns string representation.
+	// If modify the string in derived class, override modifyString() method.
+	LPCTSTR toString() const;
 
 protected:
 	virtual const Object* getObject() const { return this; }
-	std::tstring m_string;
+
+	// Modify m_string in derived class.
+	// This method is called by toString().
+	virtual void modifyString(std::tstring& _string) const {}
+
+private:
+#pragma region mutable members used in toString() const method.
+	mutable std::tstring m_string;
+	mutable std::mutex m_stringLock;
+#pragma endregion
 };
 
 // Class to reset value when it goes out of the scope.

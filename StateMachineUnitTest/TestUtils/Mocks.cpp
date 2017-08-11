@@ -54,12 +54,9 @@ MockObject::~MockObject()
 	return (it != m_mockObjects.end()) && !it->second;
 }
 
-LPCTSTR MockState::toString()
+void MockObject::modifyString(std::tstring& _string) const
 {
-	if(m_string.empty()) {
-		std::tstringstream stream;
-		stream << Object::toString() << _T("(") << m_id.toString() << _T(")");
-		m_string = stream.str();
-	}
-	return m_string.c_str();
+	std::tstringstream stream;
+	stream << _T("(") << m_id.toString() << _T(")");
+	_string += stream.str();
 }
