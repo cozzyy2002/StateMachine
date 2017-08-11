@@ -1,18 +1,12 @@
 #include "stdafx.h"
 #include "TestUtils/Mocks.h"
+#include "TestUtils/TestStateMachine.h"
 
 #include <StateMachine/Context.h>
 #include <StateMachine/StateMachine.h>
 
 using namespace state_machine;
 using namespace testing;
-
-class TestStateMachine : public StateMachine
-{
-public:
-	using StateMachine::setCurrentState;
-	using StateMachine::getCurrentState;
-};
 
 class ContextUnitTest : public Test
 {

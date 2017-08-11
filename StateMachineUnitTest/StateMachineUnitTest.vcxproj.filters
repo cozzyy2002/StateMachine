@@ -25,6 +25,9 @@
     <ClInclude Include="TestUtils\Mocks.h">
       <Filter>TestUtils</Filter>
     </ClInclude>
+    <ClInclude Include="TestUtils\TestStateMachine.h">
+      <Filter>TestUtils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "TestUtils/Mocks.h"
+#include "TestUtils/TestStateMachine.h"
 
 #include <StateMachine/Context.h>
 #include <StateMachine/StateMachine.h>
@@ -16,13 +17,7 @@ public:
 class StateMacineStateUnitTest : public Test
 {
 public:
-	class Testee : public StateMachine
-	{
-	public:
-		using StateMachine::setCurrentState;
-		using StateMachine::getCurrentState;
-		using StateMachine::m_isHandlingState;
-	};
+	typedef TestStateMachine Testee;
 
 	StateMacineStateUnitTest()
 		: context(new TestContext(&testee))
@@ -60,10 +55,10 @@ TEST_F(StateMacineStateUnitTest, no_transition_error)
 	EXPECT_CALL(*currentState, handleEvent(e.get(), currentState, _))
 		.WillOnce(Return(E_NOTIMPL));
 	EXPECT_CALL(*currentState, handleError(e.get(), E_NOTIMPL))
-		.WillOnce(Invoke([&](const Event* e, HRESULT hr)
+		.WillOnce(Invoke([this](Event* e, HRESULT hr)
 		{
 			// Call default error handler.
-			return currentState->State::handleError(e, hr);
+			 return currentState->State::handleError(e, hr);
 		}));
 	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
 	EXPECT_CALL(*currentState, exit(_, _)).Times(0);
@@ -97,10 +92,10 @@ TEST_F(StateMacineStateUnitTest, transition_error)
 	EXPECT_CALL(*currentState, handleEvent(e.get(), currentState, _))
 		.WillOnce(DoAll(SetArgPointee<2>(nextState), Return(E_NOTIMPL)));
 	EXPECT_CALL(*currentState, handleError(e.get(), E_NOTIMPL))
-		.WillOnce(Invoke([&](const Event* e, HRESULT hr)
+		.WillOnce(Invoke([this](Event* e, HRESULT hr)
 		{
 			// Call default error handler.
-			return currentState->State::handleError(e, hr);
+			 return currentState->State::handleError(e, hr);
 		}));
 	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
 	EXPECT_CALL(*currentState, exit(e.get(), nextState)).Times(0);
@@ -117,12 +112,12 @@ TEST_F(StateMacineStateUnitTest, transition_error)
 TEST_F(StateMacineStateUnitTest, handleEvent_recursive_call_check)
 {
 	EXPECT_CALL(*currentState, handleEvent(e.get(), currentState, _))
-		.WillOnce(Invoke([this](const Event*, const State*, State**)
+		.WillOnce(Invoke([this](Event* e, State*, State**)
 		{
 			EXPECT_TRUE(testee.m_isHandlingState);
 
 			// Call StateMachine::handleEvent() in State::handleEvent().
-			EXPECT_EQ(E_ILLEGAL_METHOD_CALL, testee.handleEvent(e.get()));
+			EXPECT_EQ(E_ILLEGAL_METHOD_CALL, testee.handleEvent(e));
 			return S_OK;
 		}));
 

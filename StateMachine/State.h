@@ -17,11 +17,11 @@ public:
 	State(State* previousState = nullptr, bool isSubState = false);
 	virtual ~State();
 
-	virtual HRESULT handleEvent(const Event* e, const State* currentState, State** nextState) { return S_OK; }
-	virtual HRESULT handleIgnoredEvent(const Event* e) { return S_EVENT_IGNORED; }
-	virtual HRESULT handleError(const Event* e, HRESULT hr) { return hr; }
-	virtual HRESULT entry(const Event* e, const State* previousState) { return S_OK; }
-	virtual HRESULT exit(const Event* e, const State* nextState) { return S_OK; }
+	virtual HRESULT handleEvent(Event* e, State* currentState, State** nextState) { return S_OK; }
+	virtual HRESULT handleIgnoredEvent(Event* e) { return eventIsIgnored(); }
+	virtual HRESULT handleError(Event* e, HRESULT hr) { return hr; }
+	virtual HRESULT entry(Event* e, State* previousState) { return S_OK; }
+	virtual HRESULT exit(Event* e, State* nextState) { return S_OK; }
 
 	/*
 		Returns whether the class is sub state or not.
@@ -32,10 +32,15 @@ public:
 	std::shared_ptr<State>& masterState() { return m_masterState; }
 
 protected:
-	// Return value to tell state machine to go back to the master state.
+	// Next state to tell state machine to go back to the master state.
 	// This method can be used in handleEvent() method of sub state.
-	// Useage: return backToMaster();
+	// Useage: *nextState = backToMaster();
 	State* backToMaster();
+
+	// Return value to tell state machine that event is not handled.
+	// This method can be used in handleEvent() method.
+	// Useage: return eventIsIgnored();
+	HRESULT eventIsIgnored() const { return S_EVENT_IGNORED; }
 
 private:
 	// Derived class(User state) can not modify members of this class.

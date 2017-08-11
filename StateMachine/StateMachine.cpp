@@ -19,7 +19,7 @@ public:
 
 	// Returns user state as next state regardless of the event.
 	// Then state machine calls entry() of user state and sets user state as current state.
-	virtual HRESULT handleEvent(const Event*, const State*, State** nextState) {
+	virtual HRESULT handleEvent(Event*, State*, State** nextState) {
 		*nextState = userState;
 		return S_OK;
 	}
@@ -46,6 +46,8 @@ StateMachine::~StateMachine()
 */
 HRESULT StateMachine::start(Context * context, State * initialState, Event* userEvent /*= nullptr*/)
 {
+	HR_ASSERT(!context->currentState, E_ILLEGAL_METHOD_CALL);
+
 	context->currentState.reset(new RootState(initialState));
 	Event* e = userEvent ? userEvent : new Event();
 	return context->handleEvent(e);
@@ -87,10 +89,12 @@ HRESULT StateMachine::handleEvent(Event* e)
 		LOG4CPLUS_INFO(logger, "Calling " << pCurrentState->toString() << "::handleEvent()");
 		hr = HR_EXPECT_OK(pCurrentState->handleEvent(e, pCurrentState, &pNextState));
 		if(pNextState) {
-			std::shared_ptr<State>* _nextState = findState(currentState, pNextState);
-			if(_nextState) {
+			// Note: Object returned to pNextState might be deleted,
+			//       if nextState goes out of scope before it is set as current state.
+			std::shared_ptr<State>* nextMasterState = findState(currentState, pNextState);
+			if(nextMasterState) {
 				// Back to existing master state.
-				nextState = *_nextState;
+				nextState = *nextMasterState;
 				backToMaster = true;
 			} else {
 				// Exit to newly created state.
