@@ -87,7 +87,7 @@ HRESULT StateMachine::handleEvent(Event* e)
 		pCurrentState && !e->isHandled;
 		pCurrentState = pCurrentState->masterState().get())
 	{
-		LOG4CPLUS_INFO(logger, "Calling " << pCurrentState->toString() << "::handleEvent()");
+		LOG4CPLUS_DEBUG(logger, "Calling " << pCurrentState->toString() << "::handleEvent()");
 		hr = HR_EXPECT_OK(pCurrentState->handleEvent(e, currentState.get(), &pNextState));
 		// Set Event::isHandled.
 		// If state transition occurs, assume that the event is handled even if S_EVENT_IGNORED was returned.
@@ -107,11 +107,11 @@ HRESULT StateMachine::handleEvent(Event* e)
 			}
 		}
 		if(FAILED(hr)) {
-			LOG4CPLUS_INFO(logger, "Calling " << pCurrentState->toString() << "::handleError()");
+			LOG4CPLUS_DEBUG(logger, "Calling " << pCurrentState->toString() << "::handleError()");
 			HR_ASSERT_OK(pCurrentState->handleError(e, hr));
 		}
 		if(!e->isHandled) {
-			LOG4CPLUS_INFO(logger, "Calling " << pCurrentState->toString() << "::handleIgnoredEvent()");
+			LOG4CPLUS_DEBUG(logger, "Calling " << pCurrentState->toString() << "::handleIgnoredEvent()");
 			HR_ASSERT_OK(pCurrentState->handleIgnoredEvent(e));
 		}
 	}
@@ -146,6 +146,11 @@ HRESULT StateMachine::handleEvent(Event* e)
 			HR_ASSERT_OK(currentState->entry(e, previousState.get()));
 		}
 	}
+
+	LOG4CPLUS_DEBUG(logger, e->toString()
+							<< " is " << (e->isHandled ? "handled" : "ignored")
+							<< ". HRESULT=0x" << std::hex << hr);
+
 	return hr;
 }
 
