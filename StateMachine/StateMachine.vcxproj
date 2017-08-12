@@ -161,6 +161,7 @@ xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(OutDir)"</Command>
     <ClInclude Include="Object.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="StateMachine.h" />
+    <ClInclude Include="StateMachineImpl.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -169,7 +170,7 @@ xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(OutDir)"</Command>
     <ClCompile Include="Event.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="State.cpp" />
-    <ClCompile Include="StateMachine.cpp" />
+    <ClCompile Include="StateMachineImpl.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

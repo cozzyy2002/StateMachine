@@ -1,15 +1,15 @@
 #pragma once
 
-#include <StateMachine/StateMachine.h>
+#include <StateMachine/StateMachineImpl.h>
 
 using namespace state_machine;
 using namespace testing;
 
-class TestStateMachine : public StateMachine
+class TestStateMachine : public StateMachineImpl
 {
 public:
-	using StateMachine::setCurrentState;
-	using StateMachine::getCurrentState;
-	using StateMachine::setMasterState;
-	using StateMachine::getMasterState;
+	using StateMachineImpl::setCurrentState;
+	using StateMachineImpl::getCurrentState;
+	using StateMachineImpl::setMasterState;
+	using StateMachineImpl::getMasterState;
 };

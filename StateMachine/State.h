@@ -10,6 +10,7 @@ namespace state_machine {
 
 class Event;
 class StateMachine;
+class StateMachineImpl;
 
 class State : public Object
 {
@@ -48,7 +49,7 @@ protected:
 
 private:
 	// Derived class(User state) can not modify members of this class.
-	friend class StateMachine;
+	friend class StateMachineImpl;
 
 	std::shared_ptr<State> m_masterState;
 };

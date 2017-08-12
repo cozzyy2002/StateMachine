@@ -3,7 +3,6 @@
 #include "TestUtils/TestStateMachine.h"
 
 #include <StateMachine/Context.h>
-#include <StateMachine/StateMachine.h>
 
 using namespace state_machine;
 using namespace testing;

@@ -9,6 +9,7 @@ namespace state_machine {
 class Event;
 class State;
 class StateMachine;
+class StateMachineImpl;
 
 class Context : public Object
 {
@@ -39,7 +40,7 @@ public:
 
 private:
 	// Derived class(User context) can not modify members of this class.
-	friend class StateMachine;
+	friend class StateMachineImpl;
 
 	std::shared_ptr<State> currentState;
 	StateMachine* const stateMachine;
