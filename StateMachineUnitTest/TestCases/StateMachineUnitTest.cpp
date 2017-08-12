@@ -120,9 +120,13 @@ public:
 		StateMacineUnitTest::SetUp();
 		masterState1 = new MockState(MockObjectId::MASTER_STATE1);
 		masterState2 = new MockState(MockObjectId::MASTER_STATE2);
-		currentState->masterState().reset(masterState1);
-		masterState1->masterState().reset(masterState2);
+		testee.setMasterState(currentState, masterState1);
+		testee.setMasterState(masterState1, masterState2);
 		otherState = new MockState(MockObjectId::OTHER_STATE);
+
+		// Check master state setter/getter of State class.
+		ASSERT_EQ(masterState1, currentState->getMasterState<MockState>());
+		ASSERT_EQ(masterState2, masterState1->getMasterState<MockState>());
 	}
 	void TearDown() {
 		StateMacineUnitTest::TearDown();

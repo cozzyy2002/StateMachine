@@ -29,7 +29,11 @@ public:
 	*/
 	bool isSubState() const { return m_masterState ? true : false; }
 
-	std::shared_ptr<State>& masterState() { return m_masterState; }
+	/*
+		Template method that returns master state pointer.
+	*/
+	template<class T = State>
+	T* getMasterState() const { return (T*)m_masterState.get(); }
 
 protected:
 	// Next state to tell state machine to go back to the master state.

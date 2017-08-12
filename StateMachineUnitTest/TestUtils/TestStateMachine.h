@@ -10,4 +10,6 @@ class TestStateMachine : public StateMachine
 public:
 	using StateMachine::setCurrentState;
 	using StateMachine::getCurrentState;
+	using StateMachine::setMasterState;
+	using StateMachine::getMasterState;
 };

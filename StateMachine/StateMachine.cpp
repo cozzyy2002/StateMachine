@@ -85,7 +85,7 @@ HRESULT StateMachine::handleEvent(Event* e)
 	HRESULT hr;
 	for(State* pCurrentState = currentState.get();
 		pCurrentState && !e->isHandled;
-		pCurrentState = pCurrentState->masterState().get())
+		pCurrentState = pCurrentState->m_masterState.get())
 	{
 		LOG4CPLUS_DEBUG(logger, "Calling " << pCurrentState->toString() << "::handleEvent()");
 		hr = HR_EXPECT_OK(pCurrentState->handleEvent(e, currentState.get(), &pNextState));
@@ -122,7 +122,7 @@ HRESULT StateMachine::handleEvent(Event* e)
 		if(pNextState->isSubState() && !backToMaster) {
 			// Transition from master state to sub state.
 			// Don't call exit() of master state.
-			pNextState->masterState() = currentState;
+			pNextState->m_masterState = currentState;
 		} else {
 			// Transition to other state or master state of current state.
 			// Call exit() of current state and master state if any.
@@ -171,7 +171,7 @@ std::shared_ptr<State>* StateMachine::findState(std::shared_ptr<State>& currentS
 HRESULT StateMachine::for_each_state(std::shared_ptr<State>& currentState, std::function<HRESULT(std::shared_ptr<State>& state)> func)
 {
 	HRESULT hr;
-	for(std::shared_ptr<State>* state(&currentState); state->get(); state = &(state->get()->masterState())) {
+	for(std::shared_ptr<State>* state(&currentState); state->get(); state = &(state->get()->m_masterState)) {
 		hr = func(*state);
 		if(hr != S_OK) return hr;
 	}
@@ -187,5 +187,15 @@ void StateMachine::setCurrentState(Context* context, State* currentState)
 State* StateMachine::getCurrentState(Context* context) const
 {
 	return context->currentState.get();
+}
+
+void StateMachine::setMasterState(State * state, State * masterState)
+{
+	state->m_masterState.reset(masterState);
+}
+
+State * StateMachine::getMasterState(State * state) const
+{
+	return state->m_masterState.get();
 }
 #pragma endregion
