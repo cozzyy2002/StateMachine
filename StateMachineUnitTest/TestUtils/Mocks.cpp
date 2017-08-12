@@ -54,7 +54,7 @@ MockObject::~MockObject()
 	return (it != m_mockObjects.end()) && !it->second;
 }
 
-void MockObject::modifyString(std::tstring& _string) const
+void MockObject::modifyString(std::tstring& _string)
 {
 	std::tstringstream stream;
 	stream << _T("(") << m_id.toString() << _T(")");

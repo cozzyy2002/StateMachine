@@ -1,7 +1,5 @@
 #pragma once
 
-#include <mutex>
-
 namespace std {
 #if defined(_UNICODE)
 	typedef wstring tstring;
@@ -22,20 +20,17 @@ class Object
 public:
 	// Returns string representation.
 	// If modify the string in derived class, override modifyString() method.
-	LPCTSTR toString() const;
+	LPCTSTR toString();
 
 protected:
 	virtual const Object* getObject() const { return this; }
 
 	// Modify m_string in derived class.
 	// This method is called by toString().
-	virtual void modifyString(std::tstring& _string) const {}
+	virtual void modifyString(std::tstring& _string) {}
 
 private:
-#pragma region mutable members used in toString() const method.
 	mutable std::tstring m_string;
-	mutable std::mutex m_stringLock;
-#pragma endregion
 };
 
 // Class to reset value when it goes out of the scope.
