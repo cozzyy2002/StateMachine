@@ -25,7 +25,7 @@ StateMachineImpl::~StateMachineImpl()
 HRESULT StateMachineImpl::handleEvent(Event* e)
 {
 	Context* context = e->getContext();
-	ContextHandle* hContext = context->getHadle();
+	ContextHandle* hContext = context->getHandle();
 
 	if(logger.isEnabledFor(e->getLogLevel())) {
 		// Suppress low level log output.
@@ -50,7 +50,7 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 	HRESULT hr;
 	for(State* pCurrentState = currentState.get();
 		pCurrentState && !e->isHandled;
-		pCurrentState = pCurrentState->getHadle()->m_masterState.get())
+		pCurrentState = pCurrentState->getHandle()->m_masterState.get())
 	{
 		LOG4CPLUS_DEBUG(logger, "Calling " << pCurrentState->toString() << "::handleEvent()");
 		hr = HR_EXPECT_OK(pCurrentState->handleEvent(e, currentState.get(), &pNextState));
@@ -87,7 +87,7 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 		if(pNextState->isSubState() && !backToMaster) {
 			// Transition from master state to sub state.
 			// Don't call exit() of master state.
-			pNextState->getHadle()->m_masterState = currentState;
+			pNextState->getHandle()->m_masterState = currentState;
 		} else {
 			// Transition to other state or master state of current state.
 			// Call exit() of current state and master state if any.
@@ -136,7 +136,7 @@ std::shared_ptr<State>* StateMachineImpl::findState(std::shared_ptr<State>& curr
 HRESULT StateMachineImpl::for_each_state(std::shared_ptr<State>& currentState, std::function<HRESULT(std::shared_ptr<State>& state)> func)
 {
 	HRESULT hr;
-	for(std::shared_ptr<State>* state(&currentState); state->get(); state = &(state->get()->getHadle()->m_masterState)) {
+	for(std::shared_ptr<State>* state(&currentState); state->get(); state = &(state->get()->getHandle()->m_masterState)) {
 		hr = func(*state);
 		if(hr != S_OK) return hr;
 	}
@@ -146,21 +146,23 @@ HRESULT StateMachineImpl::for_each_state(std::shared_ptr<State>& currentState, s
 #pragma region Used by unit test.
 void StateMachineImpl::setCurrentState(Context* context, State* currentState)
 {
-	context->getHadle()->currentState.reset(currentState);
+	context->getHandle()->currentState.reset(currentState);
 }
 
 State* StateMachineImpl::getCurrentState(Context* context) const
 {
-	return context->getHadle()->currentState.get();
+	return context->getHandle()->currentState.get();
 }
 
 void StateMachineImpl::setMasterState(State * state, State * masterState)
 {
-	state->getHadle()->m_masterState.reset(masterState);
+	StateHandle* hState = state->getHandle();
+	hState->m_masterState.reset(masterState);
+	hState->m_isSubState = true;
 }
 
 State * StateMachineImpl::getMasterState(State * state) const
 {
-	return state->getHadle()->m_masterState.get();
+	return state->getHandle()->m_masterState.get();
 }
 #pragma endregion

@@ -40,7 +40,7 @@ public:
 
 	bool isEventHandling() const;
 
-	ContextHandle* getHadle() const { return m_hContext; }
+	ContextHandle* getHandle() const { return m_hContext; }
 
 protected:
 	ContextHandle* m_hContext;

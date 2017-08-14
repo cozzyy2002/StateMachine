@@ -4,8 +4,8 @@
 
 using namespace state_machine;
 
-StateHandle::StateHandle(State* previousState, bool isSubState /*= false*/)
-	: m_masterState(isSubState ? previousState : nullptr)
+StateHandle::StateHandle(bool isSubState)
+	: m_isSubState(isSubState)
 {
 }
 
@@ -13,8 +13,8 @@ StateHandle::~StateHandle()
 {
 }
 
-State::State(State* previousState /*= nullptr*/, bool isSubState /*= false*/)
-	: m_hState(new StateHandle(previousState, isSubState))
+State::State(bool isSubState /*= false*/)
+	: m_hState(new StateHandle(isSubState))
 {
 }
 

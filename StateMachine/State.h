@@ -10,7 +10,7 @@ class StateHandle;
 class State : public Object
 {
 protected:
-	State(State* previousState = nullptr, bool isSubState = false);
+	State(bool isSubState = false);
 
 public:
 	virtual ~State();
@@ -33,7 +33,7 @@ public:
 	template<class T = State>
 	T* getMasterState() const { return (T*)getRawMasterState(); }
 
-	StateHandle* getHadle() const { return m_hState; }
+	StateHandle* getHandle() const { return m_hState; }
 
 protected:
 	// Next state to tell state machine to go back to the master state.

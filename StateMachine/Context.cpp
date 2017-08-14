@@ -42,6 +42,7 @@ ContextHandle::~ContextHandle()
 Context::Context(StateMachine* stateMachine)
 	: m_hContext(new ContextHandle(stateMachine))
 {
+	HR_EXPECT(stateMachine, E_POINTER);
 }
 
 Context::~Context()
@@ -86,6 +87,8 @@ std::lock_guard<std::mutex>* ContextHandle::getStateLock()
 
 HRESULT Context::start(State * initialState, Event* userEvent /*= nullptr*/)
 {
+	HR_ASSERT(initialState, E_POINTER);
+
 	return m_hContext->start(this, initialState, userEvent);
 }
 
@@ -96,6 +99,8 @@ HRESULT Context::stop()
 
 HRESULT Context::handleEvent(Event * e)
 {
+	HR_ASSERT(e, E_POINTER);
+
 	return m_hContext->handleEvent(this, e);
 }
 
