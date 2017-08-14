@@ -87,7 +87,7 @@ public:
 
 	std::shared_ptr<State> m_masterState;
 
-	bool m_isSubState;
+	const bool m_isSubState;
 };
 
 } // namespace state_machine

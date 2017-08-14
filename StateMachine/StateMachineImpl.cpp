@@ -142,27 +142,3 @@ HRESULT StateMachineImpl::for_each_state(std::shared_ptr<State>& currentState, s
 	}
 	return hr;
 }
-
-#pragma region Used by unit test.
-void StateMachineImpl::setCurrentState(Context* context, State* currentState)
-{
-	context->getHandle()->currentState.reset(currentState);
-}
-
-State* StateMachineImpl::getCurrentState(Context* context) const
-{
-	return context->getHandle()->currentState.get();
-}
-
-void StateMachineImpl::setMasterState(State * state, State * masterState)
-{
-	StateHandle* hState = state->getHandle();
-	hState->m_masterState.reset(masterState);
-	hState->m_isSubState = true;
-}
-
-State * StateMachineImpl::getMasterState(State * state) const
-{
-	return state->getHandle()->m_masterState.get();
-}
-#pragma endregion
