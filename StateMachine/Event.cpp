@@ -6,6 +6,7 @@ using namespace state_machine;
 
 Event::Event(Context* context /*= nullptr*/)
 	: m_context(context)
+	, isHandled(false)
 {
 }
 

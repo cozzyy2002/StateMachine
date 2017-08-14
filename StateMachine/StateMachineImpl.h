@@ -12,7 +12,7 @@ public:
 	StateMachineImpl();
 	virtual ~StateMachineImpl();
 
-	virtual HRESULT start(Context* context, State* initialState, Event* userEvent = nullptr) override;
+	virtual HRESULT start(Context* context, State* initialState, Event* userEvent) override;
 	virtual HRESULT stop(Context* context) override;
 	virtual HRESULT handleEvent(Event* e) override;
 

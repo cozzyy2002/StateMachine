@@ -47,16 +47,15 @@ StateMachineImpl::~StateMachineImpl()
 
 	User state initialState->entry() will be called.
 	The method should ignore Event parameter if userEvent is not specified.
-	The method should ignore State parameter.
+	The method should ignore State parameter which points internal State object.
 */
-HRESULT StateMachineImpl::start(Context * context, State * initialState, Event* userEvent /*= nullptr*/)
+HRESULT StateMachineImpl::start(Context * context, State * initialState, Event* userEvent)
 {
 	ContextHandle* hContext = context->getHadle();
 	HR_ASSERT(!hContext->currentState, E_ILLEGAL_METHOD_CALL);
 
 	hContext->currentState.reset(new RootState(initialState));
-	Event* e = userEvent ? userEvent : new Event();
-	return context->handleEvent(e);
+	return context->handleEvent(userEvent);
 }
 
 HRESULT StateMachineImpl::stop(Context* context)

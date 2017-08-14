@@ -28,7 +28,8 @@ Context::~Context()
 
 HRESULT ContextHandle::start(Context* context, State * initialState, Event* userEvent)
 {
-	return stateMachine->start(context, initialState, userEvent);
+	Event* e = userEvent ? userEvent : new Event();
+	return stateMachine->start(context, initialState, e);
 }
 
 HRESULT ContextHandle::stop(Context* context)
