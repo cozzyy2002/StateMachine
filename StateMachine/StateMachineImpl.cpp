@@ -9,26 +9,6 @@ static log4cplus::Logger logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT(
 
 using namespace state_machine;
 
-/*
-	Inner class to let state machine call userState->entry().
-	Used to initialize user context.
-*/
-class RootState : public State
-{
-public:
-	RootState(State* userState) : userState(userState) {}
-
-	// Returns user state as next state regardless of the event.
-	// Then state machine calls entry() of user state and sets user state as current state.
-	virtual HRESULT handleEvent(Event*, State*, State** nextState) {
-		*nextState = userState;
-		return S_OK;
-	}
-
-protected:
-	State* userState;
-};
-
 /*static*/ StateMachine* StateMachine::createInstance()
 {
 	return new StateMachineImpl();
@@ -40,29 +20,6 @@ StateMachineImpl::StateMachineImpl()
 
 StateMachineImpl::~StateMachineImpl()
 {
-}
-
-/*
-	Start event handling using the context.
-
-	User state initialState->entry() will be called.
-	The method should ignore Event parameter if userEvent is not specified.
-	The method should ignore State parameter which points internal State object.
-*/
-HRESULT StateMachineImpl::start(Context * context, State * initialState, Event* userEvent)
-{
-	ContextHandle* hContext = context->getHadle();
-	HR_ASSERT(!hContext->currentState, E_ILLEGAL_METHOD_CALL);
-
-	hContext->currentState.reset(new RootState(initialState));
-	return context->handleEvent(userEvent);
-}
-
-HRESULT StateMachineImpl::stop(Context* context)
-{
-	ContextHandle* hContext = context->getHadle();
-	hContext->currentState.reset();
-	return S_OK;
 }
 
 HRESULT StateMachineImpl::handleEvent(Event* e)

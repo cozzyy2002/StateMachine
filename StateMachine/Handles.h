@@ -45,7 +45,7 @@ public:
 	bool isEventHandling() const { return m_isEventHandling; }
 
 	std::shared_ptr<State> currentState;
-	StateMachine* const stateMachine;
+	StateMachineImpl* const stateMachine;
 
 	// true if the state machine is handling event in this context.
 	// Used to recursive call check by state machine.

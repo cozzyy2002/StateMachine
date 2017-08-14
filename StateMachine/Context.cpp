@@ -1,15 +1,38 @@
 #include "stdafx.h"
 #include "Context.h"
 #include "Event.h"
-#include "StateMachine.h"
+#include "State.h"
+#include "StateMachineImpl.h"
 #include "Handles.h"
 
 using namespace state_machine;
 
+/*
+Inner class to let state machine call userState->entry().
+Used to initialize user context.
+*/
+class RootState : public State
+{
+public:
+	RootState(State* userState) : userState(userState) {}
+
+	// Returns user state as next state regardless of the event.
+	// Then state machine calls entry() of user state and sets user state as current state.
+	virtual HRESULT handleEvent(Event*, State*, State** nextState) {
+		*nextState = userState;
+		return S_OK;
+	}
+
+protected:
+	State* userState;
+};
+
 ContextHandle::ContextHandle(StateMachine* stateMachine)
-	: stateMachine(stateMachine)
+	: stateMachine(dynamic_cast<StateMachineImpl*>(stateMachine))
 	, m_isEventHandling(false)
 {
+	// Check if dynamic_cast<>() worked.
+	HR_EXPECT(stateMachine, E_ABORT);
 }
 
 ContextHandle::~ContextHandle()
@@ -26,15 +49,26 @@ Context::~Context()
 	delete m_hContext;
 }
 
+/*
+Start event handling using the context.
+
+User state initialState->entry() will be called.
+The method should ignore Event parameter if userEvent is not specified.
+The method should ignore State parameter which points internal State object.
+*/
 HRESULT ContextHandle::start(Context* context, State * initialState, Event* userEvent)
 {
 	Event* e = userEvent ? userEvent : new Event();
-	return stateMachine->start(context, initialState, e);
+	HR_ASSERT(!currentState, E_ILLEGAL_METHOD_CALL);
+
+	currentState.reset(new RootState(initialState));
+	return handleEvent(context, e);
 }
 
-HRESULT ContextHandle::stop(Context* context)
+HRESULT ContextHandle::stop(Context* /*context*/)
 {
-	return stateMachine->stop(context);
+	currentState.reset();
+	return S_OK;
 }
 
 HRESULT ContextHandle::handleEvent(Context* context, Event * e)

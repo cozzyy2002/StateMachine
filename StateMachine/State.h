@@ -9,8 +9,10 @@ class StateHandle;
 
 class State : public Object
 {
-public:
+protected:
 	State(State* previousState = nullptr, bool isSubState = false);
+
+public:
 	virtual ~State();
 
 	virtual HRESULT handleEvent(Event* e, State* currentState, State** nextState) { return S_OK; }

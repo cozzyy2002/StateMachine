@@ -30,8 +30,8 @@ public:
 		context.reset();
 	}
 
-	std::unique_ptr<TestContext> context;
 	Testee testee;
+	std::unique_ptr<TestContext> context;
 	MockState* currentState;
 	std::unique_ptr<MockEvent> e;
 };
