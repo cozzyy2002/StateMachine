@@ -3,6 +3,7 @@
 #include "Event.h"
 #include "State.h"
 #include "Context.h"
+#include "Handles.h"
 
 static log4cplus::Logger logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("state_machine.StateMachine"));
 
@@ -50,22 +51,25 @@ StateMachineImpl::~StateMachineImpl()
 */
 HRESULT StateMachineImpl::start(Context * context, State * initialState, Event* userEvent /*= nullptr*/)
 {
-	HR_ASSERT(!context->currentState, E_ILLEGAL_METHOD_CALL);
+	ContextHandle* hContext = context->getHadle();
+	HR_ASSERT(!hContext->currentState, E_ILLEGAL_METHOD_CALL);
 
-	context->currentState.reset(new RootState(initialState));
+	hContext->currentState.reset(new RootState(initialState));
 	Event* e = userEvent ? userEvent : new Event();
 	return context->handleEvent(e);
 }
 
 HRESULT StateMachineImpl::stop(Context* context)
 {
-	context->currentState.reset();
+	ContextHandle* hContext = context->getHadle();
+	hContext->currentState.reset();
 	return S_OK;
 }
 
 HRESULT StateMachineImpl::handleEvent(Event* e)
 {
 	Context* context = e->getContext();
+	ContextHandle* hContext = context->getHadle();
 
 	if(logger.isEnabledFor(e->getLogLevel())) {
 		// Suppress low level log output.
@@ -73,14 +77,14 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 	}
 
 	// Recursive call check.
-	HR_ASSERT(!context->m_isEventHandling, E_ILLEGAL_METHOD_CALL);
-	ScopedStore<bool> _recursive_guard(context->m_isEventHandling, false, true);
+	HR_ASSERT(!hContext->m_isEventHandling, E_ILLEGAL_METHOD_CALL);
+	ScopedStore<bool> _recursive_guard(hContext->m_isEventHandling, false, true);
 
 	// Lock this scope(If necessary)
-	std::unique_ptr<std::lock_guard<std::mutex>> _lock(context->geStatetLock());
+	std::unique_ptr<std::lock_guard<std::mutex>> _lock(hContext->getStateLock());
 
 	// Current state is contained by Context object in the Event.
-	std::shared_ptr<State>& currentState(context->currentState);
+	std::shared_ptr<State>& currentState(hContext->currentState);
 
 	// Call State::handleEvent()
 	// If event is ignored and the state is sub state, delegate handling event to master state.
@@ -90,7 +94,7 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 	HRESULT hr;
 	for(State* pCurrentState = currentState.get();
 		pCurrentState && !e->isHandled;
-		pCurrentState = pCurrentState->m_masterState.get())
+		pCurrentState = pCurrentState->getHadle()->m_masterState.get())
 	{
 		LOG4CPLUS_DEBUG(logger, "Calling " << pCurrentState->toString() << "::handleEvent()");
 		hr = HR_EXPECT_OK(pCurrentState->handleEvent(e, currentState.get(), &pNextState));
@@ -127,7 +131,7 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 		if(pNextState->isSubState() && !backToMaster) {
 			// Transition from master state to sub state.
 			// Don't call exit() of master state.
-			pNextState->m_masterState = currentState;
+			pNextState->getHadle()->m_masterState = currentState;
 		} else {
 			// Transition to other state or master state of current state.
 			// Call exit() of current state and master state if any.
@@ -176,7 +180,7 @@ std::shared_ptr<State>* StateMachineImpl::findState(std::shared_ptr<State>& curr
 HRESULT StateMachineImpl::for_each_state(std::shared_ptr<State>& currentState, std::function<HRESULT(std::shared_ptr<State>& state)> func)
 {
 	HRESULT hr;
-	for(std::shared_ptr<State>* state(&currentState); state->get(); state = &(state->get()->m_masterState)) {
+	for(std::shared_ptr<State>* state(&currentState); state->get(); state = &(state->get()->getHadle()->m_masterState)) {
 		hr = func(*state);
 		if(hr != S_OK) return hr;
 	}
@@ -186,21 +190,21 @@ HRESULT StateMachineImpl::for_each_state(std::shared_ptr<State>& currentState, s
 #pragma region Used by unit test.
 void StateMachineImpl::setCurrentState(Context* context, State* currentState)
 {
-	context->currentState.reset(currentState);
+	context->getHadle()->currentState.reset(currentState);
 }
 
 State* StateMachineImpl::getCurrentState(Context* context) const
 {
-	return context->currentState.get();
+	return context->getHadle()->currentState.get();
 }
 
 void StateMachineImpl::setMasterState(State * state, State * masterState)
 {
-	state->m_masterState.reset(masterState);
+	state->getHadle()->m_masterState.reset(masterState);
 }
 
 State * StateMachineImpl::getMasterState(State * state) const
 {
-	return state->m_masterState.get();
+	return state->getHadle()->m_masterState.get();
 }
 #pragma endregion

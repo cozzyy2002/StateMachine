@@ -5,6 +5,7 @@
 namespace state_machine {
 
 class Context;
+class ContextHandle;
 
 class Event : public Object
 {
@@ -19,7 +20,7 @@ public:
 
 	// Returns context as user context type.
 	template<class T = Context>
-	T* getContext() const { return dynamic_cast<T*>(context); }
+	T* getContext() const { return dynamic_cast<T*>(m_context); }
 
 	// true if the event is handled by the State::handleEvent().
 	// This value is set to true by state machine,
@@ -31,9 +32,8 @@ public:
 
 private:
 	// Derived class(User event) can not modify members of this class.
-	friend class Context;
-
-	Context* context;
+	friend class ContextHandle;
+	Context* m_context;
 };
 
 } // namespace state_machine

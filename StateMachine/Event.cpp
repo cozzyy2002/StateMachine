@@ -1,14 +1,13 @@
 #include "stdafx.h"
 #include "Event.h"
+#include "Handles.h"
 
 using namespace state_machine;
 
 Event::Event(Context* context /*= nullptr*/)
-	: context(context)
-	, isHandled(false)
+	: m_context(context)
 {
 }
-
 
 Event::~Event()
 {

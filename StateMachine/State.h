@@ -1,16 +1,11 @@
 #pragma once
 
 #include "Object.h"
-#include <memory>
-
-// Value returned by event handlers when the event has not been handled.
-#define S_EVENT_IGNORED ((HRESULT)10)
 
 namespace state_machine {
 
 class Event;
-class StateMachine;
-class StateMachineImpl;
+class StateHandle;
 
 class State : public Object
 {
@@ -28,13 +23,15 @@ public:
 		Returns whether the class is sub state or not.
 		State transition to sub class means that previous state becomes master state of the state(sub state).
 	*/
-	bool isSubState() const { return m_masterState ? true : false; }
+	bool isSubState() const;
 
 	/*
 		Template method that returns master state pointer.
 	*/
 	template<class T = State>
-	T* getMasterState() const { return (T*)m_masterState.get(); }
+	T* getMasterState() const { return (T*)getRawMasterState(); }
+
+	StateHandle* getHadle() const { return m_hState; }
 
 protected:
 	// Next state to tell state machine to go back to the master state.
@@ -45,13 +42,11 @@ protected:
 	// Return value to tell state machine that event is not handled.
 	// This method can be used in handleEvent() method.
 	// Useage: return eventIsIgnored();
-	HRESULT eventIsIgnored() const { return S_EVENT_IGNORED; }
+	HRESULT eventIsIgnored() const;
 
-private:
-	// Derived class(User state) can not modify members of this class.
-	friend class StateMachineImpl;
+	State* getRawMasterState() const;
 
-	std::shared_ptr<State> m_masterState;
+	StateHandle* m_hState;
 };
 
 } // namespace state_machine
