@@ -24,7 +24,7 @@ public:
 
 	void SetUp() {
 		currentState = new MockState(MockObjectId::CURRENT_STATE);
-		testee.setCurrentState(context.get(), currentState);
+		testee.setNextState(context.get(), currentState);
 	}
 	void TearDown() {
 		context.reset();
@@ -117,21 +117,27 @@ class StateMacineSubStateUnitTest : public StateMacineUnitTest
 public:
 	void SetUp() {
 		StateMacineUnitTest::SetUp();
-		masterState1 = new MockState(MockObjectId::MASTER_STATE1);
+
+		// Clear current state to change to sub state.
+		testee.clearCurrentState(context.get());
+		currentState = new MockSubState(MockObjectId::CURRENT_STATE);
+		masterState1 = new MockSubState(MockObjectId::MASTER_STATE1);
 		masterState2 = new MockState(MockObjectId::MASTER_STATE2);
-		testee.setMasterState(currentState, masterState1);
-		testee.setMasterState(masterState1, masterState2);
+		testee.setNextState(context.get(), masterState2);
+		testee.setNextState(context.get(), masterState1);
+		testee.setNextState(context.get(), currentState);
 		otherState = new MockState(MockObjectId::OTHER_STATE);
 
 		// Check master state setter/getter of State class.
-		ASSERT_EQ(masterState1, currentState->getMasterState<MockState>());
+		ASSERT_EQ(masterState1, currentState->getMasterState<MockSubState>());
 		ASSERT_EQ(masterState2, masterState1->getMasterState<MockState>());
 	}
 	void TearDown() {
 		StateMacineUnitTest::TearDown();
 	}
 
-	MockState* masterState1;	// Master of sub state
+	MockSubState* currentState;	// Sub state(Different from currentState ot base class).
+	MockSubState* masterState1;	// Master of current state
 	MockState* masterState2;	// Master of master1 state
 	MockState* otherState;
 };

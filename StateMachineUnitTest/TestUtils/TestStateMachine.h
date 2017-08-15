@@ -11,14 +11,25 @@ using namespace testing;
 class TestStateMachine : public StateMachineImpl
 {
 public:
-	void setCurrentState(Context* context, State* currentState) {
-		context->getHandle()->currentState.reset(currentState);
+	/*
+		Set current state of context.
+
+		If currentState is sub state, 
+	*/
+	void setNextState(Context* context, State* nextState) {
+		std::shared_ptr<State>& currentState = context->getHandle()->currentState;
+		if(nextState && nextState->isSubState()) {
+			ASSERT_NE(currentState.get(), nullptr) << "No current state to be master state in the context.";
+			nextState->getHandle()->m_masterState = currentState;
+		}
+		currentState.reset(nextState);
 	}
+	void clearCurrentState(Context* context) {
+		setNextState(context, nullptr);
+	}
+
 	State* getCurrentState(Context* context) const {
 		return context->getHandle()->currentState.get();
-	}
-	void setMasterState(State* state, State* masterState) {
-		state->getHandle()->m_masterState.reset(masterState);
 	}
 	State* getMasterState(State* state) const {
 		return state->getHandle()->m_masterState.get();

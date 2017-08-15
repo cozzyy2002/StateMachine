@@ -13,10 +13,11 @@ MockObject::MockObject() : m_id(MockObjectId::UNKNOWN)
 MockObject::MockObject(MockObjectId id) : m_id(id)
 {
 	LOG4CPLUS_DEBUG(logger, "Creating MockObject: " << m_id.toString());
-	if(m_mockObjects.find(id) == m_mockObjects.end()) {
+	auto it = m_mockObjects.find(m_id);
+	if((it == m_mockObjects.end()) || !it->second) {
 		m_mockObjects[id] = this;
 	} else {
-		ADD_FAILURE() << "MockObject constructor: " << id << " exists already.";
+		ADD_FAILURE() << "MockObject constructor: " << m_id.toString() << " exists already.";
 	}
 }
 
@@ -48,6 +49,9 @@ MockObject::~MockObject()
 	return (m_mockObjects.find(id) != m_mockObjects.end());
 }
 
+/*
+	Returns true if the object has been created once and deleted.
+*/
 /*static*/ bool MockObject::deleted(MockObjectId id)
 {
 	auto it = m_mockObjects.find(id);

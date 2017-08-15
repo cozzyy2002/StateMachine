@@ -49,8 +49,26 @@ protected:
 class MockState : public state_machine::State, public MockObject
 {
 public:
-	MockState() {}
 	MockState(MockObjectId id) : state_machine::State(), MockObject(id) {}
+
+	MOCK_METHOD3(handleEvent, HRESULT(state_machine::Event* e, state_machine::State* currentState, state_machine::State** nextState));
+	MOCK_METHOD1(handleIgnoredEvent, HRESULT(state_machine::Event* e));
+	MOCK_METHOD2(handleError, HRESULT(state_machine::Event* e, HRESULT hr));
+	MOCK_METHOD2(entry, HRESULT(state_machine::Event* e, state_machine::State* previousState));
+	MOCK_METHOD2(exit, HRESULT(state_machine::Event* e, state_machine::State* nextState));
+
+	using State::backToMaster;
+	using State::eventIsIgnored;
+
+protected:
+	virtual void modifyString(std::tstring& _string) override { MockObject::modifyString(_string); }
+};
+
+class MockSubState : public state_machine::State, public MockObject
+{
+public:
+	MockSubState() : state_machine::State(true) {}
+	MockSubState(MockObjectId id) : state_machine::State(true), MockObject(id) {}
 
 	MOCK_METHOD3(handleEvent, HRESULT(state_machine::Event* e, state_machine::State* currentState, state_machine::State** nextState));
 	MOCK_METHOD1(handleIgnoredEvent, HRESULT(state_machine::Event* e));

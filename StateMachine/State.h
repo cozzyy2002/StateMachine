@@ -38,7 +38,7 @@ public:
 		Template method that returns master state pointer.
 	*/
 	template<class T = State>
-	T* getMasterState() const { return (T*)getRawMasterState(); }
+	T* getMasterState() const { return dynamic_cast<T*>(getRawMasterState()); }
 
 	StateHandle* getHandle() const { return m_hState; }
 
