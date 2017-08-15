@@ -18,17 +18,17 @@
 
 static log4cplus::Logger logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("StateMachineApp.App"));
 
-// CStateMachineAppApp
+// CStateMachineApp
 
-BEGIN_MESSAGE_MAP(CStateMachineAppApp, CWinAppEx)
-	ON_COMMAND(ID_APP_ABOUT, &CStateMachineAppApp::OnAppAbout)
-	ON_COMMAND(ID_FILE_NEW, &CStateMachineAppApp::OnFileNew)
+BEGIN_MESSAGE_MAP(CStateMachineApp, CWinAppEx)
+	ON_COMMAND(ID_APP_ABOUT, &CStateMachineApp::OnAppAbout)
+	ON_COMMAND(ID_FILE_NEW, &CStateMachineApp::OnFileNew)
 END_MESSAGE_MAP()
 
 
-// CStateMachineAppApp construction
+// CStateMachineApp construction
 
-CStateMachineAppApp::CStateMachineAppApp()
+CStateMachineApp::CStateMachineApp()
 {
 	m_bHiColorIcons = TRUE;
 
@@ -49,14 +49,14 @@ CStateMachineAppApp::CStateMachineAppApp()
 	// Place all significant initialization in InitInstance
 }
 
-// The one and only CStateMachineAppApp object
+// The one and only CStateMachineApp object
 
-CStateMachineAppApp theApp;
+CStateMachineApp theApp;
 
 
-// CStateMachineAppApp initialization
+// CStateMachineApp initialization
 
-BOOL CStateMachineAppApp::InitInstance()
+BOOL CStateMachineApp::InitInstance()
 {
 	log4cplus::PropertyConfigurator::doConfigure(LOG4CPLUS_TEXT("log4cplus.properties"));
 	LOG4CPLUS_INFO(logger, __FUNCTION__);
@@ -125,7 +125,7 @@ BOOL CStateMachineAppApp::InitInstance()
 	return TRUE;
 }
 
-int CStateMachineAppApp::ExitInstance()
+int CStateMachineApp::ExitInstance()
 {
 	LOG4CPLUS_INFO(logger, __FUNCTION__);
 
@@ -138,9 +138,9 @@ int CStateMachineAppApp::ExitInstance()
 	return CWinAppEx::ExitInstance();
 }
 
-// CStateMachineAppApp message handlers
+// CStateMachineApp message handlers
 
-void CStateMachineAppApp::OnFileNew() 
+void CStateMachineApp::OnFileNew()
 {
 	CMainFrame* pFrame = STATIC_DOWNCAST(CMainFrame, m_pMainWnd);
 	pFrame->LockWindowUpdate();
@@ -183,15 +183,15 @@ BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 END_MESSAGE_MAP()
 
 // App command to run the dialog
-void CStateMachineAppApp::OnAppAbout()
+void CStateMachineApp::OnAppAbout()
 {
 	CAboutDlg aboutDlg;
 	aboutDlg.DoModal();
 }
 
-// CStateMachineAppApp customization load/save methods
+// CStateMachineApp customization load/save methods
 
-void CStateMachineAppApp::PreLoadState()
+void CStateMachineApp::PreLoadState()
 {
 	BOOL bNameValid;
 	CString strName;
@@ -200,15 +200,15 @@ void CStateMachineAppApp::PreLoadState()
 	GetContextMenuManager()->AddMenu(strName, IDR_POPUP_EDIT);
 }
 
-void CStateMachineAppApp::LoadCustomState()
+void CStateMachineApp::LoadCustomState()
 {
 }
 
-void CStateMachineAppApp::SaveCustomState()
+void CStateMachineApp::SaveCustomState()
 {
 }
 
-// CStateMachineAppApp message handlers
+// CStateMachineApp message handlers
 
 
 

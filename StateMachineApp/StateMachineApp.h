@@ -10,14 +10,14 @@
 #include "resource.h"       // main symbols
 
 
-// CStateMachineAppApp:
+// CStateMachineApp:
 // See StateMachineApp.cpp for the implementation of this class
 //
 
-class CStateMachineAppApp : public CWinAppEx
+class CStateMachineApp : public CWinAppEx
 {
 public:
-	CStateMachineAppApp();
+	CStateMachineApp();
 
 
 // Overrides
@@ -42,4 +42,4 @@ public:
 	DECLARE_MESSAGE_MAP()
 };
 
-extern CStateMachineAppApp theApp;
+extern CStateMachineApp theApp;
