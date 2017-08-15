@@ -125,14 +125,18 @@ public:
 	void SetUp() {
 		ContextHandleEventUnitTest::SetUp();
 
-		EXPECT_CALL(*state, entry(_, _)).Times(1);
-		ASSERT_HRESULT_SUCCEEDED(testee1->start(state));
+		state1 = new MockState(MockObjectId::OTHER_STATE);
+		EXPECT_CALL(*state1, entry(_, _)).Times(1);
+		ASSERT_HRESULT_SUCCEEDED(testee1->start(state1));
 	}
 	void TearDown() {
+		ASSERT_HRESULT_SUCCEEDED(testee1->stop());
+
 		ContextHandleEventUnitTest::TearDown();
 	}
 
 	Testee* testee1;
+	MockState* state1;
 };
 
 TEST_F(MultiContextHandleEventUnitTest, recursive_call_check)
@@ -145,14 +149,16 @@ TEST_F(MultiContextHandleEventUnitTest, recursive_call_check)
 			// Call another Context::handleEvent() in State::handleEvent().
 			EXPECT_HRESULT_SUCCEEDED(testee1->handleEvent(_e));
 			return S_OK;
-		}))
+		}));
+	EXPECT_CALL(*state1, handleEvent(&e, state1, _))
 		.WillOnce(Return(S_OK));
 
 	ASSERT_HRESULT_SUCCEEDED(testee->handleEvent(&e));
 	EXPECT_FALSE(testee->isEventHandling());
 
 	EXPECT_EQ(state, stateMachine.getCurrentState(testee));
-	EXPECT_EQ(state, stateMachine.getCurrentState(testee1));
+	EXPECT_EQ(state1, stateMachine.getCurrentState(testee1));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
+	EXPECT_FALSE(MockObject::deleted(MockObjectId::OTHER_STATE));
 	EXPECT_TRUE(e.isHandled);
 }
