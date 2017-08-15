@@ -4,6 +4,8 @@
 
 using namespace state_machine;
 
+/*static*/ HRESULT State::S_EVENT_IGNORED = S_FALSE + 1;
+
 StateHandle::StateHandle(bool isSubState)
 	: m_isSubState(isSubState)
 {
@@ -39,11 +41,6 @@ bool State::isSubState() const
 State * State::backToMaster()
 {
 	return m_hState->backToMaster();
-}
-
-HRESULT State::eventIsIgnored() const
-{
-	return m_hState->eventIsIgnored();
 }
 
 State* State::getRawMasterState() const

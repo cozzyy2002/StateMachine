@@ -201,6 +201,8 @@ TEST_F(StateMacineSubStateUnitTest, exit_to_other_state)
 
 TEST_F(StateMacineSubStateUnitTest, event_ignored)
 {
+	State::S_EVENT_IGNORED = 16;
+
 	EXPECT_CALL(*currentState, handleEvent(e.get(), currentState, _))
 		.WillOnce(Return(currentState->eventIsIgnored()));
 	EXPECT_CALL(*currentState, handleIgnoredEvent(e.get()))
@@ -220,7 +222,7 @@ TEST_F(StateMacineSubStateUnitTest, event_ignored)
 	EXPECT_CALL(*masterState2, entry(_, _)).Times(0);
 	EXPECT_CALL(*masterState2, exit(_, _)).Times(0);
 
-	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(e.get()));
+	ASSERT_EQ(State::S_EVENT_IGNORED, testee.handleEvent(e.get()));
 
 	EXPECT_EQ(currentState, testee.getCurrentState(context.get()));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));

@@ -4,9 +4,6 @@
 #include <memory>
 #include <mutex>
 
-// Value returned by event handlers when the event has not been handled.
-#define S_EVENT_IGNORED ((HRESULT)10)
-
 namespace state_machine {
 
 class Event;
@@ -62,7 +59,6 @@ public:
 	virtual ~StateHandle();
 
 	virtual HRESULT handleEvent(Event* e, State* currentState, State** nextState) { return S_OK; }
-	virtual HRESULT handleIgnoredEvent(Event* e) { return eventIsIgnored(); }
 	virtual HRESULT handleError(Event* e, HRESULT hr) { return hr; }
 	virtual HRESULT entry(Event* e, State* previousState) { return S_OK; }
 	virtual HRESULT exit(Event* e, State* nextState) { return S_OK; }
@@ -79,11 +75,6 @@ public:
 	// This method can be used in handleEvent() method of sub state.
 	// Useage: *nextState = backToMaster();
 	State* backToMaster();
-
-	// Return value to tell state machine that event is not handled.
-	// This method can be used in handleEvent() method.
-	// Useage: return eventIsIgnored();
-	HRESULT eventIsIgnored() const { return S_EVENT_IGNORED; }
 
 	std::shared_ptr<State> m_masterState;
 

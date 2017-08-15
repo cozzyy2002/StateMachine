@@ -57,7 +57,7 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 		// Set Event::isHandled.
 		// If state transition occurs, assume that the event is handled even if S_EVENT_IGNORED was returned.
 		// Setting true by State::handleEvent() is prior to above condition.
-		e->isHandled = e->isHandled ? e->isHandled : ((hr != S_EVENT_IGNORED) || pNextState);
+		e->isHandled = e->isHandled ? e->isHandled : ((hr != State::S_EVENT_IGNORED) || pNextState);
 		if(pNextState) {
 			// Note: Object returned to pNextState might be deleted,
 			//       if nextState goes out of scope before it is set as current state.
