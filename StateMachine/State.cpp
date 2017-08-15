@@ -34,11 +34,6 @@ State* SubStateHandle::backToMaster()
 
 #pragma region State/SubState methods which invode ContextHandle methods.
 
-bool State::isSubState() const
-{
-	return m_hState->isSubState();
-}
-
 State * SubState::backToMaster()
 {
 	return getHandle<SubStateHandle>()->backToMaster();

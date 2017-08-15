@@ -14,7 +14,8 @@ public:
 	/*
 		Set current state of context.
 
-		If currentState is sub state, 
+		If currentState is sub state, current state becomes master of next state.
+		If next state is nullptr, current state is reset and the object is deleted.
 	*/
 	void setNextState(Context* context, State* nextState) {
 		std::shared_ptr<State>& currentState = context->getHandle()->currentState;

@@ -83,7 +83,7 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 	}
 
 	if(SUCCEEDED(hr) && pNextState) {
-		LOG4CPLUS_INFO(logger, "Next state is " << pNextState->toString() << (pNextState->isSubState() ? "(Sub state)" : ""));
+		LOG4CPLUS_INFO(logger, "Next state is " << pNextState->toString());
 		// State transition occurred.
 		if(pNextState->isSubState() && !backToMaster) {
 			// Transition from master state to sub state.

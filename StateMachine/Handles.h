@@ -63,12 +63,6 @@ public:
 	virtual HRESULT entry(Event* e, State* previousState) { return S_OK; }
 	virtual HRESULT exit(Event* e, State* nextState) { return S_OK; }
 
-	/*
-		Returns whether the class is sub state or not.
-		State transition to sub class means that previous state becomes master state of the state(sub state).
-	*/
-	virtual bool isSubState() const { return false; }
-
 	virtual State* getMasterState() const { return nullptr; }
 };
 
@@ -77,9 +71,6 @@ class SubStateHandle : public StateHandle
 public:
 	SubStateHandle() {}
 	virtual ~SubStateHandle() {}
-
-	// See StateHandle.
-	virtual bool isSubState() const { return false; }
 
 	// Next state to tell state machine to go back to the master state.
 	// This method can be used in handleEvent() method of sub state.

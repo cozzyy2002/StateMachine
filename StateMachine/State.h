@@ -33,7 +33,7 @@ public:
 		Returns whether the class is sub state or not.
 		State transition to sub class means that previous state becomes master state of the state(sub state).
 	*/
-	bool isSubState() const;
+	virtual bool isSubState() const { return false; }
 
 	template<class T = StateHandle>
 	T* getHandle() const { return dynamic_cast<T*>(m_hState); }
@@ -54,6 +54,9 @@ protected:
 
 public:
 	virtual ~SubState();
+
+	// See State.
+	virtual bool isSubState() const { return false; }
 
 	/*
 	Template method that returns master state pointer.
