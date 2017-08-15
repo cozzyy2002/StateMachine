@@ -10,10 +10,13 @@
 
 #include "ChildFrm.h"
 
+#include <log4cplus/configurator.h>
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
+static log4cplus::Logger logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("StateMachineApp.App"));
 
 // CStateMachineAppApp
 
@@ -55,6 +58,9 @@ CStateMachineAppApp theApp;
 
 BOOL CStateMachineAppApp::InitInstance()
 {
+	log4cplus::PropertyConfigurator::doConfigure(LOG4CPLUS_TEXT("log4cplus.properties"));
+	LOG4CPLUS_INFO(logger, __FUNCTION__);
+
 	// InitCommonControlsEx() is required on Windows XP if an application
 	// manifest specifies use of ComCtl32.dll version 6 or later to enable
 	// visual styles.  Otherwise, any window creation will fail.
@@ -121,6 +127,8 @@ BOOL CStateMachineAppApp::InitInstance()
 
 int CStateMachineAppApp::ExitInstance()
 {
+	LOG4CPLUS_INFO(logger, __FUNCTION__);
+
 	//TODO: handle additional resources you may have added
 	if (m_hMDIMenu != NULL)
 		FreeResource(m_hMDIMenu);

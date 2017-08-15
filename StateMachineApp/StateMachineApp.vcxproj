@@ -96,9 +96,12 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir)public\include;$(UTILS_DIR)\public\include;$(LOG4CPLUS_DIR)\include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <AdditionalLibraryDirectories>$(OutDir);$(LOG4CPLUS_DIR)\msvc14\Win32\bin.$(Configuration)_Unicode</AdditionalLibraryDirectories>
+      <AdditionalDependencies>StateMachine.lib;log4cplusUD.lib</AdditionalDependencies>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -142,11 +145,14 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir)public\include;$(UTILS_DIR)\public\include;$(LOG4CPLUS_DIR)\include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(OutDir);$(LOG4CPLUS_DIR)\msvc14\Win32\bin.$(Configuration)_Unicode</AdditionalLibraryDirectories>
+      <AdditionalDependencies>StateMachine.lib;log4cplusU.lib</AdditionalDependencies>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
