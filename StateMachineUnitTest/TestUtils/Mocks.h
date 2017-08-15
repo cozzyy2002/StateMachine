@@ -49,7 +49,7 @@ protected:
 class MockState : public state_machine::State, public MockObject
 {
 public:
-	MockState(MockObjectId id) : state_machine::State(), MockObject(id) {}
+	MockState(MockObjectId id) : MockObject(id) {}
 
 	MOCK_METHOD3(handleEvent, HRESULT(state_machine::Event* e, state_machine::State* currentState, state_machine::State** nextState));
 	MOCK_METHOD1(handleIgnoredEvent, HRESULT(state_machine::Event* e));
@@ -66,8 +66,7 @@ protected:
 class MockSubState : public state_machine::SubState, public MockObject
 {
 public:
-	MockSubState() : state_machine::SubState() {}
-	MockSubState(MockObjectId id) : state_machine::SubState(), MockObject(id) {}
+	MockSubState(MockObjectId id) : MockObject(id) {}
 
 	MOCK_METHOD3(handleEvent, HRESULT(state_machine::Event* e, state_machine::State* currentState, state_machine::State** nextState));
 	MOCK_METHOD1(handleIgnoredEvent, HRESULT(state_machine::Event* e));

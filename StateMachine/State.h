@@ -56,7 +56,7 @@ public:
 	virtual ~SubState();
 
 	// See State.
-	virtual bool isSubState() const { return false; }
+	virtual bool isSubState() const { return true; }
 
 	/*
 	Template method that returns master state pointer.

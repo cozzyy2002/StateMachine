@@ -64,7 +64,7 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 			std::shared_ptr<State>* nextMasterState = findState(currentState, pNextState);
 			if(nextMasterState) {
 				// Back to existing master state.
-				HR_ASSERT(nextState->isSubState(), E_UNEXPECTED);
+				HR_ASSERT(pCurrentState->isSubState(), E_UNEXPECTED);
 				nextState = *nextMasterState;
 				backToMaster = true;
 			} else {
@@ -140,7 +140,9 @@ HRESULT StateMachineImpl::for_each_state(std::shared_ptr<State>& currentState, s
 {
 	HRESULT hr;
 	if(currentState->isSubState()) {
-		for(std::shared_ptr<State>* state(&currentState); state->get(); state = &((*state)->getHandle<SubStateHandle>()->m_masterState)) {
+		for(std::shared_ptr<State>* state(&currentState);
+			state && state->get();
+			state = (*state)->isSubState() ? &((*state)->getHandle<SubStateHandle>()->m_masterState) : nullptr) {
 			hr = func(*state);
 			if(hr != S_OK) return hr;
 		}
