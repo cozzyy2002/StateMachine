@@ -1,8 +1,9 @@
-#include "stdafx.h"
+#include <StateMachine/stdafx.h>
+#include <StateMachine/Event.h>
+#include <StateMachine/State.h>
+#include <StateMachine/Context.h>
+
 #include "StateMachineImpl.h"
-#include "Event.h"
-#include "State.h"
-#include "Context.h"
 #include "Handles.h"
 
 static log4cplus::Logger logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("state_machine.StateMachine"));

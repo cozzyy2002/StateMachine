@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Object.h"
+#include <StateMachine/Object.h>
 #include <memory>
 #include <mutex>
 

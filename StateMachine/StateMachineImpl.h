@@ -1,6 +1,6 @@
 #pragma once
 
-#include "StateMachine.h"
+#include <StateMachine/StateMachine.h>
 
 #include <functional>
 

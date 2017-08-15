@@ -1,5 +1,6 @@
-#include "stdafx.h"
-#include "State.h"
+#include <StateMachine/stdafx.h>
+#include <StateMachine/State.h>
+
 #include "Handles.h"
 
 using namespace state_machine;

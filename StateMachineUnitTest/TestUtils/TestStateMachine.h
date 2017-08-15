@@ -1,9 +1,9 @@
 #pragma once
 
-#include <StateMachine/StateMachineImpl.h>
 #include <StateMachine/Context.h>
 #include <StateMachine/State.h>
-#include <StateMachine/Handles.h>
+#include <../StateMachine/Handles.h>
+#include <../StateMachine/StateMachineImpl.h>
 
 using namespace state_machine;
 using namespace testing;

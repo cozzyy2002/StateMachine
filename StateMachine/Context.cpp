@@ -1,7 +1,8 @@
-#include "stdafx.h"
-#include "Context.h"
-#include "Event.h"
-#include "State.h"
+#include <StateMachine/stdafx.h>
+#include <StateMachine/Event.h>
+#include <StateMachine/State.h>
+#include <StateMachine/Context.h>
+
 #include "StateMachineImpl.h"
 #include "Handles.h"
 

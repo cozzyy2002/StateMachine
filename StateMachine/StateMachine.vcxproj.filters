@@ -13,37 +13,37 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="public">
+      <UniqueIdentifier>{800ece75-c834-4c7d-8dc5-79088e40aa46}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="targetver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Event.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="StateMachine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="State.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Context.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="StateMachineImpl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Handles.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\public\include\StateMachine\Context.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\StateMachine\Event.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\StateMachine\Object.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\StateMachine\State.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\StateMachine\StateMachine.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\StateMachine\stdafx.h">
+      <Filter>public</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
