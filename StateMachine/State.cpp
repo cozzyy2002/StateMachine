@@ -6,18 +6,11 @@ using namespace state_machine;
 
 /*static*/ HRESULT State::S_EVENT_IGNORED = S_FALSE + 1;
 
-StateHandle::StateHandle(bool isSubState)
-	: m_isSubState(isSubState)
+State::State()
 {
-}
-
-StateHandle::~StateHandle()
-{
-}
-
-State::State(bool isSubState /*= false*/)
-	: m_hState(new StateHandle(isSubState))
-{
+	if(!isSubState()) {
+		m_hState = new StateHandle();
+	}
 }
 
 State::~State()
@@ -25,27 +18,35 @@ State::~State()
 	delete m_hState;
 }
 
-State * StateHandle::backToMaster()
+SubState::SubState()
 {
-	HR_EXPECT(isSubState(), E_UNEXPECTED);
+	m_hState = new SubStateHandle();
+}
+
+SubState::~SubState()
+{
+}
+
+State* SubStateHandle::backToMaster()
+{
 	return m_masterState.get();
 }
 
-#pragma region Context methods which invode ContextHandle methods.
+#pragma region State/SubState methods which invode ContextHandle methods.
 
 bool State::isSubState() const
 {
 	return m_hState->isSubState();
 }
 
-State * State::backToMaster()
+State * SubState::backToMaster()
 {
-	return m_hState->backToMaster();
+	return getHandle<SubStateHandle>()->backToMaster();
 }
 
-State* State::getRawMasterState() const
+State* SubState::getRawMasterState() const
 {
-	return m_hState->getMasterState();
+	return getHandle<SubStateHandle>()->getMasterState();
 }
 
 #pragma endregion

@@ -50,7 +50,7 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 	HRESULT hr;
 	for(State* pCurrentState = currentState.get();
 		pCurrentState && !e->isHandled;
-		pCurrentState = pCurrentState->getHandle()->m_masterState.get())
+		pCurrentState = pCurrentState->getHandle()->getMasterState())
 	{
 		LOG4CPLUS_DEBUG(logger, "Calling " << pCurrentState->toString() << "::handleEvent()");
 		hr = HR_EXPECT_OK(pCurrentState->handleEvent(e, currentState.get(), &pNextState));
@@ -64,6 +64,7 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 			std::shared_ptr<State>* nextMasterState = findState(currentState, pNextState);
 			if(nextMasterState) {
 				// Back to existing master state.
+				HR_ASSERT(nextState->isSubState(), E_UNEXPECTED);
 				nextState = *nextMasterState;
 				backToMaster = true;
 			} else {
@@ -87,7 +88,9 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 		if(pNextState->isSubState() && !backToMaster) {
 			// Transition from master state to sub state.
 			// Don't call exit() of master state.
-			pNextState->getHandle()->m_masterState = currentState;
+			SubStateHandle* hSubState = pNextState->getHandle<SubStateHandle>();
+			HR_ASSERT(hSubState, E_UNEXPECTED);
+			hSubState->m_masterState = currentState;
 		} else {
 			// Transition to other state or master state of current state.
 			// Call exit() of current state and master state if any.
@@ -136,9 +139,13 @@ std::shared_ptr<State>* StateMachineImpl::findState(std::shared_ptr<State>& curr
 HRESULT StateMachineImpl::for_each_state(std::shared_ptr<State>& currentState, std::function<HRESULT(std::shared_ptr<State>& state)> func)
 {
 	HRESULT hr;
-	for(std::shared_ptr<State>* state(&currentState); state->get(); state = &(state->get()->getHandle()->m_masterState)) {
-		hr = func(*state);
-		if(hr != S_OK) return hr;
+	if(currentState->isSubState()) {
+		for(std::shared_ptr<State>* state(&currentState); state->get(); state = &((*state)->getHandle<SubStateHandle>()->m_masterState)) {
+			hr = func(*state);
+			if(hr != S_OK) return hr;
+		}
+	} else {
+		hr = func(currentState);
 	}
 	return hr;
 }

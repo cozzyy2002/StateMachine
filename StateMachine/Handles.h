@@ -55,8 +55,8 @@ public:
 class StateHandle : public Object
 {
 public:
-	StateHandle(bool isSubState);
-	virtual ~StateHandle();
+	StateHandle() {}
+	virtual ~StateHandle() {}
 
 	virtual HRESULT handleEvent(Event* e, State* currentState, State** nextState) { return S_OK; }
 	virtual HRESULT handleError(Event* e, HRESULT hr) { return hr; }
@@ -67,18 +67,28 @@ public:
 		Returns whether the class is sub state or not.
 		State transition to sub class means that previous state becomes master state of the state(sub state).
 	*/
-	inline bool isSubState() const { return m_isSubState; }
+	virtual bool isSubState() const { return false; }
 
-	State* getMasterState() const { return m_masterState.get(); }
+	virtual State* getMasterState() const { return nullptr; }
+};
+
+class SubStateHandle : public StateHandle
+{
+public:
+	SubStateHandle() {}
+	virtual ~SubStateHandle() {}
+
+	// See StateHandle.
+	virtual bool isSubState() const { return false; }
 
 	// Next state to tell state machine to go back to the master state.
 	// This method can be used in handleEvent() method of sub state.
 	// Useage: *nextState = backToMaster();
 	State* backToMaster();
 
-	std::shared_ptr<State> m_masterState;
+	virtual State* getMasterState() const { return m_masterState.get(); }
 
-	const bool m_isSubState;
+	std::shared_ptr<State> m_masterState;
 };
 
 } // namespace state_machine
