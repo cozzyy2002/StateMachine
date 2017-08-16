@@ -35,17 +35,17 @@ public:
 		Returns whether the class is sub state or not.
 		State transition to sub class means that previous state becomes master state of the state(sub state).
 	*/
-	virtual bool isSubState() const { return false; }
+	virtual INLINE bool isSubState() const { return false; }
 
 	// Internal use.
 	template<class T = StateHandle>
-	T* getHandle() const { return dynamic_cast<T*>(m_hState.get()); }
+	INLINE T* getHandle() const { return dynamic_cast<T*>(m_hState.get()); }
 
 protected:
 	// Return value to tell state machine that event is not handled.
 	// This method can be used in handleEvent() method.
 	// Useage: return eventIsIgnored();
-	HRESULT eventIsIgnored() const { return S_EVENT_IGNORED; }
+	INLINE HRESULT eventIsIgnored() const { return S_EVENT_IGNORED; }
 
 	std::unique_ptr<StateHandle> m_hState;
 };
@@ -59,13 +59,13 @@ public:
 	virtual ~SubState();
 
 	// See State::isSubState().
-	virtual bool isSubState() const override { return true; }
+	virtual INLINE bool isSubState() const override { return true; }
 
 	/*
 		Template method that returns master state pointer.
 	*/
 	template<class T = State>
-	T* getMasterState() const { return dynamic_cast<T*>(getRawMasterState()); }
+	INLINE T* getMasterState() const { return dynamic_cast<T*>(getRawMasterState()); }
 
 protected:
 	// Next state to tell state machine to go back to the master state.

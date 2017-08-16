@@ -31,7 +31,7 @@ public:
 	// Determine whether StateMachine::handleEvent() requires exclusive execution.
 	// Returning true means that the method might be called from more than one thread simultaneously.
 	// If this feature is required, override this method to return true.
-	virtual bool isStateLockEnabled() const { return false; }
+	virtual INLINE bool isStateLockEnabled() const { return false; }
 
 	// Returns lock_guard<mutex> pointer used by the state machine.
 	// If you use this method outside of StateMachine,
@@ -48,7 +48,7 @@ public:
 	State* getCurrentState() const;
 
 	// Internal use.
-	ContextHandle* getHandle() const { return m_hContext.get(); }
+	INLINE ContextHandle* getHandle() const { return m_hContext.get(); }
 
 protected:
 	std::unique_ptr<ContextHandle> m_hContext;

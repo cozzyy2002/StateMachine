@@ -12,12 +12,12 @@ using namespace state_machine;
 
 /*static*/ StateMachine* StateMachine::createInstance()
 {
-	LOG4CPLUS_DEBUG(logger, __FUNCTION__ ": Creating instance");
 	return new StateMachineImpl();
 }
 
 StateMachineImpl::StateMachineImpl()
 {
+	LOG4CPLUS_DEBUG(logger, __FUNCTION__ ": Creating instance");
 }
 
 StateMachineImpl::~StateMachineImpl()

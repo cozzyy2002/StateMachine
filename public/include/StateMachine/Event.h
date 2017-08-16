@@ -12,15 +12,15 @@ class Event : public Object
 public:
 	Event(Context* context = nullptr);
 	virtual ~Event();
-	virtual log4cplus::LogLevel getLogLevel() const { return log4cplus::INFO_LOG_LEVEL; }
+	virtual INLINE log4cplus::LogLevel getLogLevel() const { return log4cplus::INFO_LOG_LEVEL; }
 
 	// Returns this pointer as user event type.
 	template<class T>
-	T* cast() const { return dynamic_cast<T*>(this); }
+	INLINE T* cast() const { return dynamic_cast<T*>(this); }
 
 	// Returns context as user context type.
 	template<class T = Context>
-	T* getContext() const { return dynamic_cast<T*>(m_context); }
+	INLINE T* getContext() const { return dynamic_cast<T*>(m_context); }
 
 	// true if the event is handled by the State::handleEvent().
 	// This value is set to true by state machine,

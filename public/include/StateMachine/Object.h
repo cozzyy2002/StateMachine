@@ -1,5 +1,11 @@
 #pragma once
 
+#if defined(NO_INLINE_METHOD)
+#define INLINE
+#else
+#define INLINE inline
+#endif
+
 namespace std {
 #if defined(_UNICODE)
 	typedef wstring tstring;
@@ -23,7 +29,7 @@ public:
 	LPCTSTR toString();
 
 protected:
-	virtual const Object* getObject() const { return this; }
+	INLINE virtual const Object* getObject() const { return this; }
 
 	// Modify m_string in derived class.
 	// This method is called by toString().
