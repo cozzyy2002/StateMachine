@@ -43,6 +43,19 @@ CStateMachineDoc::~CStateMachineDoc()
 {
 }
 
+CAppContext * CStateMachineDoc::createContext(LPCTSTR name)
+{
+	auto it = m_context_list.find(name);
+	if(it == m_context_list.end()) {
+		CAppContext* context = new CAppContext(name, m_stateMachine);
+		m_context_list[name].reset(context);
+		LOG4CPLUS_INFO(logger, "Created context: " << context->toString());
+		return context;
+	} else{
+		return it->second.get();
+	}
+}
+
 BOOL CStateMachineDoc::OnNewDocument()
 {
 	if (!CDocument::OnNewDocument())

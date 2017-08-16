@@ -12,6 +12,8 @@
 #include <StateMachine/State.h>
 #include <StateMachine/Event.h>
 
+#include <map>
+
 using namespace state_machine;
 
 class CStateMachineDoc : public CDocument
@@ -22,12 +24,14 @@ protected: // create from serialization only
 
 // Attributes
 public:
-	std::unique_ptr<CAppContext> m_context;
+	typedef std::map<std::tstring, std::unique_ptr<CAppContext>> context_list_t;
+	context_list_t m_context_list;
 	StateMachine* m_stateMachine;
 	CStateMachineApp* m_app;
 
 // Operations
 public:
+	CAppContext* createContext(LPCTSTR name);
 
 // Overrides
 public:

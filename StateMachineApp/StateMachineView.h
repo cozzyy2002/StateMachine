@@ -18,10 +18,13 @@ public:
 
 // Attributes
 public:
-	CStateMachineDoc* GetDocument() const;
+protected:
+	CAppContext* m_context;
 
 // Operations
 public:
+protected:
+	CStateMachineDoc* GetDocument() const;
 
 // Overrides
 public:

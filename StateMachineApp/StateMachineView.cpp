@@ -108,9 +108,7 @@ void CStateMachineView::OnClickedButtonContextCreate()
 {
 	CStateMachineDoc* doc = GetDocument();
 	UpdateData();
-	doc->m_context.reset(new CAppContext(m_contextName, doc->m_stateMachine));
-
-	LOG4CPLUS_INFO(logger, "Created context: " << doc->m_context->toString());
+	m_context = doc->createContext(m_contextName);
 }
 
 
