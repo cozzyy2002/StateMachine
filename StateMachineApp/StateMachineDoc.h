@@ -5,6 +5,14 @@
 
 #pragma once
 
+#include "AppObjects.h"
+
+#include <StateMachine/StateMachine.h>
+#include <StateMachine/Context.h>
+#include <StateMachine/State.h>
+#include <StateMachine/Event.h>
+
+using namespace state_machine;
 
 class CStateMachineDoc : public CDocument
 {
@@ -14,6 +22,9 @@ protected: // create from serialization only
 
 // Attributes
 public:
+	std::unique_ptr<CAppContext> m_context;
+	StateMachine* m_stateMachine;
+	CStateMachineApp* m_app;
 
 // Operations
 public:
@@ -45,4 +56,7 @@ protected:
 	// Helper function that sets search content for a Search Handler
 	void SetSearchContent(const CString& value);
 #endif // SHARED_HANDLERS
+public:
+//	afx_msg void OnButtonContextCreate();
+//	afx_msg void OnUpdateButtonContextCreate(CCmdUI *pCmdUI);
 };

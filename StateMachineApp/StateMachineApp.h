@@ -9,6 +9,10 @@
 
 #include "resource.h"       // main symbols
 
+#include <StateMachine/StateMachine.h>
+#include <memory>
+
+using namespace state_machine;
 
 // CStateMachineApp:
 // See StateMachineApp.cpp for the implementation of this class
@@ -19,6 +23,10 @@ class CStateMachineApp : public CWinAppEx
 public:
 	CStateMachineApp();
 
+	StateMachine* getStateMachine();
+
+protected:
+	std::unique_ptr<StateMachine> m_stateMachine;
 
 // Overrides
 public:

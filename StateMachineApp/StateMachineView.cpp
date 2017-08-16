@@ -16,6 +16,7 @@
 #define new DEBUG_NEW
 #endif
 
+static log4cplus::Logger logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("StateMachineView"));
 
 // CStateMachineView
 
@@ -24,15 +25,18 @@ IMPLEMENT_DYNCREATE(CStateMachineView, CFormView)
 BEGIN_MESSAGE_MAP(CStateMachineView, CFormView)
 	ON_WM_CONTEXTMENU()
 	ON_WM_RBUTTONUP()
+	ON_BN_CLICKED(IDC_BUTTON_CONTEXT_CREATE, &CStateMachineView::OnClickedButtonContextCreate)
+	ON_BN_CLICKED(IDC_BUTTON_CONTEXT_START, &CStateMachineView::OnClickedButtonContextStart)
 END_MESSAGE_MAP()
 
 // CStateMachineView construction/destruction
 
 CStateMachineView::CStateMachineView()
 	: CFormView(IDD_STATEMACHINEAPP_FORM)
+	, m_contextName(_T(""))
+	, m_StateName(_T(""))
+	, m_isSubState(FALSE)
 {
-	// TODO: add construction code here
-
 }
 
 CStateMachineView::~CStateMachineView()
@@ -42,6 +46,9 @@ CStateMachineView::~CStateMachineView()
 void CStateMachineView::DoDataExchange(CDataExchange* pDX)
 {
 	CFormView::DoDataExchange(pDX);
+	DDX_Text(pDX, IDC_EDIT_CONTEXT_NAME, m_contextName);
+	DDX_Text(pDX, IDC_EDIT_STATE_NAME, m_StateName);
+	DDX_Check(pDX, IDC_CHECK_IS_SUB__STATE, m_isSubState);
 }
 
 BOOL CStateMachineView::PreCreateWindow(CREATESTRUCT& cs)
@@ -95,3 +102,20 @@ CStateMachineDoc* CStateMachineView::GetDocument() const // non-debug version is
 
 
 // CStateMachineView message handlers
+
+
+void CStateMachineView::OnClickedButtonContextCreate()
+{
+	CStateMachineDoc* doc = GetDocument();
+	UpdateData();
+	doc->m_context.reset(new CAppContext(m_contextName, doc->m_stateMachine));
+
+	LOG4CPLUS_INFO(logger, "Created context: " << doc->m_context->toString());
+}
+
+
+void CStateMachineView::OnClickedButtonContextStart()
+{
+	CStateMachineDoc* doc = GetDocument();
+	UpdateData();
+}

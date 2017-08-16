@@ -10,6 +10,7 @@
 #endif
 
 #include "StateMachineDoc.h"
+#include "AppObjects.h"
 
 #include <propkey.h>
 
@@ -17,17 +18,22 @@
 #define new DEBUG_NEW
 #endif
 
+static log4cplus::Logger logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("StateMachineDoc"));
+
 // CStateMachineDoc
 
 IMPLEMENT_DYNCREATE(CStateMachineDoc, CDocument)
 
 BEGIN_MESSAGE_MAP(CStateMachineDoc, CDocument)
+//	ON_COMMAND(IDC_BUTTON_CONTEXT_CREATE, &CStateMachineDoc::OnButtonContextCreate)
+//	ON_UPDATE_COMMAND_UI(IDC_BUTTON_CONTEXT_CREATE, &CStateMachineDoc::OnUpdateButtonContextCreate)
 END_MESSAGE_MAP()
 
 
 // CStateMachineDoc construction/destruction
 
 CStateMachineDoc::CStateMachineDoc()
+	: m_app((CStateMachineApp*)AfxGetApp())
 {
 	// TODO: add one-time construction code here
 
@@ -44,6 +50,7 @@ BOOL CStateMachineDoc::OnNewDocument()
 
 	// TODO: add reinitialization code here
 	// (SDI documents will reuse this document)
+	m_stateMachine = m_app->getStateMachine();
 
 	return TRUE;
 }
@@ -135,3 +142,16 @@ void CStateMachineDoc::Dump(CDumpContext& dc) const
 
 
 // CStateMachineDoc commands
+
+
+//void CStateMachineDoc::OnButtonContextCreate()
+//{
+//	GetView
+//	m_context.reset(new CAppContext(m_stateMachine));
+//}
+
+
+//void CStateMachineDoc::OnUpdateButtonContextCreate(CCmdUI *pCmdUI)
+//{
+//	// TODO: Add your command update UI handler code here
+//}

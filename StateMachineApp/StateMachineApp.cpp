@@ -12,10 +12,13 @@
 #include "StateMachineDoc.h"
 #include "StateMachineView.h"
 
+#include <log4cplus/configurator.h>
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
+static log4cplus::Logger logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("StateMachineApp"));
 
 // CStateMachineApp
 
@@ -41,6 +44,12 @@ CStateMachineApp::CStateMachineApp()
 	// Place all significant initialization in InitInstance
 }
 
+StateMachine * CStateMachineApp::getStateMachine()
+{
+	if(!m_stateMachine) m_stateMachine.reset(StateMachine::createInstance());
+	return m_stateMachine.get();
+}
+
 // The one and only CStateMachineApp object
 
 CStateMachineApp theApp;
@@ -50,6 +59,9 @@ CStateMachineApp theApp;
 
 BOOL CStateMachineApp::InitInstance()
 {
+	log4cplus::PropertyConfigurator::doConfigure(LOG4CPLUS_TEXT("log4cplus.properties"));
+	LOG4CPLUS_INFO(logger, __FUNCTION__);
+
 	// InitCommonControlsEx() is required on Windows XP if an application
 	// manifest specifies use of ComCtl32.dll version 6 or later to enable
 	// visual styles.  Otherwise, any window creation will fail.
