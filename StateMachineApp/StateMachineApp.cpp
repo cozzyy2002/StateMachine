@@ -9,20 +9,21 @@
 #include "MainFrm.h"
 
 #include "ChildFrm.h"
-
-#include <log4cplus/configurator.h>
+#include "StateMachineDoc.h"
+#include "StateMachineView.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
-static log4cplus::Logger logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("StateMachineApp.App"));
 
 // CStateMachineApp
 
 BEGIN_MESSAGE_MAP(CStateMachineApp, CWinAppEx)
 	ON_COMMAND(ID_APP_ABOUT, &CStateMachineApp::OnAppAbout)
-	ON_COMMAND(ID_FILE_NEW, &CStateMachineApp::OnFileNew)
+	// Standard file based document commands
+	ON_COMMAND(ID_FILE_NEW, &CWinAppEx::OnFileNew)
+	ON_COMMAND(ID_FILE_OPEN, &CWinAppEx::OnFileOpen)
 END_MESSAGE_MAP()
 
 
@@ -31,15 +32,6 @@ END_MESSAGE_MAP()
 CStateMachineApp::CStateMachineApp()
 {
 	m_bHiColorIcons = TRUE;
-
-	// support Restart Manager
-	m_dwRestartManagerSupportFlags = AFX_RESTART_MANAGER_SUPPORT_RESTART;
-#ifdef _MANAGED
-	// If the application is built using Common Language Runtime support (/clr):
-	//     1) This additional setting is needed for Restart Manager support to work properly.
-	//     2) In your project, you must add a reference to System.Windows.Forms in order to build.
-	System::Windows::Forms::Application::SetUnhandledExceptionMode(System::Windows::Forms::UnhandledExceptionMode::ThrowException);
-#endif
 
 	// TODO: replace application ID string below with unique ID string; recommended
 	// format for string is CompanyName.ProductName.SubProduct.VersionInformation
@@ -58,9 +50,6 @@ CStateMachineApp theApp;
 
 BOOL CStateMachineApp::InitInstance()
 {
-	log4cplus::PropertyConfigurator::doConfigure(LOG4CPLUS_TEXT("log4cplus.properties"));
-	LOG4CPLUS_INFO(logger, __FUNCTION__);
-
 	// InitCommonControlsEx() is required on Windows XP if an application
 	// manifest specifies use of ComCtl32.dll version 6 or later to enable
 	// visual styles.  Otherwise, any window creation will fail.
@@ -87,6 +76,7 @@ BOOL CStateMachineApp::InitInstance()
 	// TODO: You should modify this string to be something appropriate
 	// such as the name of your company or organization
 	SetRegistryKey(_T("Local AppWizard-Generated Applications"));
+	LoadStdProfileSettings(4);  // Load standard INI file options (including MRU)
 
 
 	InitContextMenuManager();
@@ -99,56 +89,52 @@ BOOL CStateMachineApp::InitInstance()
 	theApp.GetTooltipManager()->SetTooltipParams(AFX_TOOLTIP_TYPE_ALL,
 		RUNTIME_CLASS(CMFCToolTipCtrl), &ttParams);
 
-	// To create the main window, this code creates a new frame window
-	// object and then sets it as the application's main window object
-	CMDIFrameWnd* pFrame = new CMainFrame;
-	if (!pFrame)
+	// Register the application's document templates.  Document templates
+	//  serve as the connection between documents, frame windows and views
+	CMultiDocTemplate* pDocTemplate;
+	pDocTemplate = new CMultiDocTemplate(IDR_StateMachineAppTYPE,
+		RUNTIME_CLASS(CStateMachineDoc),
+		RUNTIME_CLASS(CChildFrame), // custom MDI child frame
+		RUNTIME_CLASS(CStateMachineView));
+	if (!pDocTemplate)
 		return FALSE;
-	m_pMainWnd = pFrame;
-	// create main MDI frame window
-	if (!pFrame->LoadFrame(IDR_MAINFRAME))
+	AddDocTemplate(pDocTemplate);
+
+	// create main MDI Frame window
+	CMainFrame* pMainFrame = new CMainFrame;
+	if (!pMainFrame || !pMainFrame->LoadFrame(IDR_MAINFRAME))
+	{
+		delete pMainFrame;
 		return FALSE;
-	// try to load shared MDI menus and accelerator table
-	//TODO: add additional member variables and load calls for
-	//	additional menu types your application may need
-	HINSTANCE hInst = AfxGetResourceHandle();
-	m_hMDIMenu  = ::LoadMenu(hInst, MAKEINTRESOURCE(IDR_StateMachineAppTYPE));
-	m_hMDIAccel = ::LoadAccelerators(hInst, MAKEINTRESOURCE(IDR_StateMachineAppTYPE));
+	}
+	m_pMainWnd = pMainFrame;
+
+
+	// Parse command line for standard shell commands, DDE, file open
+	CCommandLineInfo cmdInfo;
+	ParseCommandLine(cmdInfo);
 
 
 
-
+	// Dispatch commands specified on the command line.  Will return FALSE if
+	// app was launched with /RegServer, /Register, /Unregserver or /Unregister.
+	if (!ProcessShellCommand(cmdInfo))
+		return FALSE;
 	// The main window has been initialized, so show and update it
-	pFrame->ShowWindow(m_nCmdShow);
-	pFrame->UpdateWindow();
+	pMainFrame->ShowWindow(m_nCmdShow);
+	pMainFrame->UpdateWindow();
 
 	return TRUE;
 }
 
 int CStateMachineApp::ExitInstance()
 {
-	LOG4CPLUS_INFO(logger, __FUNCTION__);
-
 	//TODO: handle additional resources you may have added
-	if (m_hMDIMenu != NULL)
-		FreeResource(m_hMDIMenu);
-	if (m_hMDIAccel != NULL)
-		FreeResource(m_hMDIAccel);
-
 	return CWinAppEx::ExitInstance();
 }
 
 // CStateMachineApp message handlers
 
-void CStateMachineApp::OnFileNew()
-{
-	CMainFrame* pFrame = STATIC_DOWNCAST(CMainFrame, m_pMainWnd);
-	pFrame->LockWindowUpdate();
-	// create a new MDI child window
-	pFrame->CreateNewChild(
-		RUNTIME_CLASS(CChildFrame), IDR_StateMachineAppTYPE, m_hMDIMenu, m_hMDIAccel);
-	pFrame->UnlockWindowUpdate();
-}
 
 // CAboutDlg dialog used for App About
 
@@ -198,6 +184,9 @@ void CStateMachineApp::PreLoadState()
 	bNameValid = strName.LoadString(IDS_EDIT_MENU);
 	ASSERT(bNameValid);
 	GetContextMenuManager()->AddMenu(strName, IDR_POPUP_EDIT);
+	bNameValid = strName.LoadString(IDS_EXPLORER);
+	ASSERT(bNameValid);
+	GetContextMenuManager()->AddMenu(strName, IDR_POPUP_EXPLORER);
 }
 
 void CStateMachineApp::LoadCustomState()

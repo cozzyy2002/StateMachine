@@ -51,4 +51,3 @@
 #endif
 
 
-#include <StateMachine/stdafx.h>

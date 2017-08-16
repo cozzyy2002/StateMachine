@@ -71,6 +71,22 @@ ChildFrm.h, ChildFrm.cpp
 
 /////////////////////////////////////////////////////////////////////////////
 
+The application wizard creates one document type and one view:
+
+StateMachineDoc.h, StateMachineDoc.cpp - the document
+    These files contain your CStateMachineDoc class.  Edit these files to
+    add your special document data and to implement file saving and loading
+    (via CStateMachineDoc::Serialize).
+
+StateMachineView.h, StateMachineView.cpp - the view of the document
+    These files contain your CStateMachineView class.
+    CStateMachineView objects are used to view CStateMachineDoc objects.
+
+res\StateMachineAppDoc.ico
+    This is an icon file, which is used as the icon for MDI child windows
+    for the CStateMachineDoc class.  This icon is included by the main
+    resource file StateMachineApp.rc.
+
 
 
 /////////////////////////////////////////////////////////////////////////////
