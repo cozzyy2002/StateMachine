@@ -45,11 +45,13 @@ TEST_F(ContextUnitTest, start_stop)
 
 	ASSERT_HRESULT_SUCCEEDED(testee->start(state));
 
+	EXPECT_TRUE(testee->isStarted());
 	EXPECT_EQ(state, testee->getCurrentState());
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 
 	ASSERT_HRESULT_SUCCEEDED(testee->stop());
 
+	EXPECT_FALSE(testee->isStarted());
 	EXPECT_EQ(nullptr, testee->getCurrentState());
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 }
@@ -75,11 +77,13 @@ TEST_F(ContextUnitTest, start_with_user_event_stop)
 	ASSERT_HRESULT_SUCCEEDED(testee->start(state, &e));
 
 	EXPECT_EQ(testee.get(), e.getContext());
+	EXPECT_TRUE(testee->isStarted());
 	EXPECT_EQ(state, testee->getCurrentState());
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 
 	ASSERT_HRESULT_SUCCEEDED(testee->stop());
 
+	EXPECT_FALSE(testee->isStarted());
 	EXPECT_EQ(nullptr, testee->getCurrentState());
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 }

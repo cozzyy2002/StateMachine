@@ -20,12 +20,24 @@ protected:
 public:
 	virtual ~Context();
 
-	// Set initialState as current state and call initialState->entry().
+	/*
+		Start event handling in this context.
+
+		Set initialState as current state.
+		initialState->entry(Event* e, State* previousState) will be called.
+		The method should ignore:
+			e parameter if userEvent is not specified.
+			previousState parameter which points internal State object.
+	*/
 	virtual HRESULT start(State* initialState, Event* userEvent = nullptr);
 
 	// Stops state machine.
 	virtual HRESULT stop();
 
+	// true if event handling has been started(After calling start() before stop()).
+	bool isStarted() const { return getCurrentState() ? true : false; }
+
+	// Handles event in this context.
 	virtual HRESULT handleEvent(Event* e);
 
 	// Determine whether StateMachine::handleEvent() requires exclusive execution.
@@ -42,9 +54,7 @@ public:
 
 	bool isEventHandling() const;
 
-	/*
-	Returns current State object.
-	*/
+	// Returns current State object.
 	State* getCurrentState() const;
 
 	// Internal use.

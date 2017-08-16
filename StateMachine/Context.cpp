@@ -55,13 +55,6 @@ State* Context::getCurrentState() const
 	return getHandle()->currentState.get();
 }
 
-/*
-	Start event handling using the context.
-
-	User state initialState->entry() will be called.
-	The method should ignore Event parameter if userEvent is not specified.
-	The method should ignore State parameter which points internal State object.
-*/
 HRESULT ContextHandle::start(Context* context, State * initialState, Event* userEvent)
 {
 	HR_ASSERT(!currentState, E_ILLEGAL_METHOD_CALL);

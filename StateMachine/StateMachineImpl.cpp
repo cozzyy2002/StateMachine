@@ -55,10 +55,9 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 
 	// Call State::handleEvent()
 	// If event is ignored and the state is sub state, delegate handling event to master state.
-	for(State* pCurrentState = currentState.get();
-		pCurrentState && !e->isHandled;
-		pCurrentState = pCurrentState->getHandle()->getMasterState())
+	HR_ASSERT_OK(for_each_state(currentState, [&](std::shared_ptr<State>& state)
 	{
+		State* pCurrentState = state.get();
 		LOG4CPLUS_DEBUG(logger, "Calling " << pCurrentState->toString() << "::handleEvent()");
 		hr = HR_EXPECT_OK(pCurrentState->handleEvent(e, currentState.get(), &pNextState));
 		// Set Event::isHandled.
@@ -86,8 +85,11 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 		if(!e->isHandled) {
 			LOG4CPLUS_DEBUG(logger, "Calling " << pCurrentState->toString() << "::handleIgnoredEvent()");
 			HR_ASSERT_OK(pCurrentState->handleIgnoredEvent(e));
+			return S_FOR_EACH_CONTINUE;
+		} else {
+			return S_FOR_EACH_BREAK;
 		}
-	}
+	}));
 
 	if(SUCCEEDED(hr) && pNextState) {
 		LOG4CPLUS_INFO(logger, "Next state is " << pNextState->toString());
@@ -106,10 +108,10 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 				if(state.get() != pNextState) {
 					LOG4CPLUS_DEBUG(logger, "Calling " << state->toString() << "::exit()");
 					HR_ASSERT_OK(state->exit(e, pNextState));
-					return S_OK;
+					return S_FOR_EACH_CONTINUE;
 				} else {
 					// If the state is next state, don't call it's exit().
-					return S_FALSE;
+					return S_FOR_EACH_BREAK;
 				}
 			}));
 		}
@@ -137,9 +139,9 @@ std::shared_ptr<State>* StateMachineImpl::findState(std::shared_ptr<State>& curr
 	{
 		if(pState == state.get()) {
 			ret = &state;
-			return S_FALSE;
+			return S_FOR_EACH_BREAK;
 		}
-		return S_OK;
+		return S_FOR_EACH_CONTINUE;
 	});
 	return ret;
 }
@@ -147,15 +149,12 @@ std::shared_ptr<State>* StateMachineImpl::findState(std::shared_ptr<State>& curr
 HRESULT StateMachineImpl::for_each_state(std::shared_ptr<State>& currentState, std::function<HRESULT(std::shared_ptr<State>& state)> func)
 {
 	HRESULT hr;
-	if(currentState->isSubState()) {
-		for(std::shared_ptr<State>* state(&currentState);
-			state && state->get();
-			state = (*state)->isSubState() ? &((*state)->getHandle<SubStateHandle>()->m_masterState) : nullptr) {
-			hr = func(*state);
-			if(hr != S_OK) return hr;
-		}
-	} else {
-		hr = func(currentState);
+	for(std::shared_ptr<State>* state(&currentState);
+		state && state->get();
+		state = (*state)->isSubState() ? &((*state)->getHandle<SubStateHandle>()->m_masterState) : nullptr)
+	{
+		hr = func(*state);
+		if(hr != S_FOR_EACH_CONTINUE) return hr;
 	}
 	return hr;
 }
