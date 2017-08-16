@@ -3,6 +3,7 @@
 #include "Object.h"
 
 #include <mutex>
+#include <memory>
 
 namespace state_machine {
 
@@ -29,6 +30,7 @@ public:
 
 	// Determine whether StateMachine::handleEvent() requires exclusive execution.
 	// Returning true means that the method might be called from more than one thread simultaneously.
+	// If this feature is required, override this method to return true.
 	virtual bool isStateLockEnabled() const { return false; }
 
 	// Returns lock_guard<mutex> pointer.
@@ -40,10 +42,11 @@ public:
 
 	bool isEventHandling() const;
 
-	ContextHandle* getHandle() const { return m_hContext; }
+	// Internal use.
+	ContextHandle* getHandle() const { return m_hContext.get(); }
 
 protected:
-	ContextHandle* m_hContext;
+	std::unique_ptr<ContextHandle> m_hContext;
 };
 
 } // namespace state_machine

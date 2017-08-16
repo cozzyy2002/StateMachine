@@ -12,6 +12,8 @@ public:
 	StateMachineImpl();
 	virtual ~StateMachineImpl();
 
+	State* getCurrentState(Context* context) const override;
+
 	HRESULT handleEvent(Event* e);
 
 protected:

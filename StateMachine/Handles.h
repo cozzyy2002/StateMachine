@@ -12,7 +12,6 @@ class Context;
 class StateMachine;
 class StateMachineImpl;
 class StateHandle;
-class ContexHandle;
 
 class ContextHandle : public Object
 {
@@ -28,16 +27,8 @@ public:
 
 	virtual HRESULT handleEvent(Context* context, Event* e);
 
-	// Determine whether StateMachine::handleEvent() requires exclusive execution.
-	// Returning true means that the method might be called from more than one thread simultaneously.
-	virtual bool isStateLockEnabled() const { return false; }
-
-	// Returns lock_guard<mutex> pointer.
-	// If you use this method outside of StateMachine,
-	// call this method with std::unique_ptr<> like:
-	//   std::unique_prt<std::lock_guard<std::mutex>> _lock(context->getStateLock());
-	// If isStateLockEnabled() returns false, this method returns nullptr;
-	std::lock_guard<std::mutex>* getStateLock();
+	// See Context::getStateLock().
+	std::lock_guard<std::mutex>* getStateLock(Context* context);
 
 	bool isEventHandling() const { return m_isEventHandling; }
 
@@ -63,6 +54,7 @@ public:
 	virtual HRESULT entry(Event* e, State* previousState) { return S_OK; }
 	virtual HRESULT exit(Event* e, State* nextState) { return S_OK; }
 
+	// Always returns no master state.
 	virtual State* getMasterState() const { return nullptr; }
 };
 
@@ -77,7 +69,8 @@ public:
 	// Useage: *nextState = backToMaster();
 	State* backToMaster();
 
-	virtual State* getMasterState() const { return m_masterState.get(); }
+	// Returns master state.
+	virtual State* getMasterState() const override { return m_masterState.get(); }
 
 	std::shared_ptr<State> m_masterState;
 };

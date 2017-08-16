@@ -12,6 +12,7 @@ using namespace state_machine;
 
 /*static*/ StateMachine* StateMachine::createInstance()
 {
+	LOG4CPLUS_DEBUG(logger, __FUNCTION__ ": Creating instance");
 	return new StateMachineImpl();
 }
 
@@ -21,6 +22,12 @@ StateMachineImpl::StateMachineImpl()
 
 StateMachineImpl::~StateMachineImpl()
 {
+	LOG4CPLUS_DEBUG(logger, __FUNCTION__ ": Deleting instance");
+}
+
+State* StateMachineImpl::getCurrentState(Context * context) const
+{
+	return context->getHandle()->currentState.get();
 }
 
 HRESULT StateMachineImpl::handleEvent(Event* e)
@@ -30,15 +37,17 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 
 	if(logger.isEnabledFor(e->getLogLevel())) {
 		// Suppress low level log output.
-		LOG4CPLUS_INFO(logger, "Handling " << e->toString() << " in " << context->toString());
+		std::tstringstream stream;
+		stream << "Handling " << e->toString() << " in " << context->toString();
+		logger.forcedLog(e->getLogLevel(), stream.str());
 	}
 
 	// Recursive call check.
-	HR_ASSERT(!hContext->m_isEventHandling, E_ILLEGAL_METHOD_CALL);
+	HR_ASSERT(!hContext->isEventHandling(), E_ILLEGAL_METHOD_CALL);
 	ScopedStore<bool> _recursive_guard(hContext->m_isEventHandling, false, true);
 
 	// Lock this scope(If necessary)
-	std::unique_ptr<std::lock_guard<std::mutex>> _lock(hContext->getStateLock());
+	std::unique_ptr<std::lock_guard<std::mutex>> _lock(context->getStateLock());
 
 	// Current state is contained by Context object in the Event.
 	std::shared_ptr<State>& currentState(hContext->currentState);

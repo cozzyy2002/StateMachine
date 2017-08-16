@@ -2,6 +2,8 @@
 
 #include "Object.h"
 
+#include <memory>
+
 namespace state_machine {
 
 class Event;
@@ -35,8 +37,9 @@ public:
 	*/
 	virtual bool isSubState() const { return false; }
 
+	// Internal use.
 	template<class T = StateHandle>
-	T* getHandle() const { return dynamic_cast<T*>(m_hState); }
+	T* getHandle() const { return dynamic_cast<T*>(m_hState.get()); }
 
 protected:
 	// Return value to tell state machine that event is not handled.
@@ -44,7 +47,7 @@ protected:
 	// Useage: return eventIsIgnored();
 	HRESULT eventIsIgnored() const { return S_EVENT_IGNORED; }
 
-	StateHandle* m_hState;
+	std::unique_ptr<StateHandle> m_hState;
 };
 
 class SubState : public State
@@ -55,11 +58,11 @@ protected:
 public:
 	virtual ~SubState();
 
-	// See State.
-	virtual bool isSubState() const { return true; }
+	// See State::isSubState().
+	virtual bool isSubState() const override { return true; }
 
 	/*
-	Template method that returns master state pointer.
+		Template method that returns master state pointer.
 	*/
 	template<class T = State>
 	T* getMasterState() const { return dynamic_cast<T*>(getRawMasterState()); }
@@ -67,7 +70,7 @@ public:
 protected:
 	// Next state to tell state machine to go back to the master state.
 	// This method can be used in handleEvent() method of sub state.
-	// Useage: *nextState = backToMaster();
+	// Useage in State::handleEvent(): *nextState = backToMaster();
 	State* backToMaster();
 
 	State* getRawMasterState() const;

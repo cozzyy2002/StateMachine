@@ -10,18 +10,17 @@ using namespace state_machine;
 State::State()
 {
 	if(!isSubState()) {
-		m_hState = new StateHandle();
+		m_hState.reset(new StateHandle());
 	}
 }
 
 State::~State()
 {
-	delete m_hState;
 }
 
 SubState::SubState()
 {
-	m_hState = new SubStateHandle();
+	m_hState.reset(new SubStateHandle());
 }
 
 SubState::~SubState()

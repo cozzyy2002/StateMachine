@@ -9,8 +9,8 @@
 using namespace state_machine;
 
 /*
-Inner class to let state machine call userState->entry().
-Used to initialize user context.
+	Inner class to let state machine call userState->entry().
+	Used to initialize user context.
 */
 class RootState : public State
 {
@@ -48,22 +48,21 @@ Context::Context(StateMachine* stateMachine)
 
 Context::~Context()
 {
-	delete m_hContext;
 }
 
 /*
-Start event handling using the context.
+	Start event handling using the context.
 
-User state initialState->entry() will be called.
-The method should ignore Event parameter if userEvent is not specified.
-The method should ignore State parameter which points internal State object.
+	User state initialState->entry() will be called.
+	The method should ignore Event parameter if userEvent is not specified.
+	The method should ignore State parameter which points internal State object.
 */
 HRESULT ContextHandle::start(Context* context, State * initialState, Event* userEvent)
 {
-	Event* e = userEvent ? userEvent : new Event();
 	HR_ASSERT(!currentState, E_ILLEGAL_METHOD_CALL);
 
 	currentState.reset(new RootState(initialState));
+	Event* e = userEvent ? userEvent : new Event();
 	return handleEvent(context, e);
 }
 
@@ -79,9 +78,9 @@ HRESULT ContextHandle::handleEvent(Context* context, Event * e)
 	return stateMachine->handleEvent(e);
 }
 
-std::lock_guard<std::mutex>* ContextHandle::getStateLock()
+std::lock_guard<std::mutex>* ContextHandle::getStateLock(Context* context)
 {
-	return isStateLockEnabled() ? new std::lock_guard<std::mutex>(stateLock) : nullptr;
+	return context->isStateLockEnabled() ? new std::lock_guard<std::mutex>(stateLock) : nullptr;
 }
 
 #pragma region Context methods which invode ContextHandle methods.
@@ -107,7 +106,7 @@ HRESULT Context::handleEvent(Event * e)
 
 std::lock_guard<std::mutex>* Context::getStateLock()
 {
-	return 	m_hContext->getStateLock();
+	return 	m_hContext->getStateLock(this);
 }
 
 bool Context::isEventHandling() const
