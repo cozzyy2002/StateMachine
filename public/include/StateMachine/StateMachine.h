@@ -10,11 +10,6 @@ class StateMachine
 public:
 	static StateMachine* createInstance();
 	virtual ~StateMachine() {};
-
-	/*
-		Returns State object in current state.
-	*/
-	virtual State* getCurrentState(Context* context) const = 0;
 };
 
 } // namespace state_machine

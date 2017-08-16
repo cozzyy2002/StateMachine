@@ -45,12 +45,12 @@ TEST_F(ContextUnitTest, start_stop)
 
 	ASSERT_HRESULT_SUCCEEDED(testee->start(state));
 
-	EXPECT_EQ(state, stateMachine->getCurrentState(testee.get()));
+	EXPECT_EQ(state, testee->getCurrentState());
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 
 	ASSERT_HRESULT_SUCCEEDED(testee->stop());
 
-	EXPECT_EQ(nullptr, stateMachine->getCurrentState(testee.get()));
+	EXPECT_EQ(nullptr, testee->getCurrentState());
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 }
 
@@ -75,12 +75,12 @@ TEST_F(ContextUnitTest, start_with_user_event_stop)
 	ASSERT_HRESULT_SUCCEEDED(testee->start(state, &e));
 
 	EXPECT_EQ(testee.get(), e.getContext());
-	EXPECT_EQ(state, stateMachine->getCurrentState(testee.get()));
+	EXPECT_EQ(state, testee->getCurrentState());
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 
 	ASSERT_HRESULT_SUCCEEDED(testee->stop());
 
-	EXPECT_EQ(nullptr, stateMachine->getCurrentState(testee.get()));
+	EXPECT_EQ(nullptr, testee->getCurrentState());
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 }
 
@@ -115,7 +115,7 @@ TEST_F(ContextHandleEventUnitTest, recursive_call_check)
 	ASSERT_HRESULT_SUCCEEDED(testee->handleEvent(&e));
 	EXPECT_FALSE(testee->isEventHandling());
 
-	EXPECT_EQ(state, stateMachine->getCurrentState(testee.get()));
+	EXPECT_EQ(state, testee->getCurrentState());
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_TRUE(e.isHandled);
 }
@@ -159,8 +159,8 @@ TEST_F(MultiContextHandleEventUnitTest, recursive_call_check)
 	ASSERT_HRESULT_SUCCEEDED(testee->handleEvent(&e));
 	EXPECT_FALSE(testee->isEventHandling());
 
-	EXPECT_EQ(state, stateMachine->getCurrentState(testee.get()));
-	EXPECT_EQ(state1, stateMachine->getCurrentState(testee1));
+	EXPECT_EQ(state, testee->getCurrentState());
+	EXPECT_EQ(state1, testee1->getCurrentState());
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::OTHER_STATE));
 	EXPECT_TRUE(e.isHandled);

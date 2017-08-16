@@ -25,11 +25,6 @@ StateMachineImpl::~StateMachineImpl()
 	LOG4CPLUS_DEBUG(logger, __FUNCTION__ ": Deleting instance");
 }
 
-State* StateMachineImpl::getCurrentState(Context * context) const
-{
-	return context->getHandle()->currentState.get();
-}
-
 HRESULT StateMachineImpl::handleEvent(Event* e)
 {
 	Context* context = e->getContext();

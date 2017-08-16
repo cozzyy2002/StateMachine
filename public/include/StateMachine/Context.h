@@ -42,6 +42,11 @@ public:
 
 	bool isEventHandling() const;
 
+	/*
+	Returns current State object.
+	*/
+	State* getCurrentState() const;
+
 	// Internal use.
 	ContextHandle* getHandle() const { return m_hContext.get(); }
 

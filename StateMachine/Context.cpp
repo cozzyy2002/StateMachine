@@ -50,6 +50,11 @@ Context::~Context()
 {
 }
 
+State* Context::getCurrentState() const
+{
+	return getHandle()->currentState.get();
+}
+
 /*
 	Start event handling using the context.
 
