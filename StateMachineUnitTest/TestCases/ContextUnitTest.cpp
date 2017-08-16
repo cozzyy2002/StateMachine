@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "TestUtils/Mocks.h"
-#include "TestUtils/TestStateMachine.h"
 
+#include <StateMachine/StateMachine.h>
 #include <StateMachine/Context.h>
 
 using namespace state_machine;

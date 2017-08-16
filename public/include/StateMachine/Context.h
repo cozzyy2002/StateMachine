@@ -33,7 +33,7 @@ public:
 	// If this feature is required, override this method to return true.
 	virtual bool isStateLockEnabled() const { return false; }
 
-	// Returns lock_guard<mutex> pointer.
+	// Returns lock_guard<mutex> pointer used by the state machine.
 	// If you use this method outside of StateMachine,
 	// call this method with std::unique_ptr<> like:
 	//   std::unique_prt<std::lock_guard<std::mutex>> _lock(context->getStateLock());

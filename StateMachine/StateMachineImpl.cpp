@@ -52,13 +52,14 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 	// Current state is contained by Context object in the Event.
 	std::shared_ptr<State>& currentState(hContext->currentState);
 
-	// Call State::handleEvent()
-	// If event is ignored and the state is sub state, delegate handling event to master state.
 	State* pNextState = nullptr;
 	std::shared_ptr<State> nextState;
 	bool backToMaster = false;
 	HRESULT hr = State::S_EVENT_IGNORED;
 	e->isHandled = false;
+
+	// Call State::handleEvent()
+	// If event is ignored and the state is sub state, delegate handling event to master state.
 	for(State* pCurrentState = currentState.get();
 		pCurrentState && !e->isHandled;
 		pCurrentState = pCurrentState->getHandle()->getMasterState())
@@ -70,8 +71,6 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 		// Setting true by State::handleEvent() is prior to above condition.
 		if(!e->isHandled) e->isHandled = ((hr != State::S_EVENT_IGNORED) || pNextState);
 		if(pNextState) {
-			// Note: Object returned to pNextState might be deleted,
-			//       if nextState goes out of scope before it is set as current state.
 			std::shared_ptr<State>* nextMasterState = findState(currentState, pNextState);
 			if(nextMasterState) {
 				// Back to existing master state.
@@ -80,6 +79,8 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 				backToMaster = true;
 			} else {
 				// Exit to newly created state.
+				// Note: Object returned to pNextState might be deleted,
+				//       if nextState goes out of scope before it is set as current state.
 				nextState.reset(pNextState);
 			}
 		}
@@ -112,6 +113,7 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 					HR_ASSERT_OK(state->exit(e, pNextState));
 					return S_OK;
 				} else {
+					// If the state is next state, don't call it's exit().
 					return S_FALSE;
 				}
 			}));
