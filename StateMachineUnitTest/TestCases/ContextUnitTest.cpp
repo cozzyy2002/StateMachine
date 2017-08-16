@@ -13,12 +13,14 @@ public:
 	class Testee : public Context
 	{
 	public:
-		Testee(TestStateMachine* stateMachine) : Context(stateMachine) {}
+		Testee(StateMachine* stateMachine) : Context(stateMachine) {}
 	};
 
-	ContextUnitTest() : testee(new Testee(&stateMachine)) {}
+	ContextUnitTest() 
+		: stateMachine(StateMachine::createInstance())
+		,testee(new Testee(stateMachine.get())) {}
 
-	TestStateMachine stateMachine;
+	std::unique_ptr<StateMachine> stateMachine;
 	Testee* testee;
 	MockEvent e;
 };
@@ -43,12 +45,12 @@ TEST_F(ContextUnitTest, start_stop)
 
 	ASSERT_HRESULT_SUCCEEDED(testee->start(state));
 
-	EXPECT_EQ(state, stateMachine.getCurrentState(testee));
+	EXPECT_EQ(state, stateMachine->getCurrentState(testee));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 
 	ASSERT_HRESULT_SUCCEEDED(testee->stop());
 
-	EXPECT_EQ(nullptr, stateMachine.getCurrentState(testee));
+	EXPECT_EQ(nullptr, stateMachine->getCurrentState(testee));
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 }
 
@@ -73,12 +75,12 @@ TEST_F(ContextUnitTest, start_with_user_event_stop)
 	ASSERT_HRESULT_SUCCEEDED(testee->start(state, &e));
 
 	EXPECT_EQ(testee, e.getContext());
-	EXPECT_EQ(state, stateMachine.getCurrentState(testee));
+	EXPECT_EQ(state, stateMachine->getCurrentState(testee));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 
 	ASSERT_HRESULT_SUCCEEDED(testee->stop());
 
-	EXPECT_EQ(nullptr, stateMachine.getCurrentState(testee));
+	EXPECT_EQ(nullptr, stateMachine->getCurrentState(testee));
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 }
 
@@ -88,7 +90,8 @@ public:
 	void SetUp() {
 		state = new MockState(MockObjectId::CURRENT_STATE);
 		EXPECT_CALL(*state, entry(_, _)).Times(1);
-		ASSERT_HRESULT_SUCCEEDED(testee->start(state));
+		e.logLevel = log4cplus::INFO_LOG_LEVEL;
+		ASSERT_HRESULT_SUCCEEDED(testee->start(state, &e));
 	}
 	void TearDown() {
 		ASSERT_HRESULT_SUCCEEDED(testee->stop());
@@ -112,7 +115,7 @@ TEST_F(ContextHandleEventUnitTest, recursive_call_check)
 	ASSERT_HRESULT_SUCCEEDED(testee->handleEvent(&e));
 	EXPECT_FALSE(testee->isEventHandling());
 
-	EXPECT_EQ(state, stateMachine.getCurrentState(testee));
+	EXPECT_EQ(state, stateMachine->getCurrentState(testee));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_TRUE(e.isHandled);
 }
@@ -120,7 +123,7 @@ TEST_F(ContextHandleEventUnitTest, recursive_call_check)
 class MultiContextHandleEventUnitTest : public ContextHandleEventUnitTest
 {
 public:
-	MultiContextHandleEventUnitTest() : testee1(new Testee(&stateMachine)) {}
+	MultiContextHandleEventUnitTest() : testee1(new Testee(stateMachine.get())) {}
 
 	void SetUp() {
 		ContextHandleEventUnitTest::SetUp();
@@ -156,8 +159,8 @@ TEST_F(MultiContextHandleEventUnitTest, recursive_call_check)
 	ASSERT_HRESULT_SUCCEEDED(testee->handleEvent(&e));
 	EXPECT_FALSE(testee->isEventHandling());
 
-	EXPECT_EQ(state, stateMachine.getCurrentState(testee));
-	EXPECT_EQ(state1, stateMachine.getCurrentState(testee1));
+	EXPECT_EQ(state, stateMachine->getCurrentState(testee));
+	EXPECT_EQ(state1, stateMachine->getCurrentState(testee1));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::OTHER_STATE));
 	EXPECT_TRUE(e.isHandled);

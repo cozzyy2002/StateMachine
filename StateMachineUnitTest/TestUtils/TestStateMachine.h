@@ -28,8 +28,4 @@ public:
 	void clearCurrentState(Context* context) {
 		setNextState(context, nullptr);
 	}
-
-	State* getCurrentState(Context* context) const {
-		return context->getHandle()->currentState.get();
-	}
 };

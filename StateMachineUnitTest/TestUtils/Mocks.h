@@ -40,7 +40,10 @@ class MockEvent : public state_machine::Event, public MockObject
 public:
 	MockEvent(state_machine::Context* context = nullptr) : state_machine::Event(context), MockObject() {}
 	MockEvent(MockObjectId id) : MockObject(id) {}
-	virtual log4cplus::LogLevel getLogLevel() const override { return log4cplus::DEBUG_LOG_LEVEL; }
+	virtual log4cplus::LogLevel getLogLevel() const override { return logLevel; }
+
+	// Default loglevel
+	log4cplus::LogLevel logLevel = log4cplus::DEBUG_LOG_LEVEL;
 
 protected:
 	virtual void modifyString(std::tstring& _string) override { MockObject::modifyString(_string); }
