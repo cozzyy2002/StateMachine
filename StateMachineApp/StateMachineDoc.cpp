@@ -11,6 +11,7 @@
 
 #include "StateMachineDoc.h"
 #include "AppObjects.h"
+#include "MainFrm.h"
 
 #include <propkey.h>
 
@@ -49,11 +50,38 @@ CAppContext * CStateMachineDoc::createContext(LPCTSTR name)
 	if(it == m_context_list.end()) {
 		CAppContext* context = new CAppContext(name, m_stateMachine);
 		m_context_list[name].reset(context);
-		LOG4CPLUS_INFO(logger, "Created context: " << context->toString());
+		outputMessage(_T("Created CAppContext: '%s'"), context->toString());
 		return context;
 	} else{
 		return it->second.get();
 	}
+}
+
+CAppState * CStateMachineDoc::createState(LPCTSTR name, bool isSubState)
+{
+	CAppState* state = new CAppState(name, isSubState);
+	outputMessage(_T("Created CAppState: '%s'"), state->toString());
+	return state;
+}
+
+HRESULT CStateMachineDoc::start(CAppContext * context, LPCTSTR stateName)
+{
+	CAppState* state = createState(stateName, false);
+	HRESULT hr = context->start(state);
+	outputMessage(_T("Started CAppContext '%s': Initial state is '%s', HRESULT=0x%lx"),
+					context->toString(), state->toString(), hr);
+	return hr;
+}
+
+void CStateMachineDoc::outputMessage(LPCTSTR format, ...)
+{
+	va_list arg;
+	va_start(arg, format);
+	TCHAR message[256];
+	_vstprintf_s(message, format, arg);
+	LOG4CPLUS_INFO(logger, message);
+	CMainFrame* frame = (CMainFrame*)AfxGetApp()->GetMainWnd();
+	frame->OutputMessage(message);
 }
 
 BOOL CStateMachineDoc::OnNewDocument()

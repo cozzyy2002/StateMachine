@@ -116,4 +116,5 @@ void CStateMachineView::OnClickedButtonContextStart()
 {
 	CStateMachineDoc* doc = GetDocument();
 	UpdateData();
+	doc->start(m_context, m_StateName);
 }

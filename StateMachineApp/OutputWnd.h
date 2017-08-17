@@ -35,14 +35,15 @@ public:
 protected:
 	CMFCTabCtrl	m_wndTabs;
 
-	COutputList m_wndOutputBuild;
 	COutputList m_wndOutputDebug;
-	COutputList m_wndOutputFind;
+
+// Operations
+public:
+	// Output message to Debug pane.
+	void OutputDebugMessage(LPCTSTR message);
 
 protected:
-	void FillBuildWindow();
 	void FillDebugWindow();
-	void FillFindWindow();
 
 	void AdjustHorzScroll(CListBox& wndListBox);
 
@@ -56,4 +57,3 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 };
-

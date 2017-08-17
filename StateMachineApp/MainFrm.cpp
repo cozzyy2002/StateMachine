@@ -421,6 +421,11 @@ BOOL CMainFrame::LoadFrame(UINT nIDResource, DWORD dwDefaultStyle, CWnd* pParent
 	return TRUE;
 }
 
+void CMainFrame::OutputMessage(LPCTSTR message)
+{
+	m_wndOutput.OutputDebugMessage(message);
+}
+
 
 void CMainFrame::OnSettingChange(UINT uFlags, LPCTSTR lpszSection)
 {

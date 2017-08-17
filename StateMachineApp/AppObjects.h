@@ -32,6 +32,7 @@ protected:
 class CAppState : public SubState, public CAppObject
 {
 public:
+	CAppState(LPCTSTR name, bool _isSubState) : CAppObject(name), m_isSubState(_isSubState) {}
 	virtual ~CAppState() {}
 
 	HRESULT handleEvent(Event* e, State* currentState, State** nextState) { return S_OK; }
@@ -44,7 +45,6 @@ public:
 	CAppState* getMasterState() const { isSubState() ? SubState::getMasterState<CAppState>() : nullptr; }
 
 protected:
-	CAppState(LPCTSTR name, bool isSubstate) : CAppObject(name) {}
 	virtual void modifyString(std::tstring& _string) override { CAppObject::modifyString(_string); }
 
 	bool m_isSubState;

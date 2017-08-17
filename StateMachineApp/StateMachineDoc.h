@@ -32,8 +32,12 @@ public:
 // Operations
 public:
 	CAppContext* createContext(LPCTSTR name);
+	CAppState* createState(LPCTSTR name, bool isSubState);
+	HRESULT start(CAppContext* context, LPCTSTR stateName);
 
-// Overrides
+	void outputMessage(LPCTSTR format, ...);
+
+	// Overrides
 public:
 	virtual BOOL OnNewDocument();
 	virtual void Serialize(CArchive& ar);
