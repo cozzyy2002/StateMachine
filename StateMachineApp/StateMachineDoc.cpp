@@ -46,33 +46,44 @@ CStateMachineDoc::~CStateMachineDoc()
 
 CAppContext * CStateMachineDoc::createContext(LPCTSTR name)
 {
-	auto it = m_context_list.find(name);
-	if(it == m_context_list.end()) {
-		CAppContext* context = new CAppContext(name, m_stateMachine);
-		m_context_list[name].reset(context);
-		outputMessage(_T("Created CAppContext: '%s'"), context->toString());
-		return context;
-	} else{
-		return it->second.get();
-	}
+	CAppContext* context = new CAppContext(name, m_stateMachine);
+	m_context.reset(context);
+	outputMessage(_T("Created CAppContext: '%s'"), context->toString());
+	return context;
 }
 
-CAppState * CStateMachineDoc::createState(LPCTSTR name, bool isSubState)
+CAppState * CStateMachineDoc::createState(LPCTSTR name, BOOL isSubState)
 {
-	CAppState* state = new CAppState(name, isSubState);
+	CAppState* state = new CAppState(name, isSubState ? true : false, this);
 	outputMessage(_T("Created CAppState: '%s'"), state->toString());
 	return state;
 }
 
-HRESULT CStateMachineDoc::start(CAppContext * context, LPCTSTR stateName)
+HRESULT CStateMachineDoc::start(LPCTSTR stateName)
 {
 	CAppState* state = createState(stateName, false);
-	HRESULT hr = context->start(state);
+	HRESULT hr = m_context->start(state);
 	outputMessage(_T("Started CAppContext '%s': Initial state is '%s', HRESULT=0x%lx"),
-					context->toString(), state->toString(), hr);
+					m_context->toString(), state->toString(), hr);
 	return hr;
 }
 
+void CStateMachineDoc::onStateEntryCalled(CAppState * state)
+{
+	m_stateStack.clear();
+	for(auto st = state; st; st = st->getMasterState()) {
+		m_stateStack.push_back(st);
+	}
+	UpdateAllViews(nullptr, 0, this);
+}
+
+void CStateMachineDoc::onStateExitCalled(CAppState * state)
+{
+}
+
+/*
+	Format message and output to debug window.
+*/
 void CStateMachineDoc::outputMessage(LPCTSTR format, ...)
 {
 	va_list arg;
@@ -81,7 +92,9 @@ void CStateMachineDoc::outputMessage(LPCTSTR format, ...)
 	_vstprintf_s(message, format, arg);
 	LOG4CPLUS_INFO(logger, message);
 	CMainFrame* frame = (CMainFrame*)AfxGetApp()->GetMainWnd();
-	frame->OutputMessage(message);
+	if(frame) {
+		frame->OutputMessage(message);
+	}
 }
 
 BOOL CStateMachineDoc::OnNewDocument()

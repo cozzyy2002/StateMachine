@@ -12,9 +12,11 @@
 #include <StateMachine/State.h>
 #include <StateMachine/Event.h>
 
-#include <map>
+#include <vector>
 
 using namespace state_machine;
+
+class CStateMachineApp;
 
 class CStateMachineDoc : public CDocument
 {
@@ -24,16 +26,20 @@ protected: // create from serialization only
 
 // Attributes
 public:
-	typedef std::map<std::tstring, std::unique_ptr<CAppContext>> context_list_t;
-	context_list_t m_context_list;
+	std::vector<CAppState*> m_stateStack;
+	std::unique_ptr<CAppContext> m_context;
 	StateMachine* m_stateMachine;
 	CStateMachineApp* m_app;
 
 // Operations
 public:
 	CAppContext* createContext(LPCTSTR name);
-	CAppState* createState(LPCTSTR name, bool isSubState);
-	HRESULT start(CAppContext* context, LPCTSTR stateName);
+	CAppState* createState(LPCTSTR name, BOOL isSubState);
+	HRESULT start(LPCTSTR stateName);
+
+	//void onContextDeleted(CAppContext* context);
+	void onStateEntryCalled(CAppState* state);
+	void onStateExitCalled(CAppState* state);
 
 	void outputMessage(LPCTSTR format, ...);
 

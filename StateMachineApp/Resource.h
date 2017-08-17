@@ -87,9 +87,10 @@
 #define IDC_EDIT_CONTEXT_NAME           1000
 #define IDC_BUTTON_CONTEXT_CREATE       1001
 #define IDC_BUTTON_CONTEXT_START        1002
-#define IDC_EDIT_NEW_STATE_NAME         1003
-#define IDC_EDIT_STATE_NAME             1003
 #define IDC_CHECK_IS_SUB__STATE         1004
+#define IDC_COMBO_STATE_NAME            1005
+#define IDC_COMBO_STATE_NAMES           1005
+#define IDC_BUTTON_STATE_CREATE         1006
 
 // Next default values for new objects
 // 
@@ -97,7 +98,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        311
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1005
+#define _APS_NEXT_CONTROL_VALUE         1006
 #define _APS_NEXT_SYMED_VALUE           310
 #endif
 #endif

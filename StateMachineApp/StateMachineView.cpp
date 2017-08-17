@@ -34,7 +34,6 @@ END_MESSAGE_MAP()
 CStateMachineView::CStateMachineView()
 	: CFormView(IDD_STATEMACHINEAPP_FORM)
 	, m_contextName(_T(""))
-	, m_StateName(_T(""))
 	, m_isSubState(FALSE)
 {
 }
@@ -47,8 +46,8 @@ void CStateMachineView::DoDataExchange(CDataExchange* pDX)
 {
 	CFormView::DoDataExchange(pDX);
 	DDX_Text(pDX, IDC_EDIT_CONTEXT_NAME, m_contextName);
-	DDX_Text(pDX, IDC_EDIT_STATE_NAME, m_StateName);
 	DDX_Check(pDX, IDC_CHECK_IS_SUB__STATE, m_isSubState);
+	DDX_Control(pDX, IDC_COMBO_STATE_NAMES, m_stateNames);
 }
 
 BOOL CStateMachineView::PreCreateWindow(CREATESTRUCT& cs)
@@ -116,5 +115,28 @@ void CStateMachineView::OnClickedButtonContextStart()
 {
 	CStateMachineDoc* doc = GetDocument();
 	UpdateData();
-	doc->start(m_context, m_StateName);
+	int index = m_stateNames.GetCurSel();
+	CString stateName;
+	if(index != CB_ERR) {
+		m_stateNames.GetLBText(index, stateName);
+	} else {
+		m_stateNames.GetWindowText(stateName);
+	}
+	doc->start(stateName);
+}
+
+
+void CStateMachineView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* pHint)
+{
+	auto doc = (CStateMachineDoc*)pHint;
+	if(doc) {
+		m_stateNames.ResetContent();
+		for each(auto state in doc->m_stateStack) {
+			m_stateNames.AddString(state->getName());
+		}
+		if(m_stateNames.GetCount()) {
+			m_stateNames.SetCurSel(0);
+		}
+		UpdateData(FALSE);
+	}
 }

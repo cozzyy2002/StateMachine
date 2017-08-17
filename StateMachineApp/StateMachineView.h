@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "afxwin.h"
 
 
 class CStateMachineView : public CFormView
@@ -51,10 +52,11 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	CString m_contextName;
-	CString m_StateName;
 	BOOL m_isSubState;
 	afx_msg void OnClickedButtonContextCreate();
 	afx_msg void OnClickedButtonContextStart();
+	CComboBox m_stateNames;
+	virtual void OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/);
 };
 
 #ifndef _DEBUG  // debug version in StateMachineView.cpp
