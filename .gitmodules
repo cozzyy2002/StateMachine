@@ -1,0 +1,6 @@
+[submodule "submodue/picojson"]
+	path = submodue/picojson
+	url = https://github.com/kazuho/picojson
+[submodule "submodule/picojson"]
+	path = submodule/picojson
+	url = https://github.com/kazuho/picojson
