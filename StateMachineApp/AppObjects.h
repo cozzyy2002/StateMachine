@@ -12,14 +12,16 @@ class CStateMachineDoc;
 class CAppObject
 {
 public:
-	LPCTSTR getName() const { return m_name.c_str(); }
+	virtual LPCTSTR getName() { return m_name.c_str(); }
 
 protected:
-	CAppObject(LPCTSTR name) : m_name(name) {}
+	CAppObject(LPCTSTR name = _T("")) : m_name(name) {}
 
 	// Implementation of state_machine::Object::modifyString() called by derived classes.
 	void modifyString(std::tstring& _string) { _string += _T(":") + m_name; }
 	std::tstring m_name;
+
+	CStateMachineDoc const * doc;
 };
 
 class CAppContext : public Context, public CAppObject
@@ -58,8 +60,11 @@ protected:
 class CAppEvent : public Event, public CAppObject
 {
 public:
-	CAppEvent(LPCTSTR name) : CAppObject(name) {}
+	CAppEvent();
 	~CAppEvent() {}
+	virtual LPCTSTR getName() override;
+
+	picojson::value data;
 
 protected:
 	virtual void modifyString(std::tstring& _string) override { CAppObject::modifyString(_string); }

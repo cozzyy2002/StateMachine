@@ -49,6 +49,7 @@ CAppContext * CStateMachineDoc::createContext(LPCTSTR name)
 	CAppContext* context = new CAppContext(name, m_stateMachine);
 	m_context.reset(context);
 	outputMessage(_T("Created CAppContext: '%s'"), context->toString());
+	SetTitle(nullptr);
 	return context;
 }
 
@@ -59,13 +60,41 @@ CAppState * CStateMachineDoc::createState(LPCTSTR name, BOOL isSubState)
 	return state;
 }
 
-HRESULT CStateMachineDoc::start(LPCTSTR stateName)
+HRESULT CStateMachineDoc::start(LPCTSTR stateName, CAppEvent* e /*= nullptr*/)
 {
 	CAppState* state = createState(stateName, false);
-	HRESULT hr = m_context->start(state);
+	HRESULT hr = m_context->start(state, e);
 	outputMessage(_T("Started CAppContext '%s': Initial state is '%s', HRESULT=0x%lx"),
 					m_context->toString(), state->toString(), hr);
+	SetTitle(nullptr);
 	return hr;
+}
+
+bool CStateMachineDoc::parse(LPCTSTR source)
+{
+	CT2A _source(source);
+	std::string error = picojson::parse(m_config, (LPCSTR)_source);
+	std::tstring _error;
+	if(error.empty()) {
+		UpdateAllViews(nullptr, 0, this);
+		return true;
+	} else {
+		CA2T _error(error.c_str());
+		outputMessage(_T("Parsing JSON failed: %s"), (LPCTSTR)_error);
+		return false;
+	}
+}
+
+std::tstring CStateMachineDoc::getConfigString(const picojson::value& obj, LPCSTR key, LPCTSTR defaultValue /* = _T("")*/) const
+{
+	std::tstring ret(defaultValue);
+	if(obj.is<picojson::object>()) {
+		if(obj.contains(key)) {
+			CA2T _ret(obj.get(key).get<std::string>().c_str());
+			ret = (LPCTSTR)_ret;
+		}
+	}
+	return ret;
 }
 
 void CStateMachineDoc::onStateEntryCalled(CAppState * state)
@@ -90,7 +119,7 @@ void CStateMachineDoc::outputMessage(LPCTSTR format, ...)
 	va_start(arg, format);
 	TCHAR message[256];
 	_vstprintf_s(message, format, arg);
-	LOG4CPLUS_INFO(logger, message);
+	LOG4CPLUS_DEBUG(logger, message);
 	CMainFrame* frame = (CMainFrame*)AfxGetApp()->GetMainWnd();
 	if(frame) {
 		frame->OutputMessage(message);
@@ -198,14 +227,15 @@ void CStateMachineDoc::Dump(CDumpContext& dc) const
 // CStateMachineDoc commands
 
 
-//void CStateMachineDoc::OnButtonContextCreate()
-//{
-//	GetView
-//	m_context.reset(new CAppContext(m_stateMachine));
-//}
+void CStateMachineDoc::SetTitle(LPCTSTR /*lpszTitle*/)
+{
+	std::tstring title;
+	if(m_context) {
+		title = m_context->getName();
+		title += m_context->isStarted() ? _T(":Started") : _T(":Stopped");
+	} else {
+		title = _T("<Unknown>");
+	}
 
-
-//void CStateMachineDoc::OnUpdateButtonContextCreate(CCmdUI *pCmdUI)
-//{
-//	// TODO: Add your command update UI handler code here
-//}
+	CDocument::SetTitle(title.c_str());
+}

@@ -35,13 +35,24 @@ public:
 public:
 	CAppContext* createContext(LPCTSTR name);
 	CAppState* createState(LPCTSTR name, BOOL isSubState);
-	HRESULT start(LPCTSTR stateName);
+	HRESULT start(LPCTSTR stateName, CAppEvent* e = nullptr);
+
+	bool parse(LPCTSTR source);
+	template<typename T>
+	T getConfigValue(const picojson::value& obj, LPCSTR key, const T defaultValue) const;
+	template<typename T>
+	const T& getConfigObject(const picojson::value& obj, LPCSTR key) const;
+	std::tstring getConfigString(const picojson::value& obj, LPCSTR key, LPCTSTR defaultValue = _T("")) const;
+	const picojson::value& getConfig() const { return m_config; }
 
 	//void onContextDeleted(CAppContext* context);
 	void onStateEntryCalled(CAppState* state);
 	void onStateExitCalled(CAppState* state);
 
 	void outputMessage(LPCTSTR format, ...);
+
+protected:
+	picojson::value m_config;
 
 	// Overrides
 public:
@@ -73,4 +84,33 @@ protected:
 public:
 //	afx_msg void OnButtonContextCreate();
 //	afx_msg void OnUpdateButtonContextCreate(CCmdUI *pCmdUI);
+	virtual void SetTitle(LPCTSTR lpszTitle);
 };
+
+template<typename T>
+inline T CStateMachineDoc::getConfigValue(const picojson::value& obj, LPCSTR key, const T defaultValue) const
+{
+	T ret(defaultValue);
+	if(obj.is<picojson::object>()) {
+		if(obj.contains(key)) {
+			ret = obj.get(key).get<T>();
+		}
+	}
+	return ret;
+}
+
+template<typename T>
+const T& CStateMachineDoc::getConfigObject(const picojson::value& obj, LPCSTR key) const
+{
+	// Empty object returned if required object doesn't exist.
+	static T dummy;
+	if(obj.is<picojson::object>()) {
+		if(obj.contains(key)) {
+			const picojson::value& value = obj.get(key);
+			if(value.is<T>()) {
+				return value.get<T>();
+			}
+		}
+	}
+	return dummy;
+}

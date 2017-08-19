@@ -1,0 +1,35 @@
+{
+  "name": "Test config",
+  "events": [
+    {
+      "name": "Initialize",
+       "states": [
+          {
+            "name": "Initial",
+            "entry": {
+              "next_state": "Initialized"
+            }
+          }
+        ]
+    },
+    {
+      "name": "Event name",
+       "states": [
+          {
+            "name": "Initialized",
+            "is_sub_state": false,
+            "do": {
+              "return": "S_OK",
+              "next_state": "Next State name"
+            },
+            "entry": {
+               "return": 0
+            },
+            "exit": {
+               "return": 0
+            }
+          }
+        ]
+    }
+  ]
+}

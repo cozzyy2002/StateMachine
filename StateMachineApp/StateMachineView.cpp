@@ -27,6 +27,9 @@ BEGIN_MESSAGE_MAP(CStateMachineView, CFormView)
 	ON_WM_RBUTTONUP()
 	ON_BN_CLICKED(IDC_BUTTON_CONTEXT_CREATE, &CStateMachineView::OnClickedButtonContextCreate)
 	ON_BN_CLICKED(IDC_BUTTON_CONTEXT_START, &CStateMachineView::OnClickedButtonContextStart)
+	ON_BN_CLICKED(IDC_BUTTON_PARSE, &CStateMachineView::OnClickedButtonParse)
+	ON_BN_CLICKED(IDC_BUTTON_HANDLE_EVENT, &CStateMachineView::OnClickedButtonHandleEvent)
+	ON_BN_CLICKED(IDC_BUTTON_POST_EVENT, &CStateMachineView::OnClickedButtonPostEvent)
 END_MESSAGE_MAP()
 
 // CStateMachineView construction/destruction
@@ -34,7 +37,7 @@ END_MESSAGE_MAP()
 CStateMachineView::CStateMachineView()
 	: CFormView(IDD_STATEMACHINEAPP_FORM)
 	, m_contextName(_T(""))
-	, m_isSubState(FALSE)
+	, m_config(_T(""))
 {
 }
 
@@ -46,8 +49,9 @@ void CStateMachineView::DoDataExchange(CDataExchange* pDX)
 {
 	CFormView::DoDataExchange(pDX);
 	DDX_Text(pDX, IDC_EDIT_CONTEXT_NAME, m_contextName);
-	DDX_Check(pDX, IDC_CHECK_IS_SUB__STATE, m_isSubState);
-	DDX_Control(pDX, IDC_COMBO_STATE_NAMES, m_stateNames);
+	DDX_Text(pDX, IDC_EDIT_CONFIG, m_config);
+	DDX_Control(pDX, IDC_LIST_ACTIVE_STATES, m_activeStates);
+	DDX_Control(pDX, IDC_COMBO_EVENT_NAMES, m_eventNames);
 }
 
 BOOL CStateMachineView::PreCreateWindow(CREATESTRUCT& cs)
@@ -115,14 +119,21 @@ void CStateMachineView::OnClickedButtonContextStart()
 {
 	CStateMachineDoc* doc = GetDocument();
 	UpdateData();
-	int index = m_stateNames.GetCurSel();
-	CString stateName;
-	if(index != CB_ERR) {
-		m_stateNames.GetLBText(index, stateName);
-	} else {
-		m_stateNames.GetWindowText(stateName);
-	}
-	doc->start(stateName);
+	//int index = m_activeStates.GetCurSel();
+	//CString stateName;
+	//if(index != CB_ERR) {
+	//	m_activeStates.GetLBText(index, stateName);
+	//} else {
+	//	m_activeStates.GetWindowText(stateName);
+	//}
+	//CAppEvent* e = new CAppEvent();
+	//std::tstring parseError = e->parse(m_EventData);
+	//if(parseError.empty()) {
+	//	doc->start(stateName, e);
+	//} else {
+	//	doc->outputMessage(_T("Parsing JSON failed: %s"), parseError.c_str());
+	//	delete e;
+	//}
 }
 
 
@@ -130,13 +141,55 @@ void CStateMachineView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* 
 {
 	auto doc = (CStateMachineDoc*)pHint;
 	if(doc) {
-		m_stateNames.ResetContent();
+		const picojson::value& config = doc->getConfig();
+
+		// Set context name.
+		std::tstring contextName(doc->getConfigString(config, "name"));
+		if(!contextName.empty()) {
+			m_contextName = contextName.c_str();
+		}
+
+		// Create contents of event name list.
+		int selected = m_eventNames.GetCurSel();
+		m_eventNames.ResetContent();
+		const picojson::array& events = doc->getConfigObject<picojson::array>(config, "events");
+		for each(auto event in events) {
+			m_eventNames.AddString(doc->getConfigString(event, "name").c_str());
+		}
+		int count = m_eventNames.GetCount();
+		if(0 < count) {
+			if(selected < 0) selected = 0;
+			selected = (selected < count) ? selected : (count - 1);
+			m_eventNames.SetCurSel(selected);
+		}
+
+		// Create contents of active state list.
+		m_activeStates.DeleteAllItems();
 		for each(auto state in doc->m_stateStack) {
-			m_stateNames.AddString(state->getName());
+			//m_activeStates.AddString(state->getName());
 		}
-		if(m_stateNames.GetCount()) {
-			m_stateNames.SetCurSel(0);
-		}
+
 		UpdateData(FALSE);
 	}
+}
+
+
+void CStateMachineView::OnClickedButtonParse()
+{
+	CStateMachineDoc* doc = GetDocument();
+	UpdateData();
+
+	doc->parse(m_config);
+}
+
+
+void CStateMachineView::OnClickedButtonHandleEvent()
+{
+	// TODO: Add your control notification handler code here
+}
+
+
+void CStateMachineView::OnClickedButtonPostEvent()
+{
+	// TODO: Add your control notification handler code here
 }

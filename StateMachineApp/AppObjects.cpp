@@ -49,3 +49,20 @@ HRESULT CAppState::exit(Event* e, State* nextState)
 	m_doc->onStateExitCalled(this);
 	return S_OK;
 }
+
+CAppEvent::CAppEvent()
+{
+}
+
+LPCTSTR CAppEvent::getName()
+{
+	if(m_name.empty()) {
+		if(data.is<picojson::object>()) {
+			const picojson::object& obj = data.get<picojson::object>();
+			const std::string& name = obj.at("name").get<std::string>();
+			CA2T _name(name.c_str());
+			m_name = (LPCTSTR)_name;
+		}
+	}
+	return m_name.c_str();
+}
