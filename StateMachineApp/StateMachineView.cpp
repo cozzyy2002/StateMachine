@@ -62,11 +62,17 @@ BOOL CStateMachineView::PreCreateWindow(CREATESTRUCT& cs)
 	return CFormView::PreCreateWindow(cs);
 }
 
+enum class ActiveStatesColumn {
+	Name,
+	IsSubState,
+};
+
 void CStateMachineView::OnInitialUpdate()
 {
 	CFormView::OnInitialUpdate();
 	ResizeParentToFit();
 
+	m_activeStates.InsertColumn((int)ActiveStatesColumn::Name, _T("name"));
 }
 
 void CStateMachineView::OnRButtonUp(UINT /* nFlags */, CPoint point)
@@ -119,21 +125,16 @@ void CStateMachineView::OnClickedButtonContextStart()
 {
 	CStateMachineDoc* doc = GetDocument();
 	UpdateData();
-	//int index = m_activeStates.GetCurSel();
-	//CString stateName;
-	//if(index != CB_ERR) {
-	//	m_activeStates.GetLBText(index, stateName);
-	//} else {
-	//	m_activeStates.GetWindowText(stateName);
-	//}
-	//CAppEvent* e = new CAppEvent();
-	//std::tstring parseError = e->parse(m_EventData);
-	//if(parseError.empty()) {
-	//	doc->start(stateName, e);
-	//} else {
-	//	doc->outputMessage(_T("Parsing JSON failed: %s"), parseError.c_str());
-	//	delete e;
-	//}
+	CAppEvent* e = nullptr;
+	auto index = m_eventNames.GetCurSel();
+	if(0 <= index) {
+		CString name;
+		m_eventNames.GetLBText(index, name);
+		auto eventConfig = (const picojson::value*)m_eventNames.GetItemDataPtr(index);
+		e = new CAppEvent(doc, name, *eventConfig);
+	}
+	auto state = doc->getConfigString(doc->getConfig(), "initial_state");
+	doc->start(state.c_str(), e);
 }
 
 
@@ -154,7 +155,8 @@ void CStateMachineView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* 
 		m_eventNames.ResetContent();
 		const picojson::array& events = doc->getConfigObject<picojson::array>(config, "events");
 		for each(auto event in events) {
-			m_eventNames.AddString(doc->getConfigString(event, "name").c_str());
+			auto index = m_eventNames.AddString(doc->getConfigString(event, "name").c_str());
+			m_eventNames.SetItemDataPtr(index, &event);
 		}
 		int count = m_eventNames.GetCount();
 		if(0 < count) {
@@ -166,7 +168,7 @@ void CStateMachineView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* 
 		// Create contents of active state list.
 		m_activeStates.DeleteAllItems();
 		for each(auto state in doc->m_stateStack) {
-			//m_activeStates.AddString(state->getName());
+			m_activeStates.InsertItem(0, state->getName());
 		}
 
 		UpdateData(FALSE);

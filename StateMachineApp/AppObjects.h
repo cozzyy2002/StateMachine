@@ -15,19 +15,19 @@ public:
 	virtual LPCTSTR getName() { return m_name.c_str(); }
 
 protected:
-	CAppObject(LPCTSTR name = _T("")) : m_name(name) {}
+	CAppObject(CStateMachineDoc* doc, LPCTSTR name = _T("")) : doc(doc), m_name(name) {}
 
 	// Implementation of state_machine::Object::modifyString() called by derived classes.
 	void modifyString(std::tstring& _string) { _string += _T(":") + m_name; }
 	std::tstring m_name;
 
-	CStateMachineDoc const * doc;
+	CStateMachineDoc * doc;
 };
 
 class CAppContext : public Context, public CAppObject
 {
 public:
-	CAppContext(LPCTSTR name, StateMachine* stateMachine);
+	CAppContext(CStateMachineDoc* doc, LPCTSTR name, StateMachine* stateMachine);
 	~CAppContext();
 
 protected:
@@ -37,8 +37,8 @@ protected:
 class CAppState : public SubState, public CAppObject
 {
 public:
-	CAppState(LPCTSTR name, bool _isSubState, CStateMachineDoc* doc)
-		: CAppObject(name), m_isSubState(_isSubState), m_doc(doc) {}
+	CAppState(CStateMachineDoc* doc, LPCTSTR name, bool _isSubState)
+		: CAppObject(doc, name), m_isSubState(_isSubState) {}
 	virtual ~CAppState() {}
 
 	HRESULT handleEvent(Event* e, State* currentState, State** nextState) override;
@@ -54,17 +54,15 @@ protected:
 	virtual void modifyString(std::tstring& _string) override { CAppObject::modifyString(_string); }
 
 	bool m_isSubState;
-	CStateMachineDoc* m_doc;
 };
 
 class CAppEvent : public Event, public CAppObject
 {
 public:
-	CAppEvent();
+	CAppEvent(CStateMachineDoc* doc, LPCTSTR name, const picojson::value& config);
 	~CAppEvent() {}
-	virtual LPCTSTR getName() override;
 
-	picojson::value data;
+	const picojson::value& config;
 
 protected:
 	virtual void modifyString(std::tstring& _string) override { CAppObject::modifyString(_string); }
