@@ -23,12 +23,17 @@ namespace state_machine {
 */
 class Object
 {
+	// Disallow copy constructor and assignment operator.
+	Object(const Object&);
+	Object& operator=(const Object&);
+
 public:
 	// Returns string representation.
 	// If modify the string in derived class, override modifyString() method.
 	LPCTSTR toString();
 
 protected:
+	Object() {}
 	INLINE virtual const Object* getObject() const { return this; }
 
 	// Modify m_string in derived class.
