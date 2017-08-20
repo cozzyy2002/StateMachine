@@ -45,7 +45,7 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 	std::unique_ptr<std::lock_guard<std::mutex>> _lock(context->getStateLock());
 
 	// Current state is contained by Context object in the Event.
-	std::shared_ptr<State>& currentState(hContext->currentState);
+	auto& currentState(hContext->currentState);
 
 	State* pNextState = nullptr;
 	std::shared_ptr<State> nextState;
@@ -57,7 +57,7 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 	// If event is ignored and the state is sub state, delegate handling event to master state.
 	HR_ASSERT_OK(for_each_state(currentState, [&](std::shared_ptr<State>& state)
 	{
-		State* pCurrentState = state.get();
+		auto pCurrentState = state.get();
 		LOG4CPLUS_DEBUG(logger, "Calling " << pCurrentState->toString() << "::handleEvent()");
 		hr = HR_EXPECT_OK(pCurrentState->handleEvent(e, *currentState, &pNextState));
 		// Set Event::isHandled.
@@ -65,7 +65,7 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 		// Setting true by State::handleEvent() is prior to above condition.
 		if(!e.isHandled) e.isHandled = ((hr != State::S_EVENT_IGNORED) || pNextState);
 		if(pNextState) {
-			std::shared_ptr<State>* nextMasterState = findState(currentState, pNextState);
+			auto nextMasterState = findState(currentState, pNextState);
 			if(nextMasterState) {
 				// Back to existing master state.
 				HR_ASSERT(pCurrentState->isSubState(), E_UNEXPECTED);
@@ -116,7 +116,7 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 		}
 		// Preserve current state as previous state until calling entry() of next stete.
 		// Note: Current state and it's master state(which is not next state) will be deleted when current state is updated.
-		std::shared_ptr<State> previousState(currentState);
+		auto previousState(currentState);
 		currentState = nextState;
 		if(!backToMaster) {
 			LOG4CPLUS_DEBUG(logger, "Calling " << currentState->toString() << "::entry()");

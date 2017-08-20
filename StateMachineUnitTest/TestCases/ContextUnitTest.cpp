@@ -37,7 +37,7 @@ public:
 */
 TEST_F(ContextUnitTest, start_stop)
 {
-	MockState* state = new MockState(MockObjectId::CURRENT_STATE);
+	auto state = new MockState(MockObjectId::CURRENT_STATE);
 
 	EXPECT_CALL(*state, handleEvent(_, _, _)).Times(0);
 	EXPECT_CALL(*state, entry(Property(&Event::getContext<Testee>, Eq(testee.get())), _)).Times(1);
@@ -68,7 +68,7 @@ TEST_F(ContextUnitTest, start_stop)
 */
 TEST_F(ContextUnitTest, start_with_user_event_stop)
 {
-	MockState* state = new MockState(MockObjectId::CURRENT_STATE);
+	auto state = new MockState(MockObjectId::CURRENT_STATE);
 
 	EXPECT_CALL(*state, handleEvent(_, _, _)).Times(0);
 	EXPECT_CALL(*state, entry(Ref(e), _)).Times(1);

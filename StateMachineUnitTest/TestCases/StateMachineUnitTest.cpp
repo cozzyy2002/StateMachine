@@ -72,7 +72,7 @@ TEST_F(StateMacineUnitTest, no_transition_error)
 
 TEST_F(StateMacineUnitTest, transition)
 {
-	MockState* nextState = new MockState(MockObjectId::NEXT_STATE);
+	auto nextState = new MockState(MockObjectId::NEXT_STATE);
 	EXPECT_CALL(*currentState, handleEvent(Ref(*e), Ref(*currentState), _))
 		.WillOnce(DoAll(SetArgPointee<2>(nextState), Return(S_OK)));
 	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
@@ -90,7 +90,7 @@ TEST_F(StateMacineUnitTest, transition)
 
 TEST_F(StateMacineUnitTest, transition_error)
 {
-	MockState* nextState = new MockState(MockObjectId::NEXT_STATE);
+	auto nextState = new MockState(MockObjectId::NEXT_STATE);
 	EXPECT_CALL(*currentState, handleEvent(Ref(*e), Ref(*currentState), _))
 		.WillOnce(DoAll(SetArgPointee<2>(nextState), Return(E_NOTIMPL)));
 	EXPECT_CALL(*currentState, handleError(Ref(*e), E_NOTIMPL))
