@@ -46,7 +46,7 @@ CStateMachineDoc::~CStateMachineDoc()
 
 CAppContext * CStateMachineDoc::createContext(LPCTSTR name)
 {
-	CAppContext* context = new CAppContext(name, m_stateMachine);
+	CAppContext* context = new CAppContext(this, name, *m_stateMachine);
 	m_context.reset(context);
 	outputMessage(_T("Created CAppContext: '%s'"), context->toString());
 	SetTitle(nullptr);
@@ -55,7 +55,7 @@ CAppContext * CStateMachineDoc::createContext(LPCTSTR name)
 
 CAppState * CStateMachineDoc::createState(LPCTSTR name, BOOL isSubState)
 {
-	CAppState* state = new CAppState(name, isSubState ? true : false, this);
+	CAppState* state = new CAppState(this, name, isSubState ? true : false);
 	outputMessage(_T("Created CAppState: '%s'"), state->toString());
 	return state;
 }
@@ -63,7 +63,13 @@ CAppState * CStateMachineDoc::createState(LPCTSTR name, BOOL isSubState)
 HRESULT CStateMachineDoc::start(LPCTSTR stateName, CAppEvent* e /*= nullptr*/)
 {
 	CAppState* state = createState(stateName, false);
-	HRESULT hr = m_context->start(state, e);
+	HRESULT hr;
+	if(e) {
+		std::unique_ptr<CAppEvent> _e(e);
+		hr = m_context->start(state, *_e);
+	} else {
+		hr = m_context->start(state);
+	}
 	outputMessage(_T("Started CAppContext '%s': Initial state is '%s', HRESULT=0x%lx"),
 					m_context->toString(), state->toString(), hr);
 	SetTitle(nullptr);

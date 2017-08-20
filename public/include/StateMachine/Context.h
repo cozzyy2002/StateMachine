@@ -1,13 +1,13 @@
 #pragma once
 
 #include "Object.h"
+#include "Event.h"
 
 #include <mutex>
 #include <memory>
 
 namespace state_machine {
 
-class Event;
 class State;
 class StateMachine;
 class ContextHandle;

@@ -27,7 +27,7 @@ protected:
 class CAppContext : public Context, public CAppObject
 {
 public:
-	CAppContext(CStateMachineDoc* doc, LPCTSTR name, StateMachine* stateMachine);
+	CAppContext(CStateMachineDoc* doc, LPCTSTR name, StateMachine& stateMachine);
 	~CAppContext();
 
 protected:
@@ -41,11 +41,11 @@ public:
 		: CAppObject(doc, name), m_isSubState(_isSubState) {}
 	virtual ~CAppState() {}
 
-	HRESULT handleEvent(Event* e, State* currentState, State** nextState) override;
-	HRESULT handleIgnoredEvent(Event* e) override;
-	HRESULT handleError(Event* e, HRESULT hr) override;
-	HRESULT entry(Event* e, State* previousState) override;
-	HRESULT exit(Event* e, State* nextState) override;
+	HRESULT handleEvent(Event& e, State& currentState, State** nextState) override;
+	HRESULT handleIgnoredEvent(Event& e) override;
+	HRESULT handleError(Event& e, HRESULT hr) override;
+	HRESULT entry(Event& e, State& previousState) override;
+	HRESULT exit(Event& e, State& nextState) override;
 
 	virtual bool isSubState() const override { return m_isSubState; }
 	CAppState* getMasterState() const { return isSubState() ? SubState::getMasterState<CAppState>() : nullptr; }

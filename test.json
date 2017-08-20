@@ -7,7 +7,7 @@
       "target_states": ["Initialize"]
     },
     {
-      "name": "Event name",
+      "name": "Event name"
     }
   ],
  "states": [
