@@ -16,19 +16,19 @@ class StateHandle;
 class ContextHandle : public Object
 {
 public:
-	ContextHandle(StateMachine* stateMachine);
+	ContextHandle(StateMachine& stateMachine);
 	virtual ~ContextHandle();
 
 	// Set initialState as current state and call initialState->entry().
-	virtual HRESULT start(Context* context, State* initialState, Event* userEvent);
+	virtual HRESULT start(Context& context, State* initialState, Event& userEvent);
 
 	// Stops state machine.
-	virtual HRESULT stop(Context* context);
+	virtual HRESULT stop(Context& context);
 
-	virtual HRESULT handleEvent(Context* context, Event* e);
+	virtual HRESULT handleEvent(Context& context, Event& e);
 
 	// See Context::getStateLock().
-	std::lock_guard<std::mutex>* getStateLock(Context* context);
+	std::lock_guard<std::mutex>* getStateLock(Context& context);
 
 	bool isEventHandling() const { return m_isEventHandling; }
 
@@ -49,10 +49,10 @@ public:
 	StateHandle() {}
 	virtual ~StateHandle() {}
 
-	virtual HRESULT handleEvent(Event* e, State* currentState, State** nextState) { return S_OK; }
-	virtual HRESULT handleError(Event* e, HRESULT hr) { return hr; }
-	virtual HRESULT entry(Event* e, State* previousState) { return S_OK; }
-	virtual HRESULT exit(Event* e, State* nextState) { return S_OK; }
+	virtual HRESULT handleEvent(Event& e, State& currentState, State** nextState) { return S_OK; }
+	virtual HRESULT handleError(Event& e, HRESULT hr) { return hr; }
+	virtual HRESULT entry(Event& e, State& previousState) { return S_OK; }
+	virtual HRESULT exit(Event& e, State& nextState) { return S_OK; }
 
 	// Always returns no master state.
 	virtual State* getMasterState() const { return nullptr; }
@@ -64,9 +64,7 @@ public:
 	SubStateHandle() {}
 	virtual ~SubStateHandle() {}
 
-	// Next state to tell state machine to go back to the master state.
-	// This method can be used in handleEvent() method of sub state.
-	// Useage: *nextState = backToMaster();
+	// See SubState::backToMaster().
 	State* backToMaster();
 
 	// Returns master state.

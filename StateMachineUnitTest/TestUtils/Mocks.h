@@ -38,7 +38,8 @@ protected:
 class MockEvent : public state_machine::Event, public MockObject
 {
 public:
-	MockEvent(state_machine::Context* context = nullptr) : state_machine::Event(context), MockObject() {}
+	MockEvent() : state_machine::Event(), MockObject() {}
+	MockEvent(state_machine::Context& context) : state_machine::Event(context), MockObject() {}
 	MockEvent(MockObjectId id) : MockObject(id) {}
 	virtual log4cplus::LogLevel getLogLevel() const override { return logLevel; }
 
@@ -54,11 +55,11 @@ class MockState : public state_machine::State, public MockObject
 public:
 	MockState(MockObjectId id) : MockObject(id) {}
 
-	MOCK_METHOD3(handleEvent, HRESULT(state_machine::Event* e, state_machine::State* currentState, state_machine::State** nextState));
-	MOCK_METHOD1(handleIgnoredEvent, HRESULT(state_machine::Event* e));
-	MOCK_METHOD2(handleError, HRESULT(state_machine::Event* e, HRESULT hr));
-	MOCK_METHOD2(entry, HRESULT(state_machine::Event* e, state_machine::State* previousState));
-	MOCK_METHOD2(exit, HRESULT(state_machine::Event* e, state_machine::State* nextState));
+	MOCK_METHOD3(handleEvent, HRESULT(state_machine::Event& e, state_machine::State& currentState, state_machine::State** nextState));
+	MOCK_METHOD1(handleIgnoredEvent, HRESULT(state_machine::Event& e));
+	MOCK_METHOD2(handleError, HRESULT(state_machine::Event& e, HRESULT hr));
+	MOCK_METHOD2(entry, HRESULT(state_machine::Event& e, state_machine::State& previousState));
+	MOCK_METHOD2(exit, HRESULT(state_machine::Event& e, state_machine::State& nextState));
 
 	using State::eventIsIgnored;
 
@@ -71,11 +72,11 @@ class MockSubState : public state_machine::SubState, public MockObject
 public:
 	MockSubState(MockObjectId id) : MockObject(id) {}
 
-	MOCK_METHOD3(handleEvent, HRESULT(state_machine::Event* e, state_machine::State* currentState, state_machine::State** nextState));
-	MOCK_METHOD1(handleIgnoredEvent, HRESULT(state_machine::Event* e));
-	MOCK_METHOD2(handleError, HRESULT(state_machine::Event* e, HRESULT hr));
-	MOCK_METHOD2(entry, HRESULT(state_machine::Event* e, state_machine::State* previousState));
-	MOCK_METHOD2(exit, HRESULT(state_machine::Event* e, state_machine::State* nextState));
+	MOCK_METHOD3(handleEvent, HRESULT(state_machine::Event& e, state_machine::State& currentState, state_machine::State** nextState));
+	MOCK_METHOD1(handleIgnoredEvent, HRESULT(state_machine::Event& e));
+	MOCK_METHOD2(handleError, HRESULT(state_machine::Event& e, HRESULT hr));
+	MOCK_METHOD2(entry, HRESULT(state_machine::Event& e, state_machine::State& previousState));
+	MOCK_METHOD2(exit, HRESULT(state_machine::Event& e, state_machine::State& nextState));
 
 	using SubState::backToMaster;
 	using State::eventIsIgnored;
@@ -83,3 +84,13 @@ public:
 protected:
 	virtual void modifyString(std::tstring& _string) override { MockObject::modifyString(_string); }
 };
+//
+//bool operator==(const Event& a, const Event& b)
+//{
+//	return &a == &b;
+//}
+//
+//bool operator==(const State& a, const State& b)
+//{
+//	return &a == &b;
+//}

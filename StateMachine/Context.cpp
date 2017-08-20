@@ -19,7 +19,7 @@ public:
 
 	// Returns user state as next state regardless of the event.
 	// Then state machine calls entry() of user state and sets user state as current state.
-	virtual HRESULT handleEvent(Event*, State*, State** nextState) {
+	virtual HRESULT handleEvent(Event&, State&, State** nextState) override {
 		*nextState = userState;
 		return S_OK;
 	}
@@ -28,22 +28,21 @@ protected:
 	State* userState;
 };
 
-ContextHandle::ContextHandle(StateMachine* stateMachine)
-	: stateMachine(dynamic_cast<StateMachineImpl*>(stateMachine))
+ContextHandle::ContextHandle(StateMachine& stateMachine)
+	: stateMachine(dynamic_cast<StateMachineImpl*>(&stateMachine))
 	, m_isEventHandling(false)
 {
 	// Check if dynamic_cast<>() worked.
-	HR_EXPECT(stateMachine, E_ABORT);
+	HR_EXPECT(this->stateMachine, E_ABORT);
 }
 
 ContextHandle::~ContextHandle()
 {
 }
 
-Context::Context(StateMachine* stateMachine)
+Context::Context(StateMachine& stateMachine)
 	: m_hContext(new ContextHandle(stateMachine))
 {
-	HR_EXPECT(stateMachine, E_POINTER);
 }
 
 Context::~Context()
@@ -55,56 +54,53 @@ State* Context::getCurrentState() const
 	return getHandle()->currentState.get();
 }
 
-HRESULT ContextHandle::start(Context* context, State * initialState, Event* userEvent)
+HRESULT ContextHandle::start(Context& context, State* initialState, Event& userEvent)
 {
 	HR_ASSERT(!currentState, E_ILLEGAL_METHOD_CALL);
 
 	currentState.reset(new RootState(initialState));
-	Event* e = userEvent ? userEvent : new Event();
-	return handleEvent(context, e);
+	return handleEvent(context, userEvent);
 }
 
-HRESULT ContextHandle::stop(Context* /*context*/)
+HRESULT ContextHandle::stop(Context& /*context*/)
 {
 	currentState.reset();
 	return S_OK;
 }
 
-HRESULT ContextHandle::handleEvent(Context* context, Event * e)
+HRESULT ContextHandle::handleEvent(Context& context, Event& e)
 {
-	e->m_context = context;
+	e.m_context = &context;
 	return stateMachine->handleEvent(e);
 }
 
-std::lock_guard<std::mutex>* ContextHandle::getStateLock(Context* context)
+std::lock_guard<std::mutex>* ContextHandle::getStateLock(Context& context)
 {
-	return context->isStateLockEnabled() ? new std::lock_guard<std::mutex>(stateLock) : nullptr;
+	return context.isStateLockEnabled() ? new std::lock_guard<std::mutex>(stateLock) : nullptr;
 }
 
 #pragma region Context methods which invode ContextHandle methods.
 
-HRESULT Context::start(State * initialState, Event* userEvent /*= nullptr*/)
+HRESULT Context::start(State* initialState, Event& userEvent /*= Event()*/)
 {
 	HR_ASSERT(initialState, E_POINTER);
 
-	return m_hContext->start(this, initialState, userEvent);
+	return m_hContext->start(*this, initialState, userEvent);
 }
 
 HRESULT Context::stop()
 {
-	return m_hContext->stop(this);
+	return m_hContext->stop(*this);
 }
 
-HRESULT Context::handleEvent(Event * e)
+HRESULT Context::handleEvent(Event& e)
 {
-	HR_ASSERT(e, E_POINTER);
-
-	return m_hContext->handleEvent(this, e);
+	return m_hContext->handleEvent(*this, e);
 }
 
 std::lock_guard<std::mutex>* Context::getStateLock()
 {
-	return 	m_hContext->getStateLock(this);
+	return 	m_hContext->getStateLock(*this);
 }
 
 bool Context::isEventHandling() const

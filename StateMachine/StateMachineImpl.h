@@ -12,7 +12,7 @@ public:
 	StateMachineImpl();
 	virtual ~StateMachineImpl();
 
-	HRESULT handleEvent(Event* e);
+	HRESULT handleEvent(Event& e);
 
 protected:
 	std::shared_ptr<State>* findState(std::shared_ptr<State>& currentState, State* pState);

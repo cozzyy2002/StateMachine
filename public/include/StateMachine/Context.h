@@ -15,7 +15,7 @@ class ContextHandle;
 class Context : public Object
 {
 protected:
-	Context(StateMachine* stateMachine);
+	Context(StateMachine& stateMachine);
 
 public:
 	virtual ~Context();
@@ -29,7 +29,7 @@ public:
 			e parameter if userEvent is not specified.
 			previousState parameter which points internal State object.
 	*/
-	virtual HRESULT start(State* initialState, Event* userEvent = nullptr);
+	virtual HRESULT start(State* initialState, Event& userEvent = Event());
 
 	// Stops state machine.
 	virtual HRESULT stop();
@@ -38,7 +38,7 @@ public:
 	bool isStarted() const { return getCurrentState() ? true : false; }
 
 	// Handles event in this context.
-	virtual HRESULT handleEvent(Event* e);
+	virtual HRESULT handleEvent(Event& e);
 
 	// Determine whether StateMachine::handleEvent() requires exclusive execution.
 	// Returning true means that the method might be called from more than one thread simultaneously.
@@ -55,6 +55,7 @@ public:
 	bool isEventHandling() const;
 
 	// Returns current State object.
+	// Do NOT delete returned object.
 	State* getCurrentState() const;
 
 	// Internal use.

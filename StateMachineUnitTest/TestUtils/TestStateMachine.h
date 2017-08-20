@@ -17,15 +17,15 @@ public:
 		If currentState is sub state, current state becomes master of next state.
 		If next state is nullptr, current state is reset and the object is deleted.
 	*/
-	void setNextState(Context* context, State* nextState) {
-		std::shared_ptr<State>& currentState = context->getHandle()->currentState;
+	void setNextState(Context& context, State* nextState) {
+		auto& currentState = context.getHandle()->currentState;
 		if(nextState && nextState->isSubState()) {
 			ASSERT_NE(currentState.get(), nullptr) << "No current state to be master state in the context.";
 			nextState->getHandle<SubStateHandle>()->m_masterState = currentState;
 		}
 		currentState.reset(nextState);
 	}
-	void clearCurrentState(Context* context) {
+	void clearCurrentState(Context& context) {
 		setNextState(context, nullptr);
 	}
 };

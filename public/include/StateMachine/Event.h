@@ -10,15 +10,18 @@ class ContextHandle;
 class Event : public Object
 {
 public:
-	Event(Context* context = nullptr);
+	Event();
+	Event(Context& context);
 	virtual ~Event();
 	virtual INLINE log4cplus::LogLevel getLogLevel() const { return log4cplus::INFO_LOG_LEVEL; }
 
 	// Returns this pointer as user event type.
+	// Do NOT delete returned object.
 	template<class T>
 	INLINE T* cast() const { return dynamic_cast<T*>(this); }
 
 	// Returns context as user context type.
+	// Do NOT delete returned object.
 	template<class T = Context>
 	INLINE T* getContext() const { return dynamic_cast<T*>(m_context); }
 

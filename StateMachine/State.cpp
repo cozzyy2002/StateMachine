@@ -34,7 +34,7 @@ State* SubStateHandle::backToMaster()
 
 #pragma region State/SubState methods which invode ContextHandle methods.
 
-State * SubState::backToMaster()
+State* SubState::backToMaster()
 {
 	return getHandle<SubStateHandle>()->backToMaster();
 }

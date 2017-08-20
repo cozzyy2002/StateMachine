@@ -25,16 +25,16 @@ StateMachineImpl::~StateMachineImpl()
 	LOG4CPLUS_DEBUG(logger, __FUNCTION__ ": Deleting instance");
 }
 
-HRESULT StateMachineImpl::handleEvent(Event* e)
+HRESULT StateMachineImpl::handleEvent(Event& e)
 {
-	Context* context = e->getContext();
-	ContextHandle* hContext = context->getHandle();
+	auto context = e.getContext();
+	auto hContext = context->getHandle();
 
-	if(logger.isEnabledFor(e->getLogLevel())) {
+	if(logger.isEnabledFor(e.getLogLevel())) {
 		// Suppress low level log output.
 		std::tstringstream stream;
-		stream << "Handling " << e->toString() << " in " << context->toString();
-		logger.forcedLog(e->getLogLevel(), stream.str());
+		stream << "Handling " << e.toString() << " in " << context->toString();
+		logger.forcedLog(e.getLogLevel(), stream.str());
 	}
 
 	// Recursive call check.
@@ -51,7 +51,7 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 	std::shared_ptr<State> nextState;
 	bool backToMaster = false;
 	HRESULT hr = State::S_EVENT_IGNORED;
-	e->isHandled = false;
+	e.isHandled = false;
 
 	// Call State::handleEvent()
 	// If event is ignored and the state is sub state, delegate handling event to master state.
@@ -59,11 +59,11 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 	{
 		State* pCurrentState = state.get();
 		LOG4CPLUS_DEBUG(logger, "Calling " << pCurrentState->toString() << "::handleEvent()");
-		hr = HR_EXPECT_OK(pCurrentState->handleEvent(e, currentState.get(), &pNextState));
+		hr = HR_EXPECT_OK(pCurrentState->handleEvent(e, *currentState, &pNextState));
 		// Set Event::isHandled.
 		// If state transition occurs, assume that the event is handled even if S_EVENT_IGNORED was returned.
 		// Setting true by State::handleEvent() is prior to above condition.
-		if(!e->isHandled) e->isHandled = ((hr != State::S_EVENT_IGNORED) || pNextState);
+		if(!e.isHandled) e.isHandled = ((hr != State::S_EVENT_IGNORED) || pNextState);
 		if(pNextState) {
 			std::shared_ptr<State>* nextMasterState = findState(currentState, pNextState);
 			if(nextMasterState) {
@@ -82,7 +82,7 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 			LOG4CPLUS_DEBUG(logger, "Calling " << pCurrentState->toString() << "::handleError()");
 			HR_ASSERT_OK(pCurrentState->handleError(e, hr));
 		}
-		if(!e->isHandled) {
+		if(!e.isHandled) {
 			LOG4CPLUS_DEBUG(logger, "Calling " << pCurrentState->toString() << "::handleIgnoredEvent()");
 			HR_ASSERT_OK(pCurrentState->handleIgnoredEvent(e));
 			return S_FOR_EACH_CONTINUE;
@@ -97,17 +97,16 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 		if(pNextState->isSubState() && !backToMaster) {
 			// Transition from master state to sub state.
 			// Don't call exit() of master state.
-			SubStateHandle* hSubState = pNextState->getHandle<SubStateHandle>();
-			HR_ASSERT(hSubState, E_UNEXPECTED);
+			auto hSubState = pNextState->getHandle<SubStateHandle>();
 			hSubState->m_masterState = currentState;
 		} else {
 			// Transition to other state or master state of current state.
 			// Call exit() of current state and master state if any.
-			HR_ASSERT_OK(for_each_state(currentState, [e, pNextState](std::shared_ptr<State>& state)
+			HR_ASSERT_OK(for_each_state(currentState, [&e, pNextState](std::shared_ptr<State>& state)
 			{
 				if(state.get() != pNextState) {
 					LOG4CPLUS_DEBUG(logger, "Calling " << state->toString() << "::exit()");
-					HR_ASSERT_OK(state->exit(e, pNextState));
+					HR_ASSERT_OK(state->exit(e, *pNextState));
 					return S_FOR_EACH_CONTINUE;
 				} else {
 					// If the state is next state, don't call it's exit().
@@ -121,12 +120,12 @@ HRESULT StateMachineImpl::handleEvent(Event* e)
 		currentState = nextState;
 		if(!backToMaster) {
 			LOG4CPLUS_DEBUG(logger, "Calling " << currentState->toString() << "::entry()");
-			HR_ASSERT_OK(currentState->entry(e, previousState.get()));
+			HR_ASSERT_OK(currentState->entry(e, *previousState));
 		}
 	}
 
-	LOG4CPLUS_DEBUG(logger, e->toString()
-							<< " is " << (e->isHandled ? "handled" : "ignored")
+	LOG4CPLUS_DEBUG(logger, e.toString()
+							<< " is " << (e.isHandled ? "handled" : "ignored")
 							<< ". HRESULT=0x" << std::hex << hr);
 
 	return hr;
@@ -148,8 +147,8 @@ std::shared_ptr<State>* StateMachineImpl::findState(std::shared_ptr<State>& curr
 
 HRESULT StateMachineImpl::for_each_state(std::shared_ptr<State>& currentState, std::function<HRESULT(std::shared_ptr<State>& state)> func)
 {
-	HRESULT hr;
-	for(std::shared_ptr<State>* state(&currentState);
+	HRESULT hr = S_FALSE;
+	for(auto state(&currentState);
 		state && state->get();
 		state = (*state)->isSubState() ? &((*state)->getHandle<SubStateHandle>()->m_masterState) : nullptr)
 	{

@@ -13,12 +13,12 @@ public:
 	class Testee : public Context
 	{
 	public:
-		Testee(StateMachine* stateMachine) : Context(stateMachine) {}
+		Testee(StateMachine& stateMachine) : Context(stateMachine) {}
 	};
 
 	ContextUnitTest() 
 		: stateMachine(StateMachine::createInstance())
-		,testee(new Testee(stateMachine.get())) {}
+		,testee(new Testee(*stateMachine)) {}
 
 	std::unique_ptr<StateMachine> stateMachine;
 	std::unique_ptr<Testee> testee;
@@ -71,10 +71,10 @@ TEST_F(ContextUnitTest, start_with_user_event_stop)
 	MockState* state = new MockState(MockObjectId::CURRENT_STATE);
 
 	EXPECT_CALL(*state, handleEvent(_, _, _)).Times(0);
-	EXPECT_CALL(*state, entry(&e, _)).Times(1);
+	EXPECT_CALL(*state, entry(_/*e*/, _)).Times(1);
 	EXPECT_CALL(*state, exit(_, _)).Times(0);
 
-	ASSERT_HRESULT_SUCCEEDED(testee->start(state, &e));
+	ASSERT_HRESULT_SUCCEEDED(testee->start(state, e));
 
 	EXPECT_EQ(testee.get(), e.getContext());
 	EXPECT_TRUE(testee->isStarted());
@@ -95,7 +95,7 @@ public:
 		state = new MockState(MockObjectId::CURRENT_STATE);
 		EXPECT_CALL(*state, entry(_, _)).Times(1);
 		e.logLevel = log4cplus::INFO_LOG_LEVEL;
-		ASSERT_HRESULT_SUCCEEDED(testee->start(state, &e));
+		ASSERT_HRESULT_SUCCEEDED(testee->start(state, e));
 	}
 	void TearDown() {
 		ASSERT_HRESULT_SUCCEEDED(testee->stop());
@@ -106,8 +106,8 @@ public:
 
 TEST_F(ContextHandleEventUnitTest, recursive_call_check)
 {
-	EXPECT_CALL(*state, handleEvent(&e, state, _))
-		.WillOnce(Invoke([this](Event* _e, State*, State**)
+	EXPECT_CALL(*state, handleEvent(_/*e*/, _/* *state*/, _))
+		.WillOnce(Invoke([this](Event& _e, State&, State**)
 	{
 		EXPECT_TRUE(testee->isEventHandling());
 
@@ -116,7 +116,7 @@ TEST_F(ContextHandleEventUnitTest, recursive_call_check)
 		return S_OK;
 	}));
 
-	ASSERT_HRESULT_SUCCEEDED(testee->handleEvent(&e));
+	ASSERT_HRESULT_SUCCEEDED(testee->handleEvent(e));
 	EXPECT_FALSE(testee->isEventHandling());
 
 	EXPECT_EQ(state, testee->getCurrentState());
@@ -127,7 +127,7 @@ TEST_F(ContextHandleEventUnitTest, recursive_call_check)
 class MultiContextHandleEventUnitTest : public ContextHandleEventUnitTest
 {
 public:
-	MultiContextHandleEventUnitTest() : testee1(new Testee(stateMachine.get())) {}
+	MultiContextHandleEventUnitTest() : testee1(new Testee(*stateMachine)) {}
 
 	void SetUp() {
 		ContextHandleEventUnitTest::SetUp();
@@ -148,8 +148,8 @@ public:
 
 TEST_F(MultiContextHandleEventUnitTest, recursive_call_check)
 {
-	EXPECT_CALL(*state, handleEvent(&e, state, _))
-		.WillOnce(Invoke([this](Event* _e, State*, State**)
+	EXPECT_CALL(*state, handleEvent(_/*e*/, _/* *state*/, _))
+		.WillOnce(Invoke([this](Event& _e, State&, State**)
 		{
 			EXPECT_TRUE(testee->isEventHandling());
 
@@ -157,10 +157,10 @@ TEST_F(MultiContextHandleEventUnitTest, recursive_call_check)
 			EXPECT_HRESULT_SUCCEEDED(testee1->handleEvent(_e));
 			return S_OK;
 		}));
-	EXPECT_CALL(*state1, handleEvent(&e, state1, _))
+	EXPECT_CALL(*state1, handleEvent(_/*e*/, _/* *state1*/, _))
 		.WillOnce(Return(S_OK));
 
-	ASSERT_HRESULT_SUCCEEDED(testee->handleEvent(&e));
+	ASSERT_HRESULT_SUCCEEDED(testee->handleEvent(e));
 	EXPECT_FALSE(testee->isEventHandling());
 
 	EXPECT_EQ(state, testee->getCurrentState());

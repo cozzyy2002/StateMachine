@@ -5,8 +5,14 @@
 
 using namespace state_machine;
 
-Event::Event(Context* context /*= nullptr*/)
-	: m_context(context)
+Event::Event()
+	: m_context(nullptr)
+	, isHandled(false)
+{
+}
+
+Event::Event(Context& context)
+	: m_context(&context)
 	, isHandled(false)
 {
 }
