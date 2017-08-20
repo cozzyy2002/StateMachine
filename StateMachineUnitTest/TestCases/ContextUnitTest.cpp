@@ -71,7 +71,7 @@ TEST_F(ContextUnitTest, start_with_user_event_stop)
 	MockState* state = new MockState(MockObjectId::CURRENT_STATE);
 
 	EXPECT_CALL(*state, handleEvent(_, _, _)).Times(0);
-	EXPECT_CALL(*state, entry(_/*e*/, _)).Times(1);
+	EXPECT_CALL(*state, entry(Ref(e), _)).Times(1);
 	EXPECT_CALL(*state, exit(_, _)).Times(0);
 
 	ASSERT_HRESULT_SUCCEEDED(testee->start(state, e));
@@ -106,7 +106,7 @@ public:
 
 TEST_F(ContextHandleEventUnitTest, recursive_call_check)
 {
-	EXPECT_CALL(*state, handleEvent(_/*e*/, _/* *state*/, _))
+	EXPECT_CALL(*state, handleEvent(Ref(e), Ref(*state), _))
 		.WillOnce(Invoke([this](Event& _e, State&, State**)
 	{
 		EXPECT_TRUE(testee->isEventHandling());
@@ -148,7 +148,7 @@ public:
 
 TEST_F(MultiContextHandleEventUnitTest, recursive_call_check)
 {
-	EXPECT_CALL(*state, handleEvent(_/*e*/, _/* *state*/, _))
+	EXPECT_CALL(*state, handleEvent(Ref(e), Ref(*state), _))
 		.WillOnce(Invoke([this](Event& _e, State&, State**)
 		{
 			EXPECT_TRUE(testee->isEventHandling());
@@ -157,7 +157,7 @@ TEST_F(MultiContextHandleEventUnitTest, recursive_call_check)
 			EXPECT_HRESULT_SUCCEEDED(testee1->handleEvent(_e));
 			return S_OK;
 		}));
-	EXPECT_CALL(*state1, handleEvent(_/*e*/, _/* *state1*/, _))
+	EXPECT_CALL(*state1, handleEvent(Ref(e), Ref(*state1), _))
 		.WillOnce(Return(S_OK));
 
 	ASSERT_HRESULT_SUCCEEDED(testee->handleEvent(e));

@@ -38,7 +38,7 @@ public:
 
 TEST_F(StateMacineUnitTest, no_transition)
 {
-	EXPECT_CALL(*currentState, handleEvent(_/*e.get()*/, _/*currentState*/, _))
+	EXPECT_CALL(*currentState, handleEvent(Ref(*e), Ref(*currentState), _))
 		.WillOnce(Return(S_OK));
 	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
 	EXPECT_CALL(*currentState, exit(_, _)).Times(0);
@@ -52,9 +52,9 @@ TEST_F(StateMacineUnitTest, no_transition)
 
 TEST_F(StateMacineUnitTest, no_transition_error)
 {
-	EXPECT_CALL(*currentState, handleEvent(_/*e.get()*/, _/*currentState*/, _))
+	EXPECT_CALL(*currentState, handleEvent(Ref(*e), Ref(*currentState), _))
 		.WillOnce(Return(E_NOTIMPL));
-	EXPECT_CALL(*currentState, handleError(_/*e.get()*/, E_NOTIMPL))
+	EXPECT_CALL(*currentState, handleError(Ref(*e), E_NOTIMPL))
 		.WillOnce(Invoke([this](Event& e, HRESULT hr)
 		{
 			// Call default error handler.
@@ -73,11 +73,11 @@ TEST_F(StateMacineUnitTest, no_transition_error)
 TEST_F(StateMacineUnitTest, transition)
 {
 	MockState* nextState = new MockState(MockObjectId::NEXT_STATE);
-	EXPECT_CALL(*currentState, handleEvent(_/*e.get()*/, _/*currentState*/, _))
+	EXPECT_CALL(*currentState, handleEvent(Ref(*e), Ref(*currentState), _))
 		.WillOnce(DoAll(SetArgPointee<2>(nextState), Return(S_OK)));
 	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
-	EXPECT_CALL(*currentState, exit(_/*e.get()*/, _/*nextState*/)).Times(1);
-	EXPECT_CALL(*nextState, entry(_/*e.get()*/, _/*currentState*/)).Times(1);
+	EXPECT_CALL(*currentState, exit(Ref(*e), Ref(*nextState))).Times(1);
+	EXPECT_CALL(*nextState, entry(Ref(*e), Ref(*currentState))).Times(1);
 	EXPECT_CALL(*nextState, exit(_, _)).Times(0);
 
 	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(*e));
@@ -91,17 +91,17 @@ TEST_F(StateMacineUnitTest, transition)
 TEST_F(StateMacineUnitTest, transition_error)
 {
 	MockState* nextState = new MockState(MockObjectId::NEXT_STATE);
-	EXPECT_CALL(*currentState, handleEvent(_/*e.get()*/, _/*currentState*/, _))
+	EXPECT_CALL(*currentState, handleEvent(Ref(*e), Ref(*currentState), _))
 		.WillOnce(DoAll(SetArgPointee<2>(nextState), Return(E_NOTIMPL)));
-	EXPECT_CALL(*currentState, handleError(_/*e.get()*/, E_NOTIMPL))
+	EXPECT_CALL(*currentState, handleError(Ref(*e), E_NOTIMPL))
 		.WillOnce(Invoke([this](Event& e, HRESULT hr)
 		{
 			// Call default error handler.
 			 return currentState->State::handleError(e, hr);
 		}));
 	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
-	EXPECT_CALL(*currentState, exit(_/*e.get()*/, _/*nextState*/)).Times(0);
-	EXPECT_CALL(*nextState, entry(_/*e.get()*/, _/*currentState*/)).Times(0);
+	EXPECT_CALL(*currentState, exit(Ref(*e), Ref(*nextState))).Times(0);
+	EXPECT_CALL(*nextState, entry(Ref(*e), Ref(*currentState))).Times(0);
 	EXPECT_CALL(*nextState, exit(_, _)).Times(0);
 
 	ASSERT_EQ(E_NOTIMPL, testee.handleEvent(*e));
@@ -144,7 +144,7 @@ public:
 
 TEST_F(StateMacineSubStateUnitTest, back_to_parent1)
 {
-	EXPECT_CALL(*currentState, handleEvent(_/*e.get()*/, _/*currentState*/, _))
+	EXPECT_CALL(*currentState, handleEvent(Ref(*e), Ref(*currentState), _))
 		.WillOnce(DoAll(SetArgPointee<2>(currentState->backToMaster()), Return(S_OK)));
 	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
 	EXPECT_CALL(*currentState, exit(_, _)).Times(1);
@@ -164,7 +164,7 @@ TEST_F(StateMacineSubStateUnitTest, back_to_parent1)
 
 TEST_F(StateMacineSubStateUnitTest, back_to_parent2)
 {
-	EXPECT_CALL(*currentState, handleEvent(_/*e.get()*/, _/*currentState*/, _))
+	EXPECT_CALL(*currentState, handleEvent(Ref(*e), Ref(*currentState), _))
 		.WillOnce(DoAll(SetArgPointee<2>(masterState2), Return(S_OK)));
 	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
 	EXPECT_CALL(*currentState, exit(_, _)).Times(1);
@@ -184,15 +184,15 @@ TEST_F(StateMacineSubStateUnitTest, back_to_parent2)
 
 TEST_F(StateMacineSubStateUnitTest, exit_to_other_state)
 {
-	EXPECT_CALL(*currentState, handleEvent(_/*e.get()*/, _/*currentState*/, _))
+	EXPECT_CALL(*currentState, handleEvent(Ref(*e), Ref(*currentState), _))
 		.WillOnce(DoAll(SetArgPointee<2>(otherState), Return(S_OK)));
 	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
-	EXPECT_CALL(*currentState, exit(_/*e.get()*/, _)).Times(1);
+	EXPECT_CALL(*currentState, exit(Ref(*e), _)).Times(1);
 	EXPECT_CALL(*masterState1, entry(_, _)).Times(0);
-	EXPECT_CALL(*masterState1, exit(_/*e.get()*/, _)).Times(1);
+	EXPECT_CALL(*masterState1, exit(Ref(*e), _)).Times(1);
 	EXPECT_CALL(*masterState2, entry(_, _)).Times(0);
-	EXPECT_CALL(*masterState2, exit(_/*e.get()*/, _)).Times(1);
-	EXPECT_CALL(*otherState, entry(_/*e.get()*/, _)).Times(1);
+	EXPECT_CALL(*masterState2, exit(Ref(*e), _)).Times(1);
+	EXPECT_CALL(*otherState, entry(Ref(*e), _)).Times(1);
 	EXPECT_CALL(*otherState, exit(_, _)).Times(0);
 
 	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(*e));
@@ -209,21 +209,21 @@ TEST_F(StateMacineSubStateUnitTest, event_ignored)
 {
 	State::S_EVENT_IGNORED = 16;
 
-	EXPECT_CALL(*currentState, handleEvent(_/*e.get()*/, _/*currentState*/, _))
+	EXPECT_CALL(*currentState, handleEvent(Ref(*e), Ref(*currentState), _))
 		.WillOnce(Return(currentState->eventIsIgnored()));
-	EXPECT_CALL(*currentState, handleIgnoredEvent(_/*e.get()*/))
+	EXPECT_CALL(*currentState, handleIgnoredEvent(Ref(*e)))
 		.WillOnce(Return(currentState->eventIsIgnored()));
 	EXPECT_CALL(*currentState, entry(_, _)).Times(0);
 	EXPECT_CALL(*currentState, exit(_, _)).Times(0);
-	EXPECT_CALL(*masterState1, handleEvent(_/*e.get()*/, _/*currentState*/, _))
+	EXPECT_CALL(*masterState1, handleEvent(Ref(*e), Ref(*currentState), _))
 		.WillOnce(Return(masterState1->eventIsIgnored()));
-	EXPECT_CALL(*masterState1, handleIgnoredEvent(_/*e.get()*/))
+	EXPECT_CALL(*masterState1, handleIgnoredEvent(Ref(*e)))
 		.WillOnce(Return(masterState1->eventIsIgnored()));
 	EXPECT_CALL(*masterState1, entry(_, _)).Times(0);
 	EXPECT_CALL(*masterState1, exit(_, _)).Times(0);
-	EXPECT_CALL(*masterState2, handleEvent(_/*e.get()*/, _/*currentState*/, _))
+	EXPECT_CALL(*masterState2, handleEvent(Ref(*e), Ref(*currentState), _))
 		.WillOnce(Return(masterState2->eventIsIgnored()));
-	EXPECT_CALL(*masterState2, handleIgnoredEvent(_/*e.get()*/))
+	EXPECT_CALL(*masterState2, handleIgnoredEvent(Ref(*e)))
 		.WillOnce(Return(masterState2->eventIsIgnored()));
 	EXPECT_CALL(*masterState2, entry(_, _)).Times(0);
 	EXPECT_CALL(*masterState2, exit(_, _)).Times(0);

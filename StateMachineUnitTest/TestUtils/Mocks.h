@@ -84,13 +84,3 @@ public:
 protected:
 	virtual void modifyString(std::tstring& _string) override { MockObject::modifyString(_string); }
 };
-//
-//bool operator==(const Event& a, const Event& b)
-//{
-//	return &a == &b;
-//}
-//
-//bool operator==(const State& a, const State& b)
-//{
-//	return &a == &b;
-//}
