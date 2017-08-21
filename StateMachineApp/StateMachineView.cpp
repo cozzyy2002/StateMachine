@@ -27,7 +27,7 @@ BEGIN_MESSAGE_MAP(CStateMachineView, CFormView)
 	ON_WM_RBUTTONUP()
 	ON_BN_CLICKED(IDC_BUTTON_CONTEXT_CREATE, &CStateMachineView::OnClickedButtonContextCreate)
 	ON_BN_CLICKED(IDC_BUTTON_CONTEXT_START, &CStateMachineView::OnClickedButtonContextStart)
-	ON_BN_CLICKED(IDC_BUTTON_PARSE, &CStateMachineView::OnClickedButtonParse)
+//	ON_BN_CLICKED(IDC_BUTTON_PARSE, &CStateMachineView::OnClickedButtonParse)
 	ON_BN_CLICKED(IDC_BUTTON_HANDLE_EVENT, &CStateMachineView::OnClickedButtonHandleEvent)
 	ON_BN_CLICKED(IDC_BUTTON_POST_EVENT, &CStateMachineView::OnClickedButtonPostEvent)
 END_MESSAGE_MAP()
@@ -117,7 +117,15 @@ void CStateMachineView::OnClickedButtonContextCreate()
 {
 	CStateMachineDoc* doc = GetDocument();
 	UpdateData();
-	m_context = doc->createContext(m_contextName);
+	if(doc->parse(m_config)) {
+		// Show context name in the text box.
+		std::tstring contextName(doc->getConfigString(doc->getConfig(), "name"));
+		if(!contextName.empty()) {
+			m_contextName = contextName.c_str();
+			UpdateData(FALSE);
+		}
+		m_context = doc->createContext(m_contextName);
+	}
 }
 
 
@@ -131,7 +139,7 @@ void CStateMachineView::OnClickedButtonContextStart()
 		CString name;
 		m_eventNames.GetLBText(index, name);
 		auto eventConfig = (const picojson::value*)m_eventNames.GetItemDataPtr(index);
-		e = new CAppEvent(doc, name, *eventConfig);
+		e = new CAppEvent(name, *eventConfig);
 	}
 	auto state = doc->getConfigString(doc->getConfig(), "initial_state");
 	doc->start(state.c_str(), e);
@@ -144,12 +152,6 @@ void CStateMachineView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* 
 	if(doc) {
 		const picojson::value& config = doc->getConfig();
 
-		// Set context name.
-		std::tstring contextName(doc->getConfigString(config, "name"));
-		if(!contextName.empty()) {
-			m_contextName = contextName.c_str();
-		}
-
 		// Create contents of event name list.
 		int selected = m_eventNames.GetCurSel();
 		m_eventNames.ResetContent();
@@ -158,7 +160,7 @@ void CStateMachineView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* 
 			auto index = m_eventNames.AddString(doc->getConfigString(event, "name").c_str());
 			m_eventNames.SetItemDataPtr(index, &event);
 		}
-		int count = m_eventNames.GetCount();
+		auto count = m_eventNames.GetCount();
 		if(0 < count) {
 			if(selected < 0) selected = 0;
 			selected = (selected < count) ? selected : (count - 1);
@@ -173,15 +175,6 @@ void CStateMachineView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* 
 
 		UpdateData(FALSE);
 	}
-}
-
-
-void CStateMachineView::OnClickedButtonParse()
-{
-	CStateMachineDoc* doc = GetDocument();
-	UpdateData();
-
-	doc->parse(m_config);
 }
 
 

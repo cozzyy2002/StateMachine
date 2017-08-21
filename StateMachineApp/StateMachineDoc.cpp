@@ -55,7 +55,7 @@ CAppContext * CStateMachineDoc::createContext(LPCTSTR name)
 
 CAppState * CStateMachineDoc::createState(LPCTSTR name, BOOL isSubState)
 {
-	CAppState* state = new CAppState(this, name, isSubState ? true : false);
+	CAppState* state = new CAppState(name, isSubState ? true : false);
 	outputMessage(_T("Created CAppState: '%s'"), state->toString());
 	return state;
 }

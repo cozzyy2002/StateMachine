@@ -58,7 +58,7 @@ public:
 	virtual void OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/);
 	CString m_config;
 	CListCtrl m_activeStates;
-	afx_msg void OnClickedButtonParse();
+//	afx_msg void OnClickedButtonParse();
 	afx_msg void OnClickedButtonHandleEvent();
 	afx_msg void OnClickedButtonPostEvent();
 	CComboBox m_eventNames;
