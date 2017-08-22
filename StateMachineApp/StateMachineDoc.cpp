@@ -83,6 +83,7 @@ bool CStateMachineDoc::parse(LPCTSTR source)
 	std::string error = picojson::parse(m_config, (LPCSTR)_source);
 	std::tstring _error;
 	if(error.empty()) {
+		m_configSource = source;
 		UpdateAllViews(nullptr, (LPARAM)UpdateViewHint::ConfigParsed, this);
 		return true;
 	} else {
