@@ -18,6 +18,12 @@ using namespace state_machine;
 
 class CStateMachineApp;
 
+enum class UpdateViewHint {
+	ConfigLoaded,
+	ConfigParsed,
+	StateChanged,
+};
+
 class CStateMachineDoc : public CDocument
 {
 protected: // create from serialization only
@@ -43,6 +49,7 @@ public:
 	template<typename T>
 	const T& getConfigObject(const picojson::value& obj, LPCSTR key) const;
 	std::tstring getConfigString(const picojson::value& obj, LPCSTR key, LPCTSTR defaultValue = _T("")) const;
+	const CString& getConfigSource() const { return m_configSource; }
 	const picojson::value& getConfig() const { return m_config; }
 
 	//void onContextDeleted(CAppContext* context);
@@ -52,6 +59,9 @@ public:
 	void outputMessage(LPCTSTR format, ...);
 
 protected:
+	// JSON string
+	CString m_configSource;
+	// Parsed JSON value
 	picojson::value m_config;
 
 	// Overrides

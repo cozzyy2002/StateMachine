@@ -27,6 +27,9 @@ protected:
 public:
 protected:
 	CStateMachineDoc* GetDocument() const;
+	void onConfigLoaded(CStateMachineDoc* doc);
+	void onConfigParsed(CStateMachineDoc* doc);
+	void onStateChanged(CStateMachineDoc* doc);
 
 // Overrides
 public:

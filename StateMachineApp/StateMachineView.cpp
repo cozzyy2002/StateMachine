@@ -72,7 +72,7 @@ void CStateMachineView::OnInitialUpdate()
 	CFormView::OnInitialUpdate();
 	ResizeParentToFit();
 
-	m_activeStates.InsertColumn((int)ActiveStatesColumn::Name, _T("name"));
+	m_activeStates.InsertColumn((int)ActiveStatesColumn::Name, _T("name"), LVCFMT_LEFT, 80);
 }
 
 void CStateMachineView::OnRButtonUp(UINT /* nFlags */, CPoint point)
@@ -146,34 +146,73 @@ void CStateMachineView::OnClickedButtonContextStart()
 }
 
 
-void CStateMachineView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* pHint)
+void CStateMachineView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* pHint)
 {
 	auto doc = (CStateMachineDoc*)pHint;
-	if(doc) {
-		const picojson::value& config = doc->getConfig();
-
-		// Create contents of event name list.
-		int selected = m_eventNames.GetCurSel();
-		m_eventNames.ResetContent();
-		const picojson::array& events = doc->getConfigObject<picojson::array>(config, "events");
-		for each(auto event in events) {
-			auto index = m_eventNames.AddString(doc->getConfigString(event, "name").c_str());
-			m_eventNames.SetItemDataPtr(index, &event);
+	if(!doc) {
+		doc = GetDocument();
+		onConfigLoaded(doc);
+	} else {
+		switch((UpdateViewHint)lHint) {
+		case UpdateViewHint::ConfigLoaded:
+			onConfigLoaded(doc);
+			break;
+		case UpdateViewHint::ConfigParsed:
+			onConfigParsed(doc);
+			break;
+		case UpdateViewHint::StateChanged:
+			onStateChanged(doc);
+			break;
 		}
-		auto count = m_eventNames.GetCount();
-		if(0 < count) {
-			if(selected < 0) selected = 0;
-			selected = (selected < count) ? selected : (count - 1);
-			m_eventNames.SetCurSel(selected);
-		}
+	}
+	UpdateData(FALSE);
+}
 
-		// Create contents of active state list.
-		m_activeStates.DeleteAllItems();
-		for each(auto state in doc->m_stateStack) {
-			m_activeStates.InsertItem(0, state->getName());
-		}
+/*
+	Called when configure JSON file is loaded by CDocument.
+	Updates config JSON text box.
+*/
+void CStateMachineView::onConfigLoaded(CStateMachineDoc * doc)
+{
+	m_config = doc->getConfigSource();
+}
 
-		UpdateData(FALSE);
+/*
+	Called when configure JSON text is parsed by CDocument.
+	Updates:
+		Context name text box.
+		Event combo box.
+*/
+void CStateMachineView::onConfigParsed(CStateMachineDoc * doc)
+{
+	const picojson::value& config = doc->getConfig();
+
+	// Create contents of event name list.
+	int selected = m_eventNames.GetCurSel();
+	m_eventNames.ResetContent();
+	const picojson::array& events = doc->getConfigObject<picojson::array>(config, "events");
+	for each(auto event in events) {
+		auto index = m_eventNames.AddString(doc->getConfigString(event, "name").c_str());
+		m_eventNames.SetItemDataPtr(index, &event);
+	}
+	auto count = m_eventNames.GetCount();
+	if(0 < count) {
+		if(selected < 0) selected = 0;
+		selected = (selected < count) ? selected : (count - 1);
+		m_eventNames.SetCurSel(selected);
+	}
+}
+
+/*
+	Called when state stack changed by CDocument.
+	Updates Active state list control.
+*/
+void CStateMachineView::onStateChanged(CStateMachineDoc * doc)
+{
+	// Create contents of active state list.
+	m_activeStates.DeleteAllItems();
+	for each(auto state in doc->m_stateStack) {
+		m_activeStates.InsertItem(0, state->getName());
 	}
 }
 

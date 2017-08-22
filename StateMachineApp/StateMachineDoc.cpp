@@ -46,7 +46,8 @@ CStateMachineDoc::~CStateMachineDoc()
 
 CAppContext * CStateMachineDoc::createContext(LPCTSTR name)
 {
-	CAppContext* context = new CAppContext(this, name, *m_stateMachine);
+	auto& stateMachine(*m_app->getStateMachine());
+	CAppContext* context = new CAppContext(this, name, stateMachine);
 	m_context.reset(context);
 	outputMessage(_T("Created CAppContext: '%s'"), context->toString());
 	SetTitle(nullptr);
@@ -82,7 +83,7 @@ bool CStateMachineDoc::parse(LPCTSTR source)
 	std::string error = picojson::parse(m_config, (LPCSTR)_source);
 	std::tstring _error;
 	if(error.empty()) {
-		UpdateAllViews(nullptr, 0, this);
+		UpdateAllViews(nullptr, (LPARAM)UpdateViewHint::ConfigParsed, this);
 		return true;
 	} else {
 		CA2T _error(error.c_str());
@@ -109,7 +110,7 @@ void CStateMachineDoc::onStateEntryCalled(CAppState * state)
 	for(auto st = state; st; st = st->getMasterState()) {
 		m_stateStack.push_back(st);
 	}
-	UpdateAllViews(nullptr, 0, this);
+	UpdateAllViews(nullptr, (LPARAM)UpdateViewHint::StateChanged, this);
 }
 
 void CStateMachineDoc::onStateExitCalled(CAppState * state)
@@ -157,7 +158,14 @@ void CStateMachineDoc::Serialize(CArchive& ar)
 	}
 	else
 	{
-		// TODO: add loading code here
+		// Read ANSI text file.
+		m_configSource.Empty();
+		auto f = ar.GetFile();
+		UINT len = (UINT)f->GetLength();
+		std::unique_ptr<char[]> buf(new char[len + 1]);
+		f->Read(buf.get(), len);
+		buf[len] = '\0';
+		m_configSource = buf.get();
 	}
 }
 
@@ -233,15 +241,23 @@ void CStateMachineDoc::Dump(CDumpContext& dc) const
 // CStateMachineDoc commands
 
 
-void CStateMachineDoc::SetTitle(LPCTSTR /*lpszTitle*/)
+void CStateMachineDoc::SetTitle(LPCTSTR lpszTitle)
 {
 	std::tstring title;
-	if(m_context) {
-		title = m_context->getName();
-		title += m_context->isStarted() ? _T(":Started") : _T(":Stopped");
+	if(lpszTitle) {
+		// Called by framework on [File]->[Open]
+		// Show opened file name.
+		// lpszTitle already points file name.
 	} else {
-		title = _T("<Unknown>");
+		// Called by this when configuration is changed.
+		// Show configuration status(started or stopped).
+		if(m_context) {
+			title = m_context->getName();
+			title += m_context->isStarted() ? _T(":Started") : _T(":Stopped");
+		} else {
+			title = _T("<Unknown>");
+		}
+		lpszTitle = title.c_str();
 	}
-
-	CDocument::SetTitle(title.c_str());
+	CDocument::SetTitle(lpszTitle);
 }
