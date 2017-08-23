@@ -134,7 +134,7 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 std::shared_ptr<State>* StateMachineImpl::findState(std::shared_ptr<State>& currentState, State* pState)
 {
 	std::shared_ptr<State>* ret = nullptr;
-	for_each_state(currentState, [this, pState, &ret](std::shared_ptr<State>& state)
+	for_each_state(currentState, [pState, &ret](std::shared_ptr<State>& state)
 	{
 		if(pState == state.get()) {
 			ret = &state;

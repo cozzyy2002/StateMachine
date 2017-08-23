@@ -20,12 +20,12 @@ public:
 	// Returns user state as next state regardless of the event.
 	// Then state machine calls entry() of user state and sets user state as current state.
 	virtual HRESULT handleEvent(Event&, State&, State** nextState) override {
-		*nextState = userState;
+		*nextState = userState.release();
 		return S_OK;
 	}
 
 protected:
-	State* userState;
+	std::unique_ptr<State> userState;
 };
 
 ContextHandle::ContextHandle(StateMachine& stateMachine)
