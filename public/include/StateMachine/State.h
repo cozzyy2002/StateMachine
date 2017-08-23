@@ -33,7 +33,7 @@ public:
 
 	/*
 		Returns whether the class is sub state or not.
-		State transition to sub class means that previous state becomes master state of the state(sub state).
+		State transition to sub state means that previous state becomes master state of the state(sub state).
 	*/
 	virtual INLINE bool isSubState() const { return false; }
 
@@ -45,7 +45,7 @@ public:
 protected:
 	// Return value to tell state machine that event is not handled.
 	// This method can be used in handleEvent() method.
-	// Useage: return eventIsIgnored();
+	// Useage in State::handleEvent(): return eventIsIgnored();
 	INLINE HRESULT eventIsIgnored() const { return S_EVENT_IGNORED; }
 
 	std::unique_ptr<StateHandle> m_hState;

@@ -212,7 +212,7 @@ void CStateMachineView::onStateChanged(CStateMachineDoc * doc)
 	// Create contents of active state list.
 	m_activeStates.DeleteAllItems();
 	for each(auto state in doc->m_stateStack) {
-		m_activeStates.InsertItem(0, state->getName());
+		m_activeStates.InsertItem((int)ActiveStatesColumn::Name, state->getName());
 	}
 }
 

@@ -54,15 +54,19 @@ public:
 
 	bool isEventHandling() const;
 
-	// Returns current State object.
+	// Template method that returns current State object.
 	// Do NOT delete returned object.
-	State* getCurrentState() const;
+	template<class T = State>
+	T* getCurrentState() const { return dynamic_cast<T*>(getCurrentRawState()); }
 
 	// Internal use.
 	INLINE ContextHandle* getHandle() const { return m_hContext.get(); }
 
 protected:
 	std::unique_ptr<ContextHandle> m_hContext;
+
+	// Do NOT delete returned object.
+	State* getCurrentRawState() const;
 };
 
 } // namespace state_machine
