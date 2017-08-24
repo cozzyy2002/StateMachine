@@ -55,6 +55,7 @@ public:
 	bool isEventHandling() const;
 
 	// Template method that returns current State object.
+	// nullptr might be returned before calling start() or after stop()
 	// Do NOT delete returned object.
 	template<class T = State>
 	T* getCurrentState() const { return dynamic_cast<T*>(getCurrentRawState()); }

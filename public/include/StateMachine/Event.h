@@ -18,7 +18,7 @@ public:
 	// Returns this pointer as user event type.
 	// Do NOT delete returned object.
 	template<class T>
-	INLINE T* cast() const { return dynamic_cast<T*>(this); }
+	INLINE T* cast() { return dynamic_cast<T*>(this); }
 
 	// Returns context as user context type.
 	// Do NOT delete returned object.

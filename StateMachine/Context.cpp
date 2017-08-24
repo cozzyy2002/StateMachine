@@ -49,7 +49,7 @@ Context::~Context()
 {
 }
 
-State * state_machine::Context::getCurrentRawState() const
+State* state_machine::Context::getCurrentRawState() const
 {
 	return getHandle()->currentState.get();
 }

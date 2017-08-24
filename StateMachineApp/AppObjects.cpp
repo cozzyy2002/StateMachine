@@ -22,6 +22,7 @@ HRESULT CAppState::handleEvent(Event& e, State& currentState, State** nextState)
 {
 	HRESULT hr = S_OK;
 	auto context = e.getContext<CAppContext>();
+	auto ev = e.cast<CAppEvent>();
 	context->doc->outputMessage(_T("%s::handleEvent('%s', '%s')"), toString(), e.toString(), currentState.toString());
 	return hr;
 }

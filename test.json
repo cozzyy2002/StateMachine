@@ -4,32 +4,60 @@
   "events": [
     {
       "name": "Initialize",
-      "target_states": ["Initialize"]
-    },
-    {
-      "name": "Event name"
-    }
-  ],
- "states": [
-    {
-      "name": "Initial",
-      "entry": {
-        "next_state": "Initialized"
-      }
-    },
-    {
-      "name": "Initialized",
-      "is_sub_state": false,
+      "target_states": ["Initial"],
       "do": {
         "return": "S_OK",
-        "next_state": "Next State name"
-      },
-      "entry": {
-         "return": 0
-      },
-      "exit": {
-         "return": 0
+        "next_state": {
+          "name": "Stopped",
+          "sub_state": false
+        }
       }
+    },
+    {
+      "name": "Run",
+      "target_states": ["Stopped"],
+      "do": {
+        "return": "S_OK",
+        "next_state": {
+          "name": "Running",
+          "sub_state": false
+        }
+      }
+    },
+    {
+      "name": "Pause",
+      "target_states": ["Running"],
+      "do": {
+        "return": "S_OK",
+        "next_state": {
+          "name": "Paused",
+          "sub_state": true
+        }
+      }
+    },
+    {
+      "name": "Resume",
+      "target_states": ["Paused"],
+      "do": {
+        "return": "S_OK",
+        "next_state": {
+          "name": ""
+        }
+      }
+    }
+  ],
+ "symbols": [
+    {
+      "name": "S_OK",
+      "value": 0
+    },
+    {
+      "name": "S_FALSE",
+      "value": 1
+    },
+    {
+      "name": "S_EVENT_IGNORED",
+      "value": 2
     }
   ]
 }
