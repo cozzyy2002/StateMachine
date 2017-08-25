@@ -93,18 +93,6 @@ bool CStateMachineDoc::parse(LPCTSTR source)
 	}
 }
 
-std::tstring CStateMachineDoc::getConfigString(const picojson::value& obj, LPCSTR key, LPCTSTR defaultValue /* = _T("")*/) const
-{
-	std::tstring ret(defaultValue);
-	if(obj.is<picojson::object>()) {
-		if(obj.contains(key)) {
-			CA2T _ret(obj.get(key).get<std::string>().c_str());
-			ret = (LPCTSTR)_ret;
-		}
-	}
-	return ret;
-}
-
 void CStateMachineDoc::onStateEntryCalled(CAppState * state)
 {
 	m_stateStack.clear();

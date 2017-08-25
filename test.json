@@ -4,40 +4,42 @@
   "events": [
     {
       "name": "Initialize",
-      "target_states": ["Initial"],
       "do": {
         "return": "S_OK",
         "next_state": {
           "name": "Stopped",
-          "sub_state": false
+          "is_sub_state": false
         }
+      },
+      "exit": {
+        "return": "S_OK"
+      },
+      "entry": {
+        "return": "S_OK"
       }
     },
     {
       "name": "Run",
-      "target_states": ["Stopped"],
       "do": {
         "return": "S_OK",
         "next_state": {
           "name": "Running",
-          "sub_state": false
+          "is_sub_state": false
         }
       }
     },
     {
       "name": "Pause",
-      "target_states": ["Running"],
       "do": {
         "return": "S_OK",
         "next_state": {
           "name": "Paused",
-          "sub_state": true
+          "is_sub_state": true
         }
       }
     },
     {
       "name": "Resume",
-      "target_states": ["Paused"],
       "do": {
         "return": "S_OK",
         "next_state": {

@@ -60,6 +60,9 @@
     <ClInclude Include="AppObjects.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="JsonUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StateMachineApp.cpp">
@@ -96,6 +99,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AppObjects.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

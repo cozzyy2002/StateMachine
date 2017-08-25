@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "AppObjects.h"
 #include "StateMachineDoc.h"
+#include "JsonUtil.h"
 
 static log4cplus::Logger logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("AppObjects"));
 
@@ -55,6 +56,23 @@ HRESULT CAppState::exit(Event& e, State& nextState)
 	context->doc->outputMessage(_T("%s::exit('%s', '%s')"), toString(), e.toString(), nextState.toString());
 	context->doc->onStateExitCalled(this);
 	return S_OK;
+}
+
+CStateConfig::CStateConfig(const picojson::value & config)
+{
+	CJsonObject jsonObj(config);
+	// Construct Do information.
+	auto doMethod(jsonObj.getObject("do"));
+	Do.Return = doMethod.getHRESULT();
+	auto nextState(doMethod.getObject("next_state"));
+	Do.NextState.Name = nextState.getString("name");
+	Do.Return = nextState.getHRESULT();
+	// Construct Entry information.
+	auto entryMethod(jsonObj.getObject("entry"));
+	Entry.Return = entryMethod.getHRESULT();
+	// Construct Exit information.
+	auto exitMethod(jsonObj.getObject("exit"));
+	Exit.Return = exitMethod.getHRESULT();
 }
 
 CAppEvent::CAppEvent(LPCTSTR name, const picojson::value& config)

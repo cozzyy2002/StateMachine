@@ -11,6 +11,7 @@
 
 #include "StateMachineDoc.h"
 #include "StateMachineView.h"
+#include "JsonUtil.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -119,7 +120,8 @@ void CStateMachineView::OnClickedButtonContextCreate()
 	UpdateData();
 	if(doc->parse(m_config)) {
 		// Show context name in the text box.
-		std::tstring contextName(doc->getConfigString(doc->getConfig(), "name"));
+		CJsonObject obj(doc->getConfig());
+		std::tstring contextName(obj.getString("name"));
 		if(!contextName.empty()) {
 			m_contextName = contextName.c_str();
 			UpdateData(FALSE);
@@ -141,7 +143,8 @@ void CStateMachineView::OnClickedButtonContextStart()
 		auto eventConfig = (const picojson::value*)m_eventNames.GetItemDataPtr(index);
 		e = new CAppEvent(name, *eventConfig);
 	}
-	auto state = doc->getConfigString(doc->getConfig(), "initial_state");
+	CJsonObject obj(doc->getConfig());
+	auto state = obj.getString("initial_state");
 	doc->start(state.c_str(), e);
 }
 
@@ -190,9 +193,11 @@ void CStateMachineView::onConfigParsed(CStateMachineDoc * doc)
 	// Create contents of event name list.
 	int selected = m_eventNames.GetCurSel();
 	m_eventNames.ResetContent();
-	const picojson::array& events = doc->getConfigObject<picojson::array>(config, "events");
+	CJsonObject obj(doc->getConfig());
+	auto& events = obj.getArray("events");
 	for each(auto event in events) {
-		auto index = m_eventNames.AddString(doc->getConfigString(event, "name").c_str());
+		CJsonObject eventObj(event);
+		auto index = m_eventNames.AddString(eventObj.getString("name").c_str());
 		m_eventNames.SetItemDataPtr(index, &event);
 	}
 	auto count = m_eventNames.GetCount();

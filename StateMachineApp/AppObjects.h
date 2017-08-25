@@ -56,6 +56,37 @@ protected:
 	bool m_isSubState;
 };
 
+struct StateMethod
+{
+public:
+	StateMethod() : Return(S_OK) {}
+	HRESULT Return;
+};
+
+struct DoStateMethod : public StateMethod
+{
+public:
+	struct _NextState {
+		_NextState() : IsSubState(false) {}
+		std::tstring Name;
+		bool IsSubState;
+	} NextState;
+};
+
+class CStateConfig
+{
+public:
+	// Default constructor
+	// Each member initializes itself.
+	CStateConfig() {}
+	// Constructor with configure data.
+	CStateConfig(const picojson::value& config);
+
+	DoStateMethod Do;
+	StateMethod Entry;
+	StateMethod Exit;
+};
+
 class CAppEvent : public Event, public CAppObject
 {
 public:
