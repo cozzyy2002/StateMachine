@@ -35,6 +35,7 @@ END_MESSAGE_MAP()
 
 CStateMachineDoc::CStateMachineDoc()
 	: m_app((CStateMachineApp*)AfxGetApp())
+	, m_config(new CJsonObject())
 {
 	// TODO: add one-time construction code here
 
@@ -80,10 +81,11 @@ HRESULT CStateMachineDoc::start(LPCTSTR stateName, CAppEvent* e /*= nullptr*/)
 bool CStateMachineDoc::parse(LPCTSTR source)
 {
 	CT2A _source(source);
-	std::string error = picojson::parse(m_config, (LPCSTR)_source);
+	std::string error = picojson::parse(m_configJson, (LPCSTR)_source);
 	std::tstring _error;
 	if(error.empty()) {
 		m_configSource = source;
+		m_config.reset(new CJsonObject(m_configJson));
 		UpdateAllViews(nullptr, (LPARAM)UpdateViewHint::ConfigParsed, this);
 		return true;
 	} else {

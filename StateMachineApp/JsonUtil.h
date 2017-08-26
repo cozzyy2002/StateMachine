@@ -12,6 +12,7 @@ public:
 class CJsonObject : public CJsonUtil
 {
 public:
+	CJsonObject() : m_object(emptyObject) {}
 	CJsonObject(const picojson::object& obj)
 		: m_object(obj) {}
 	CJsonObject(const picojson::value& value)
@@ -23,14 +24,20 @@ public:
 	const picojson::array& getArray(LPCSTR key) const;
 	CJsonObject getObject(LPCSTR key) const;
 
+	// Returns integral type value associated with key.
 	template<typename T>
 	T getJsonValue(LPCSTR key, const T defaultValue) const;
+
+	// Returns object/array of picojson associated with key.
 	template<typename T>
 	const T& getJsonObject(LPCSTR key, const T& defaultObject) const;
 
 protected:
+	// Empty object returned when specified key does not exist.
 	static const picojson::object emptyObject;
+	// Empty array returned when specified key does not exist.
 	static const picojson::array emptyArray;
+
 	const picojson::object& m_object;
 };
 

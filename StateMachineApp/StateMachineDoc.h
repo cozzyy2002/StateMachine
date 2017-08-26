@@ -6,6 +6,7 @@
 #pragma once
 
 #include "AppObjects.h"
+#include "JsonUtil.h"
 
 #include <StateMachine/StateMachine.h>
 #include <StateMachine/Context.h>
@@ -45,7 +46,7 @@ public:
 
 	bool parse(LPCTSTR source);
 	const CString& getConfigSource() const { return m_configSource; }
-	const picojson::value& getConfig() const { return m_config; }
+	const CJsonObject& getConfig() const { return *m_config; }
 
 	//void onContextDeleted(CAppContext* context);
 	void onStateEntryCalled(CAppState* state);
@@ -55,9 +56,14 @@ public:
 
 protected:
 	// JSON string
+	// parse() updates and getConfigSource() returns this value.
 	CString m_configSource;
-	// Parsed JSON value
-	picojson::value m_config;
+	// parse() sets this value using m_configSource string.
+	picojson::value m_configJson;
+	// Root config.
+	// Constructor sets this value to empty object.
+	// And parse() updates using m_configJson.
+	std::unique_ptr<CJsonObject> m_config;
 
 	// Overrides
 public:
