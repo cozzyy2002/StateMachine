@@ -83,7 +83,7 @@ bool CStateMachineDoc::parse(LPCTSTR source)
 {
 	std::tstring preParsed;
 	json_parser::CJsonParser jsonParser;
-	jsonParser.removeComment(source, preParsed);
+	jsonParser.removeComment(source, preParsed, true);
 	CT2A _source(preParsed.c_str());
 	std::string error = picojson::parse(m_configJson, (LPCSTR)_source);
 	std::tstring _error;
