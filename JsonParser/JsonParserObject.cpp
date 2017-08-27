@@ -3,22 +3,33 @@
 
 using namespace json_parser;
 
-json_parser::CParserContext::CParserContext(state_machine::StateMachine & stateMachine)
+CParserContext::CParserContext(state_machine::StateMachine & stateMachine)
 	: Context(stateMachine)
-	, m_previousCharacter('\0'), m_startQuotationMark('\0')
 {
 }
 
-HRESULT json_parser::CParserContext::start(state_machine::State * initialState)
+HRESULT CParserContext::start(LPSTR outStr, state_machine::State * initialState)
 {
-	return E_NOTIMPL;
+	this->outStr = outStr;
+	outPos = 0;
+	m_previousCharacter = '\0';
+	m_startQuotationMark = '\0';
+
+	return Context::start(initialState);
 }
 
-void json_parser::CParserContext::out(char character)
+HRESULT CParserContext::stop()
 {
+	outStr[outPos] = '\0';
+	return Context::stop();
 }
 
-HRESULT json_parser::CParserState::handleEvent(state_machine::Event & e, State & currentState, State ** nextState)
+void CParserContext::out(char character)
+{
+	outStr[outPos++] = character;
+}
+
+HRESULT CParserState::handleEvent(state_machine::Event & e, State & currentState, State ** nextState)
 {
 	auto context = e.getContext<CParserContext>();
 	auto _e(e.cast<CParserEvent>());
@@ -56,7 +67,7 @@ HRESULT json_parser::CParserState::handleEvent(state_machine::Event & e, State &
 	return S_OK;
 }
 
-HRESULT json_parser::CCommentState::handleEvent(state_machine::Event & e, State & currentState, State ** nextState)
+HRESULT CCommentState::handleEvent(state_machine::Event & e, State & currentState, State ** nextState)
 {
 	auto context = e.getContext<CParserContext>();
 	auto _e(e.cast<CParserEvent>());
@@ -65,6 +76,9 @@ HRESULT json_parser::CCommentState::handleEvent(state_machine::Event & e, State 
 		if(context->m_previousCharacter == '*') {
 			// End of comment
 			*nextState = backToMaster();
+
+			// Avoid to out '/' when processing next caracter in CPerserState::handleEvent().
+			_e->character = '\0';
 		}
 		break;
 	case '\r':
@@ -77,7 +91,7 @@ HRESULT json_parser::CCommentState::handleEvent(state_machine::Event & e, State 
 	return S_OK;
 }
 
-HRESULT json_parser::CSingleLineCommentState::handleEvent(state_machine::Event & e, State & currentState, State ** nextState)
+HRESULT CSingleLineCommentState::handleEvent(state_machine::Event & e, State & currentState, State ** nextState)
 {
 	auto context = e.getContext<CParserContext>();
 	auto _e(e.cast<CParserEvent>());
@@ -92,7 +106,7 @@ HRESULT json_parser::CSingleLineCommentState::handleEvent(state_machine::Event &
 	return S_OK;
 }
 
-HRESULT json_parser::CLiteralState::handleEvent(state_machine::Event & e, State & currentState, State ** nextState)
+HRESULT CLiteralState::handleEvent(state_machine::Event & e, State & currentState, State ** nextState)
 {
 	auto context = e.getContext<CParserContext>();
 	auto _e(e.cast<CParserEvent>());

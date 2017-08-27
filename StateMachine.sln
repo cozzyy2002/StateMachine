@@ -12,6 +12,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StateMachineUnitTest", "Sta
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StateMachineApp", "StateMachineApp\StateMachineApp.vcxproj", "{EEA0BCF9-9FB9-4CEA-8FFE-AC745B6E1341}"
 	ProjectSection(ProjectDependencies) = postProject
+		{5D559714-38BA-49C2-89BA-FFF1B69626B4} = {5D559714-38BA-49C2-89BA-FFF1B69626B4}
 		{FAC30BCE-6BA2-44AE-B196-44A25D4BBE1A} = {FAC30BCE-6BA2-44AE-B196-44A25D4BBE1A}
 	EndProjectSection
 EndProject

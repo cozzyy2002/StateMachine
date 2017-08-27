@@ -7,14 +7,16 @@ class CParserContext : public state_machine::Context
 public:
 	CParserContext(state_machine::StateMachine& stateMachine);
 
-	virtual HRESULT start(state_machine::State* initialState) override;
+	HRESULT start(LPSTR outStr, state_machine::State* initialState);
+	HRESULT stop();
 	void out(char character);
 
 	char m_previousCharacter;
 	char m_startQuotationMark;
 
 protected:
-	
+	LPSTR outStr;
+	size_t outPos;
 };
 
 class CParserState : public state_machine::State
