@@ -15,25 +15,29 @@ public:
 	TCHAR m_startQuotationMark;
 
 protected:
+	// Output string written by out() method.
 	LPTSTR outStr;
 	size_t outPos;
 	bool preserveEol;
 };
 
+// State that processes ordinary characters.
+// Ordinary characters are other than comment nor literal string.
+// This state is also created as initial state.
 class CParserState : public state_machine::State
 {
 public:
 	virtual HRESULT handleEvent(state_machine::Event& e, State& currentState, State** nextState) override;
 };
 
-// Comment state started by "/*"
+// Comment state started by "/*" and ended by "*/"
 class CCommentState : public state_machine::SubState
 {
 public:
 	virtual HRESULT handleEvent(state_machine::Event& e, State& currentState, State** nextState) override;
 };
 
-// Comment state started by "//"
+// Comment state started by "//" and ended by end of line(EOL)
 class CSingleLineCommentState : public state_machine::SubState
 {
 public:
@@ -53,7 +57,6 @@ public:
 	CParserEvent(TCHAR character) : character(character) {}
 
 	// Character to parse.
-	// On EOF, this value is '\0'
 	TCHAR character;
 };
 

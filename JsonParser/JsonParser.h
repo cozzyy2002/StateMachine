@@ -10,7 +10,7 @@ public:
 	CJsonParser();
 	~CJsonParser();
 
-	void removeComment(LPCTSTR source, std::tstring& out, bool preserveEol);
+	void removeComment(LPCTSTR source, bool preserveEol, std::tstring& out);
 
 protected:
 	std::unique_ptr<state_machine::StateMachine> m_stateMachine;

@@ -1,14 +1,17 @@
+/*
+  Configuration file for StateMachineApp
+*/
 {
   "name": "Test config",
   "initial_state": "Initial",
   "events": [
     {
+      // Initial -> Stopped
       "name": "Initialize",
       "do": {
         "return": "S_OK",
         "next_state": {
-          "name": "Stopped",
-          "is_sub_state": false
+          "name": "Stopped"
         }
       },
       "exit": {
@@ -19,16 +22,17 @@
       }
     },
     {
+      // Stopped -> Running
       "name": "Run",
       "do": {
         "return": "S_OK",
         "next_state": {
-          "name": "Running",
-          "is_sub_state": false
+          "name": "Running"
         }
       }
     },
     {
+      // Running -> Paused(Sub state)
       "name": "Pause",
       "do": {
         "return": "S_OK",
@@ -39,11 +43,12 @@
       }
     },
     {
+      // Paused(Sub state) -> Running(Master state)
       "name": "Resume",
       "do": {
         "return": "S_OK",
         "next_state": {
-          "name": ""
+          "name": ""    // Back to master state
         }
       }
     }

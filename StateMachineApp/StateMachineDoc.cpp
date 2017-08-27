@@ -83,7 +83,7 @@ bool CStateMachineDoc::parse(LPCTSTR source)
 {
 	std::tstring preParsed;
 	json_parser::CJsonParser jsonParser;
-	jsonParser.removeComment(source, preParsed, true);
+	jsonParser.removeComment(source, true, preParsed);
 	CT2A _source(preParsed.c_str());
 	std::string error = picojson::parse(m_configJson, (LPCSTR)_source);
 	std::tstring _error;
@@ -156,8 +156,8 @@ void CStateMachineDoc::Serialize(CArchive& ar)
 		// Read ANSI text file.
 		m_configSource.Empty();
 		auto f = ar.GetFile();
-		UINT len = (UINT)f->GetLength();
-		std::unique_ptr<char[]> buf(new char[len + 1]);
+		auto len = (size_t)f->GetLength();
+		auto buf(std::make_unique<char[]>(len + 1));
 		f->Read(buf.get(), len);
 		buf[len] = '\0';
 		m_configSource = buf.get();
