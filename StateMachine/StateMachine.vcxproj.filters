@@ -48,6 +48,9 @@
     <ClInclude Include="Handles.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="stdafx_local.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

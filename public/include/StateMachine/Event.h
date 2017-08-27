@@ -13,7 +13,8 @@ public:
 	Event();
 	Event(Context& context);
 	virtual ~Event();
-	virtual INLINE log4cplus::LogLevel getLogLevel() const { return log4cplus::INFO_LOG_LEVEL; }
+	typedef int LogLevel;
+	virtual LogLevel getLogLevel() const;
 
 	// Returns this pointer as user event type.
 	// Do NOT delete returned object.

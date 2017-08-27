@@ -1,4 +1,4 @@
-#include <StateMachine/stdafx.h>
+#include "stdafx_local.h"
 #include <StateMachine/State.h>
 
 #include "Handles.h"

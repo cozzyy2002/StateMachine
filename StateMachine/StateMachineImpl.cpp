@@ -1,4 +1,4 @@
-#include <StateMachine/stdafx.h>
+#include "stdafx_local.h"
 #include <StateMachine/Event.h>
 #include <StateMachine/State.h>
 #include <StateMachine/Context.h>

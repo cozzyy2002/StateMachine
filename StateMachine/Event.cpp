@@ -1,4 +1,4 @@
-#include <StateMachine/stdafx.h>
+#include "stdafx_local.h"
 #include <StateMachine/Event.h>
 
 #include "Handles.h"
@@ -19,4 +19,9 @@ Event::Event(Context& context)
 
 Event::~Event()
 {
+}
+
+Event::LogLevel state_machine::Event::getLogLevel() const
+{
+	return log4cplus::INFO_LOG_LEVEL;
 }
