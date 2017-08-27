@@ -81,11 +81,17 @@ std::lock_guard<std::mutex>* ContextHandle::getStateLock(Context& context)
 
 #pragma region Context methods which invode ContextHandle methods.
 
-HRESULT Context::start(State* initialState, Event& userEvent /*= Event()*/)
+HRESULT Context::start(State* initialState, Event& userEvent)
 {
 	HR_ASSERT(initialState, E_POINTER);
 
 	return m_hContext->start(*this, initialState, userEvent);
+}
+
+HRESULT state_machine::Context::start(State * initialState)
+{
+	Event e;
+	return start(initialState, e);
 }
 
 HRESULT Context::stop()

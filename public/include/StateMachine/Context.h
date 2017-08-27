@@ -29,7 +29,8 @@ public:
 			e parameter if userEvent is not specified.
 			previousState parameter which points internal State object.
 	*/
-	virtual HRESULT start(State* initialState, Event& userEvent = Event());
+	virtual HRESULT start(State* initialState, Event& userEvent);
+	virtual HRESULT start(State* initialState);
 
 	// Stops state machine.
 	virtual HRESULT stop();
