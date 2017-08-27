@@ -14,12 +14,12 @@ CJsonParser::~CJsonParser()
 {
 }
 
-void CJsonParser::removeComment(LPCTSTR source, std::tstring & out, bool preserveEof)
+void CJsonParser::removeComment(LPCTSTR source, std::tstring & out, bool preserveEol)
 {
 	auto len(_tcslen(source));
 	std::unique_ptr<TCHAR[]> outStr(new TCHAR[len + 1]);
 	CParserContext context(*m_stateMachine);
-	context.start(outStr.get(), preserveEof, new CParserState());
+	context.start(outStr.get(), preserveEol, new CParserState());
 	for(size_t i = 0; i < len; i++) {
 		CParserEvent e(source[i]);
 		context.handleEvent(e);

@@ -7,7 +7,7 @@ class CParserContext : public state_machine::Context
 public:
 	CParserContext(state_machine::StateMachine& stateMachine);
 
-	HRESULT start(LPTSTR outStr, bool preserveEof, state_machine::State* initialState);
+	HRESULT start(LPTSTR outStr, bool preserveEol, state_machine::State* initialState);
 	HRESULT stop();
 	void out(TCHAR character);
 
@@ -17,7 +17,7 @@ public:
 protected:
 	LPTSTR outStr;
 	size_t outPos;
-	bool preserveEof;
+	bool preserveEol;
 };
 
 class CParserState : public state_machine::State

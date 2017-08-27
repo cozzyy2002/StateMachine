@@ -8,13 +8,13 @@ CParserContext::CParserContext(state_machine::StateMachine & stateMachine)
 {
 }
 
-HRESULT CParserContext::start(LPTSTR outStr, bool preserveEof, state_machine::State * initialState)
+HRESULT CParserContext::start(LPTSTR outStr, bool preserveEol, state_machine::State * initialState)
 {
 	this->outStr = outStr;
 	outPos = 0;
 	m_previousCharacter = '\0';
 	m_startQuotationMark = '\0';
-	this->preserveEof = preserveEof;
+	this->preserveEol = preserveEol;
 
 	return Context::start(initialState);
 }
@@ -27,7 +27,7 @@ HRESULT CParserContext::stop()
 
 void CParserContext::out(TCHAR character)
 {
-	if(!preserveEof) {
+	if(!preserveEol) {
 		switch(character) {
 		case '\r':
 		case '\n':
