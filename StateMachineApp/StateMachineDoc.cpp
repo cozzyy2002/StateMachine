@@ -12,6 +12,7 @@
 #include "StateMachineDoc.h"
 #include "AppObjects.h"
 #include "MainFrm.h"
+#include "../JsonParser/JsonParser.h"
 
 #include <propkey.h>
 
@@ -80,7 +81,10 @@ HRESULT CStateMachineDoc::start(LPCTSTR stateName, CAppEvent* e /*= nullptr*/)
 
 bool CStateMachineDoc::parse(LPCTSTR source)
 {
-	CT2A _source(source);
+	std::tstring preParsed;
+	json_parser::CJsonParser jsonParser;
+	jsonParser.removeComment(source, preParsed);
+	CT2A _source(preParsed.c_str());
 	std::string error = picojson::parse(m_configJson, (LPCSTR)_source);
 	std::tstring _error;
 	if(error.empty()) {

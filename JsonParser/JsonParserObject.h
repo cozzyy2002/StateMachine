@@ -7,15 +7,15 @@ class CParserContext : public state_machine::Context
 public:
 	CParserContext(state_machine::StateMachine& stateMachine);
 
-	HRESULT start(LPSTR outStr, state_machine::State* initialState);
+	HRESULT start(LPTSTR outStr, state_machine::State* initialState);
 	HRESULT stop();
-	void out(char character);
+	void out(TCHAR character);
 
-	char m_previousCharacter;
-	char m_startQuotationMark;
+	TCHAR m_previousCharacter;
+	TCHAR m_startQuotationMark;
 
 protected:
-	LPSTR outStr;
+	LPTSTR outStr;
 	size_t outPos;
 };
 
@@ -49,11 +49,11 @@ public:
 class CParserEvent : public state_machine::Event
 {
 public:
-	CParserEvent(char character) : character(character) {}
+	CParserEvent(TCHAR character) : character(character) {}
 
 	// Character to parse.
 	// On EOF, this value is '\0'
-	char character;
+	TCHAR character;
 };
 
 }

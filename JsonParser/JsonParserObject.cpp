@@ -8,7 +8,7 @@ CParserContext::CParserContext(state_machine::StateMachine & stateMachine)
 {
 }
 
-HRESULT CParserContext::start(LPSTR outStr, state_machine::State * initialState)
+HRESULT CParserContext::start(LPTSTR outStr, state_machine::State * initialState)
 {
 	this->outStr = outStr;
 	outPos = 0;
@@ -24,7 +24,7 @@ HRESULT CParserContext::stop()
 	return Context::stop();
 }
 
-void CParserContext::out(char character)
+void CParserContext::out(TCHAR character)
 {
 	outStr[outPos++] = character;
 }

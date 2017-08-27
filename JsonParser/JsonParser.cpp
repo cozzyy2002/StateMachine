@@ -14,10 +14,10 @@ CJsonParser::~CJsonParser()
 {
 }
 
-std::string CJsonParser::removeComment(LPCSTR source, std::string & out)
+void CJsonParser::removeComment(LPCTSTR source, std::tstring & out)
 {
-	auto len(strlen(source));
-	std::unique_ptr<char[]> outStr(new char[len + 1]);
+	auto len(_tcslen(source));
+	std::unique_ptr<TCHAR[]> outStr(new TCHAR[len + 1]);
 	CParserContext context(*m_stateMachine);
 	context.start(outStr.get(), new CParserState());
 	for(size_t i = 0; i < len; i++) {
@@ -27,6 +27,5 @@ std::string CJsonParser::removeComment(LPCSTR source, std::string & out)
 		context.m_previousCharacter = e.character;
 	}
 	context.stop();
-	out.assign(outStr.get(), strlen(outStr.get()));
-	return std::string();
+	out.assign(outStr.get(), _tcslen(outStr.get()));
 }
