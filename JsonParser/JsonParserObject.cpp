@@ -8,10 +8,9 @@ CParserContext::CParserContext(state_machine::StateMachine & stateMachine)
 {
 }
 
-HRESULT CParserContext::start(LPTSTR outStr, bool preserveEol, state_machine::State * initialState)
+HRESULT CParserContext::start(bool preserveEol, state_machine::State * initialState)
 {
-	this->outStr = outStr;
-	outPos = 0;
+	outStream = std::make_unique<std::tostringstream>();
 	m_previousCharacter = '\0';
 	m_startQuotationMark = '\0';
 	this->preserveEol = preserveEol;
@@ -19,9 +18,10 @@ HRESULT CParserContext::start(LPTSTR outStr, bool preserveEol, state_machine::St
 	return Context::start(initialState);
 }
 
-HRESULT CParserContext::stop()
+HRESULT CParserContext::stop(std::tstring& out)
 {
-	outStr[outPos] = '\0';
+	*outStream << std::ends;
+	out = outStream->str();
 	return Context::stop();
 }
 
@@ -34,7 +34,7 @@ void CParserContext::out(TCHAR character)
 			return;
 		}
 	}
-	outStr[outPos++] = character;
+	*outStream << character;
 }
 
 HRESULT CParserState::handleEvent(state_machine::Event & e, State & currentState, State ** nextState)

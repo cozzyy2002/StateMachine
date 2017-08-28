@@ -9,7 +9,6 @@ class CJsonParser
 public:
 	CJsonParser();
 	~CJsonParser();
-
 	void removeComment(LPCTSTR source, bool preserveEol, std::tstring& out);
 
 protected:

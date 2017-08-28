@@ -10,9 +10,13 @@ namespace std {
 #if defined(_UNICODE)
 	typedef wstring tstring;
 	typedef wstringstream tstringstream;
+	typedef wostringstream tostringstream;
+	typedef wistringstream tistringstream;
 #else
 	typedef string tstring;
 	typedef stringstream tstringstream;
+	typedef ostringstream tostringstream;
+	typedef istringstream tistringstream;
 #endif
 }
 

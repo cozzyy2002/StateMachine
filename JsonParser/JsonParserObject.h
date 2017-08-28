@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sstream>
+
 namespace json_parser {
 
 class CParserContext : public state_machine::Context
@@ -7,8 +9,8 @@ class CParserContext : public state_machine::Context
 public:
 	CParserContext(state_machine::StateMachine& stateMachine);
 
-	HRESULT start(LPTSTR outStr, bool preserveEol, state_machine::State* initialState);
-	HRESULT stop();
+	HRESULT start(bool preserveEol, state_machine::State* initialState);
+	HRESULT stop(std::tstring& out);
 	void out(TCHAR character);
 
 	TCHAR m_previousCharacter;
@@ -16,8 +18,7 @@ public:
 
 protected:
 	// Output string written by out() method.
-	LPTSTR outStr;
-	size_t outPos;
+	std::unique_ptr<std::tostringstream> outStream;
 	bool preserveEol;
 };
 
