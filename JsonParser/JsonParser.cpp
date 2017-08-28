@@ -23,7 +23,7 @@ void CJsonParser::removeComment(LPCTSTR source, bool preserveEol, std::tstring &
 		CParserEvent e(source[i]);
 		context.handleEvent(e);
 		// Note: e.character might be modified by state.
-		context.m_previousCharacter = e.character;
+		context.previousCharacter = e.character;
 	}
 	context.stop(out);
 }

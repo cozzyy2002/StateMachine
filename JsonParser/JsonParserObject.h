@@ -13,8 +13,7 @@ public:
 	HRESULT stop(std::tstring& out);
 	void out(TCHAR character);
 
-	TCHAR m_previousCharacter;
-	TCHAR m_startQuotationMark;
+	TCHAR previousCharacter;
 
 protected:
 	// Output string written by out() method.
