@@ -8,11 +8,11 @@ CParserContext::CParserContext(state_machine::StateMachine & stateMachine)
 {
 }
 
-HRESULT CParserContext::start(bool preserveEol, state_machine::State * initialState)
+HRESULT CParserContext::start(const CJsonParser::Option& option, state_machine::State * initialState)
 {
 	outStream = std::make_unique<std::tostringstream>();
 	previousCharacter = '\0';
-	this->preserveEol = preserveEol;
+	this->option = &option;
 
 	return Context::start(initialState);
 }
@@ -29,11 +29,11 @@ HRESULT CParserContext::stop(std::tstring& out)
 */
 void CParserContext::out(TCHAR character)
 {
-	if(!preserveEol) {
+	if(option->removeEol) {
 		switch(character) {
 		case '\r':
 		case '\n':
-			// Don't preserve EOL.
+			// Remove EOL.
 			return;
 		}
 	}

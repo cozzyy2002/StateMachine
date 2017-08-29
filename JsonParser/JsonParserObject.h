@@ -1,5 +1,6 @@
 #pragma once
 
+#include "JsonParser.h"
 #include <sstream>
 
 namespace json_parser {
@@ -9,7 +10,7 @@ class CParserContext : public state_machine::Context
 public:
 	CParserContext(state_machine::StateMachine& stateMachine);
 
-	HRESULT start(bool preserveEol, state_machine::State* initialState);
+	HRESULT start(const CJsonParser::Option& option, state_machine::State* initialState);
 	HRESULT stop(std::tstring& out);
 	void out(TCHAR character);
 
@@ -18,7 +19,7 @@ public:
 protected:
 	// Output string written by out() method.
 	std::unique_ptr<std::tostringstream> outStream;
-	bool preserveEol;
+	const CJsonParser::Option* option;
 };
 
 // State that processes ordinary characters.
