@@ -4,7 +4,7 @@
 using namespace json_parser;
 
 CParserContext::CParserContext(state_machine::StateMachine & stateMachine)
-	: Context(stateMachine)
+	: Context(stateMachine), column(0)
 {
 }
 
@@ -29,15 +29,35 @@ HRESULT CParserContext::stop(std::tstring& out)
 */
 void CParserContext::out(TCHAR character)
 {
-	if(option->removeEol) {
-		switch(character) {
-		case '\r':
-		case '\n':
-			// Remove EOL.
+	// Determine whether we can discard character.
+	// In sub state(parsing comment, literal or symbol),
+	// characters should be out as is.
+	auto canDiscard(!getCurrentState()->isSubState());
+
+	unsigned int columnAdd = 1;
+	switch(character) {
+	case '\t':
+		if(canDiscard && option->expandTab) {
+			// TODO: Implement expand tab.
+		}
+		// Go down not break.
+	case ' ':
+		if(canDiscard && option->removeSpace) {
 			return;
 		}
+		break;
+	case '\r':
+	case '\n':
+		if(option->removeEol) {
+			return;
+		}
+		column = columnAdd = 0;
+		break;
 	}
 	*outStream << character;
+
+	// Count column to expand tab.
+	column += columnAdd;
 }
 
 /*

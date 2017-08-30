@@ -27,8 +27,8 @@ public:
 		unsigned int tabStop;	// Tab stop position(Used if expandTab == true).
 	};
 
-	void removeComment(LPCTSTR source, bool preserveEol, std::tstring& out);
-	void preprocess(LPCTSTR source, const Option& option, std::tstring& out);
+	HRESULT removeComment(LPCTSTR source, bool preserveEol, std::tstring& out);
+	HRESULT preprocess(LPCTSTR source, const Option& option, std::tstring& out);
 
 protected:
 	std::unique_ptr<state_machine::StateMachine> m_stateMachine;

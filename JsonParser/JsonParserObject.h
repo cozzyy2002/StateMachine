@@ -20,6 +20,9 @@ protected:
 	// Output string written by out() method.
 	std::unique_ptr<std::tostringstream> outStream;
 	const CJsonParser::Option* option;
+
+	// Column number used to expand tab.
+	unsigned int column;
 };
 
 // State that processes ordinary characters.
