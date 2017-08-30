@@ -11,6 +11,8 @@ public:
 	~CJsonParser();
 
 	struct Option {
+		// Default constructor
+		Option() { ZeroMemory(this, sizeof(*this)); }
 		// Constructor for remove space.
 		Option(bool removeSpace, bool removeEol)
 			: removeComment(true), removeSpace(removeSpace), removeEol(removeEol)
