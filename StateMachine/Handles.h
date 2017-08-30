@@ -49,11 +49,6 @@ public:
 	StateHandle() {}
 	virtual ~StateHandle() {}
 
-	virtual HRESULT handleEvent(Event& e, State& currentState, State** nextState) { return S_OK; }
-	virtual HRESULT handleError(Event& e, HRESULT hr) { return hr; }
-	virtual HRESULT entry(Event& e, State& previousState) { return S_OK; }
-	virtual HRESULT exit(Event& e, State& nextState) { return S_OK; }
-
 	// Always returns no master state.
 	virtual State* getMasterState() const { return nullptr; }
 };
