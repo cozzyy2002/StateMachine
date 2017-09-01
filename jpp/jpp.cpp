@@ -12,8 +12,10 @@ using namespace json_parser;
 namespace std {
 #ifdef _UNICODE
 static auto& tcout(wcout);
+static auto& tcerr(wcerr);
 #else
 static auto& tcout(cout);
+static auto& tcerror(cerr);
 #endif
 }
 
@@ -39,15 +41,25 @@ int _tmain(int argc, TCHAR *argv[])
 {
 	CJsonParser::Option option;
 	auto i = checkArgs(argc, argv, option);
+	if(i < 0) return 1;
+	std::tcerr << _T("Option:");
+	if(option.removeComment) std::tcerr << _T(" Remove comment");
+	if(option.removeSpace) std::tcerr << _T(" Remove space");
+	if(option.removeEol) std::tcerr << _T(" Remove EOL");
+	if(option.expandTab) std::tcerr << _T(" Expand tab: ") << option.tabStop;
+	std::tcerr << std::endl;
 	if(i < argc) {
 		auto fileName = argv[i];
 		if(PathFileExists(fileName) && !PathIsDirectory(fileName)) {
 			// Existing file
+			std::tcerr << _T("Read JSON from file: ") << fileName << std::endl;
 		} else {
 			// JSON text in command line.
+			std::tcerr << _T("JSON text: ") << fileName << std::endl;
 		}
 	} else {
 		// Read JSON from STDIN.
+		std::tcerr << _T("Read JSON from STDIN.") << std::endl;
 	}
 	return 0;
 }
@@ -71,11 +83,12 @@ enum {
 					std::locale loc;
 					if(isdigit(*str, loc)) {
 						// Next argument should be legal number as tab stop.
-						auto tabStop = _tstoi(argv[i]);
-						if((1 < tabStop) || (tabStop <= 8) && (errno == 0)) {
+						auto tabStop = _tstoi(str);
+						if((1 < tabStop) && (tabStop <= 8) && (errno == 0)) {
 							option.tabStop = (unsigned int)tabStop;
+							i++;
 						} else {
-							std::tcout << _T("Illegal tab stop: ") << argv[i] << std::endl;
+							std::tcerr << _T("Illegal tab stop: ") << str << std::endl;
 							return -1;
 						}
 					} else {
@@ -83,10 +96,12 @@ enum {
 					}
 				}
 				break;
+			case CHECK_OPTIONS_ERROR:
 			default:
-				// Error
 				return -1;
 			}
+		} else {
+			break;
 		}
 	}
 	return i;
@@ -101,8 +116,12 @@ enum {
 		case 's': option.removeSpace = true; break;
 		case 'r': option.removeEol = true; break;
 		case 'e': option.expandTab = true; ret = CHECK_OPTIONS_TAB_STOP; break;
+		case '?':
+		case 'h':
+			std::cout << usage;
+			return CHECK_OPTIONS_ERROR;
 		default:
-			std::tcout << _T("Unknown option: ") << *p << std::endl;
+			std::tcerr << _T("Unknown option: ") << *p << std::endl;
 			return CHECK_OPTIONS_ERROR;
 		}
 	}
