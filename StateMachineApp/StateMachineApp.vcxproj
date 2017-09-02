@@ -99,8 +99,8 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>$(OutDir);$(LOG4CPLUS_DIR)\msvc14\Win32\bin.$(Configuration)_Unicode</AdditionalLibraryDirectories>
-      <AdditionalDependencies>JsonParser.lib;StateMachine.lib;log4cplusUD.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>JsonParser.lib;StateMachine.lib</AdditionalDependencies>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -148,8 +148,8 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(OutDir);$(LOG4CPLUS_DIR)\msvc14\Win32\bin.$(Configuration)_Unicode</AdditionalLibraryDirectories>
-      <AdditionalDependencies>JsonParser.lib;StateMachine.lib;log4cplusU.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>JsonParser.lib;StateMachine.lib</AdditionalDependencies>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>

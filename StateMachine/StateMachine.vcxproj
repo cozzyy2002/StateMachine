@@ -92,10 +92,10 @@
 xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(OutDir)"</Command>
     </PostBuildEvent>
     <Lib>
-      <AdditionalDependencies>Utils.lib</AdditionalDependencies>
+      <AdditionalDependencies>Utils.lib;log4cplusUD.lib;</AdditionalDependencies>
     </Lib>
     <Lib>
-      <AdditionalLibraryDirectories>$(UTILS_DIR)\public\lib\Unicode_$(Configuration);</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(UTILS_DIR)\public\lib\Unicode_$(Configuration);$(LOG4CPLUS_DIR)\msvc14\Win32\bin.$(Configuration)_Unicode</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -132,10 +132,10 @@ xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(OutDir)"</Command>
 xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(OutDir)"</Command>
     </PostBuildEvent>
     <Lib>
-      <AdditionalDependencies>Utils.lib</AdditionalDependencies>
+      <AdditionalDependencies>Utils.lib;log4cplusU.lib;</AdditionalDependencies>
     </Lib>
     <Lib>
-      <AdditionalLibraryDirectories>$(UTILS_DIR)\public\lib\Unicode_$(Configuration);</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(UTILS_DIR)\public\lib\Unicode_$(Configuration);$(LOG4CPLUS_DIR)\msvc14\Win32\bin.$(Configuration)_Unicode</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

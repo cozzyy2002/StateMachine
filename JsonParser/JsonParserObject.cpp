@@ -8,19 +8,18 @@ CParserContext::CParserContext(state_machine::StateMachine & stateMachine)
 {
 }
 
-HRESULT CParserContext::start(const CJsonParser::Option& option, state_machine::State * initialState)
+HRESULT CParserContext::start(std::tostream& out, const CJsonParser::Option& option, state_machine::State * initialState)
 {
-	outStream = std::make_unique<std::tostringstream>();
 	previousCharacter = '\0';
+	this->outStream = &out;
 	this->option = &option;
 
 	return Context::start(initialState);
 }
 
-HRESULT CParserContext::stop(std::tstring& out)
+HRESULT CParserContext::stop()
 {
 	*outStream << std::ends;
-	out = outStream->str();
 	return Context::stop();
 }
 

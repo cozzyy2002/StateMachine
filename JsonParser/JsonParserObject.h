@@ -1,7 +1,7 @@
 #pragma once
 
 #include "JsonParser.h"
-#include <sstream>
+#include <iostream>
 
 namespace json_parser {
 
@@ -10,15 +10,15 @@ class CParserContext : public state_machine::Context
 public:
 	CParserContext(state_machine::StateMachine& stateMachine);
 
-	HRESULT start(const CJsonParser::Option& option, state_machine::State* initialState);
-	HRESULT stop(std::tstring& out);
+	HRESULT start(std::tostream& out, const CJsonParser::Option& option, state_machine::State* initialState);
+	HRESULT stop();
 	void out(TCHAR character);
 
 	TCHAR previousCharacter;
 
 protected:
 	// Output string written by out() method.
-	std::unique_ptr<std::tostringstream> outStream;
+	std::tostream* outStream;
 	const CJsonParser::Option* option;
 
 	// Column number used to expand tab.

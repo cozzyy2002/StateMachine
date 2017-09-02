@@ -30,7 +30,8 @@ public:
 	};
 
 	HRESULT removeComment(LPCTSTR source, bool preserveEol, std::tstring& out);
-	HRESULT preprocess(LPCTSTR source, const Option& option, std::tstring& out);
+	HRESULT preprocess(LPCTSTR source, std::tstring& out, const Option& option);
+	HRESULT preprocess(std::tistream& source, std::tostream& out, const Option& option);
 
 protected:
 	std::unique_ptr<state_machine::StateMachine> m_stateMachine;

@@ -2,6 +2,8 @@
 #include "JsonParser.h"
 #include "JsonParserObject.h"
 
+#include <sstream>
+
 using namespace json_parser;
 
 CJsonParser::CJsonParser()
@@ -17,25 +19,38 @@ CJsonParser::~CJsonParser()
 HRESULT CJsonParser::removeComment(LPCTSTR source, bool preserveEol, std::tstring & out)
 {
 	Option option(true, !preserveEol);
-	return preprocess(source, option, out);
+	return preprocess(source, out, option);
 }
 
-HRESULT json_parser::CJsonParser::preprocess(LPCTSTR source, const Option & option, std::tstring & out)
+HRESULT json_parser::CJsonParser::preprocess(LPCTSTR source, std::tstring & out, const Option& option)
+{
+	std::tistringstream _source(source);
+	std::tostringstream _out;
+
+	// Prevent input stream from skipping white space and end of line characters.
+	_source.unsetf(std::ios_base::skipws);
+	HRESULT hr = preprocess(_source, _out, option);
+	if(SUCCEEDED(hr)) out = _out.str();
+	return hr;
+}
+
+HRESULT json_parser::CJsonParser::preprocess(std::tistream& source, std::tostream & out, const Option& option)
 {
 	// Remove space and expand tab can not be specified with each other.
 	if(option.removeSpace && option.expandTab) return E_INVALIDARG;
 	// Tab stop should be greater than 1.
 	if(option.expandTab && (option.tabStop < 2)) return E_INVALIDARG;
 
-	auto len(_tcslen(source));
 	CParserContext context(*m_stateMachine);
-	context.start(option, new CParserState());
-	for(size_t i = 0; i < len; i++) {
-		CParserEvent e(source[i]);
+	context.start(out, option, new CParserState());
+
+	TCHAR ch;
+	for(source >> ch; !source.eof(); source >> ch) {
+		CParserEvent e(ch);
 		context.handleEvent(e);
 		// Note: e.character might be modified by state.
 		context.previousCharacter = e.character;
 	}
-	context.stop(out);
+	context.stop();
 	return S_OK;
 }

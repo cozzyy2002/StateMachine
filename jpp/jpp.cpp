@@ -11,9 +11,11 @@ using namespace json_parser;
 
 namespace std {
 #ifdef _UNICODE
+static auto& tcin(wcin);
 static auto& tcout(wcout);
 static auto& tcerr(wcerr);
 #else
+static auto& tcin(cin);
 static auto& tcout(cout);
 static auto& tcerror(cerr);
 #endif
@@ -42,12 +44,18 @@ int _tmain(int argc, TCHAR *argv[])
 	CJsonParser::Option option;
 	auto i = checkArgs(argc, argv, option);
 	if(i < 0) return 1;
+	if(option.removeSpace && option.expandTab) {
+		std::cout << "Remove space and Expand tab are specified." << std::endl;
+		return 1;
+	}
 	std::tcerr << _T("Option:");
 	if(option.removeComment) std::tcerr << _T(" Remove comment");
 	if(option.removeSpace) std::tcerr << _T(" Remove space");
 	if(option.removeEol) std::tcerr << _T(" Remove EOL");
 	if(option.expandTab) std::tcerr << _T(" Expand tab: ") << option.tabStop;
 	std::tcerr << std::endl;
+
+	std::tistream* in = nullptr;
 	if(i < argc) {
 		auto fileName = argv[i];
 		if(PathFileExists(fileName) && !PathIsDirectory(fileName)) {
@@ -60,7 +68,11 @@ int _tmain(int argc, TCHAR *argv[])
 	} else {
 		// Read JSON from STDIN.
 		std::tcerr << _T("Read JSON from STDIN.") << std::endl;
+		in = &std::tcin;
 	}
+
+	CJsonParser parser;
+	parser.preprocess(*in, std::tcout, option);
 	return 0;
 }
 
