@@ -35,11 +35,6 @@ void CParserContext::out(TCHAR character)
 
 	unsigned int columnAdd = 1;
 	switch(character) {
-	case '\t':
-		if(canDiscard && option->expandTab) {
-			// TODO: Implement expand tab.
-		}
-		// Go down not break.
 	case ' ':
 		if(canDiscard && option->removeSpace) {
 			return;
@@ -92,6 +87,16 @@ HRESULT CParserState::handleEvent(state_machine::Event & e, State & currentState
 	case '\"':
 		// Start of literal string.
 		*nextState = new CLiteralState();
+		break;
+	case '\t':
+		// Note: Expand tab affects only outside of literal.
+		if(option->expandTab) {
+			for(auto c = option->tabStop - (context->column % option->tabStop);
+				0 < c; c--) {
+				context->out(' ');
+			}
+			isOut = false;
+		}
 		break;
 	default:
 		break;

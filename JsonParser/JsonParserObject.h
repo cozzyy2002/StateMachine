@@ -16,13 +16,12 @@ public:
 
 	const CJsonParser::Option* option;
 	TCHAR previousCharacter;
+	// Column number used to expand tab.
+	unsigned int column;
 
 protected:
 	// Output string written by out() method.
 	std::tostream* outStream;
-
-	// Column number used to expand tab.
-	unsigned int column;
 };
 
 // State that processes ordinary characters.
