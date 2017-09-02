@@ -21,6 +21,7 @@ typedef wifstream tifstream;
 static auto& tcin(cin);
 static auto& tcout(cout);
 static auto& tcerror(cerr);
+typedef ifstream tifstream;
 #endif
 }
 

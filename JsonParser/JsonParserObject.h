@@ -62,6 +62,9 @@ public:
 
 	// Character to parse.
 	TCHAR character;
+
+	// Suppress log this event.
+	virtual LogLevel getLogLevel() const override { return 0; }
 };
 
 }

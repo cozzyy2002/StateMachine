@@ -6,12 +6,39 @@
 #include "StateMachineImpl.h"
 #include "Handles.h"
 
-static log4cplus::Logger logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("state_machine.StateMachine"));
+#include <log4cplus/configurator.h>
+#include <Shlwapi.h>
+
+static auto defaultLogConigFileName(LOG4CPLUS_TEXT("log4cplus.properties"));
+static auto logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("state_machine.StateMachine"));
 
 using namespace state_machine;
 
+/*static*/ std::tstring StateMachine::logConfigFileName;
+
+/*static*/ void StateMachine::configureLog(LPCTSTR configFileName)
+{
+	if(logConfigFileName.empty()) {
+		logConfigFileName = configFileName;
+		log4cplus::PropertyConfigurator::doConfigure(configFileName);
+	} else if(logConfigFileName != configFileName) {
+		LOG4CPLUS_ERROR(logger, configFileName << _T(": Already configured by ") << logConfigFileName.c_str());
+	} else { /* Already configured by same file. Do nothing */ }
+}
+
 /*static*/ StateMachine* StateMachine::createInstance()
 {
+	if(logConfigFileName.empty()) {
+		// Log is not configured yet.
+		logConfigFileName = defaultLogConigFileName;
+		auto logConfig(logConfigFileName.c_str());
+		if(PathFileExists(logConfig) && !PathIsDirectory(logConfig)) {
+			log4cplus::PropertyConfigurator::doConfigure(logConfig);
+		} else {
+			log4cplus::BasicConfigurator::doConfigure();
+		}
+	}
+
 	return new StateMachineImpl();
 }
 

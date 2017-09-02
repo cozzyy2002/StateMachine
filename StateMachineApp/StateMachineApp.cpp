@@ -12,8 +12,6 @@
 #include "StateMachineDoc.h"
 #include "StateMachineView.h"
 
-#include <log4cplus/configurator.h>
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -59,7 +57,7 @@ CStateMachineApp theApp;
 
 BOOL CStateMachineApp::InitInstance()
 {
-	log4cplus::PropertyConfigurator::doConfigure(LOG4CPLUS_TEXT("log4cplus.properties"));
+	StateMachine::configureLog(LOG4CPLUS_TEXT("log4cplus.properties"));
 	LOG4CPLUS_INFO(logger, __FUNCTION__);
 
 	// InitCommonControlsEx() is required on Windows XP if an application
