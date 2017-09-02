@@ -4,6 +4,8 @@
 #include "stdafx.h"
 #include "../JsonParser/JsonParser.h"
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <Shlwapi.h>
 #include <locale>
 
@@ -14,6 +16,7 @@ namespace std {
 static auto& tcin(wcin);
 static auto& tcout(wcout);
 static auto& tcerr(wcerr);
+typedef wifstream tifstream;
 #else
 static auto& tcin(cin);
 static auto& tcout(cout);
@@ -45,9 +48,14 @@ int _tmain(int argc, TCHAR *argv[])
 	auto i = checkArgs(argc, argv, option);
 	if(i < 0) return 1;
 	if(option.removeSpace && option.expandTab) {
-		std::cout << "Remove space and Expand tab are specified." << std::endl;
+		std::cerr << "Error: Remove space and Expand tab are specified." << std::endl;
 		return 1;
 	}
+	if(!option.removeSpace && !option.removeSpace && !option.removeEol && !option.expandTab) {
+		// If no option is specified, set default.
+		option.removeComment = true;
+	}
+
 	std::tcerr << _T("Option:");
 	if(option.removeComment) std::tcerr << _T(" Remove comment");
 	if(option.removeSpace) std::tcerr << _T(" Remove space");
@@ -57,13 +65,17 @@ int _tmain(int argc, TCHAR *argv[])
 
 	std::tistream* in = nullptr;
 	if(i < argc) {
-		auto fileName = argv[i];
-		if(PathFileExists(fileName) && !PathIsDirectory(fileName)) {
+		auto lastArg = argv[i];
+		if(PathFileExists(lastArg) && !PathIsDirectory(lastArg)) {
 			// Existing file
-			std::tcerr << _T("Read JSON from file: ") << fileName << std::endl;
+			std::tcerr << _T("Read JSON from file: ") << lastArg << std::endl;
+			static std::tifstream istream(lastArg);
+			in = &istream;
 		} else {
 			// JSON text in command line.
-			std::tcerr << _T("JSON text: ") << fileName << std::endl;
+			std::tcerr << _T("JSON text: ") << lastArg << std::endl;
+			static std::tistringstream istream(lastArg);
+			in = &istream;
 		}
 	} else {
 		// Read JSON from STDIN.
@@ -90,7 +102,8 @@ enum {
 			switch(checkOptions(argv[i] + 1, option)) {
 			case CHECK_OPTIONS_OK:
 				break;
-			case CHECK_OPTIONS_TAB_STOP: {
+			case CHECK_OPTIONS_TAB_STOP:
+				if((i + 1) < argc) {
 					auto str = argv[i + 1];
 					std::locale loc;
 					if(isdigit(*str, loc)) {
@@ -100,12 +113,14 @@ enum {
 							option.tabStop = (unsigned int)tabStop;
 							i++;
 						} else {
-							std::tcerr << _T("Illegal tab stop: ") << str << std::endl;
+							std::tcerr << _T("Error: Illegal tab stop: ") << str << std::endl;
 							return -1;
 						}
 					} else {
 						option.tabStop = defaultTabStop;
 					}
+				} else {
+					option.tabStop = defaultTabStop;
 				}
 				break;
 			case CHECK_OPTIONS_ERROR:
@@ -133,7 +148,7 @@ enum {
 			std::cout << usage;
 			return CHECK_OPTIONS_ERROR;
 		default:
-			std::tcerr << _T("Unknown option: ") << *p << std::endl;
+			std::tcerr << _T("Error: Unknown option: ") << *p << std::endl;
 			return CHECK_OPTIONS_ERROR;
 		}
 	}

@@ -27,8 +27,6 @@ HRESULT json_parser::CJsonParser::preprocess(LPCTSTR source, std::tstring & out,
 	std::tistringstream _source(source);
 	std::tostringstream _out;
 
-	// Prevent input stream from skipping white space and end of line characters.
-	_source.unsetf(std::ios_base::skipws);
 	HRESULT hr = preprocess(_source, _out, option);
 	if(SUCCEEDED(hr)) out = _out.str();
 	return hr;
@@ -43,6 +41,9 @@ HRESULT json_parser::CJsonParser::preprocess(std::tistream& source, std::tostrea
 
 	CParserContext context(*m_stateMachine);
 	context.start(out, option, new CParserState());
+
+	// Prevent input stream from skipping white space and end of line characters.
+	source.unsetf(std::ios_base::skipws);
 
 	TCHAR ch;
 	for(source >> ch; !source.eof(); source >> ch) {
