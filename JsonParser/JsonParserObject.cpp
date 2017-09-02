@@ -67,22 +67,27 @@ void CParserContext::out(TCHAR character)
 HRESULT CParserState::handleEvent(state_machine::Event & e, State & currentState, State ** nextState)
 {
 	auto context = e.getContext<CParserContext>();
+	auto option(context->option);
 	auto _e(e.cast<CParserEvent>());
 	auto isOut(true);
 	switch(_e->character) {
 	case '*':
-		if(context->previousCharacter == '/') {
-			// "/*": Start of comment.
-			*nextState = new CCommentState();
-			isOut = false;
+		if(option->removeComment) {
+			if(context->previousCharacter == '/') {
+				// "/*": Start of comment.
+				*nextState = new CCommentState();
+				isOut = false;
+			}
 		}
 		break;
 	case '/':
-		if(context->previousCharacter == '/') {
-			// "//": Start of single line comment.
-			*nextState = new CSingleLineCommentState();
+		if(option->removeComment) {
+			if(context->previousCharacter == '/') {
+				// "//": Start of single line comment.
+				*nextState = new CSingleLineCommentState();
+			}
+			isOut = false;
 		}
-		isOut = false;
 		break;
 	case '\"':
 		// Start of literal string.
@@ -92,7 +97,7 @@ HRESULT CParserState::handleEvent(state_machine::Event & e, State & currentState
 		break;
 	}
 	if(isOut) {
-		if(context->previousCharacter == '/') {
+		if((context->previousCharacter == '/') && option->removeComment) {
 			// In case previous '/' is not start of comment.
 			context->out('/');
 		}

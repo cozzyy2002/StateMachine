@@ -14,12 +14,12 @@ public:
 	HRESULT stop();
 	void out(TCHAR character);
 
+	const CJsonParser::Option* option;
 	TCHAR previousCharacter;
 
 protected:
 	// Output string written by out() method.
 	std::tostream* outStream;
-	const CJsonParser::Option* option;
 
 	// Column number used to expand tab.
 	unsigned int column;
