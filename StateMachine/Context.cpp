@@ -8,6 +8,8 @@
 
 using namespace state_machine;
 
+static auto logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("state_machine.Context"));
+
 /*
 	Inner class to let state machine call userState->entry().
 	Used to initialize user context.
@@ -49,7 +51,7 @@ Context::~Context()
 {
 }
 
-State* state_machine::Context::getCurrentRawState() const
+State* Context::getCurrentRawState() const
 {
 	return getHandle()->currentState.get();
 }
@@ -88,7 +90,7 @@ HRESULT Context::start(State* initialState, Event& userEvent)
 	return m_hContext->start(*this, initialState, userEvent);
 }
 
-HRESULT state_machine::Context::start(State * initialState)
+HRESULT Context::start(State * initialState)
 {
 	Event e;
 	return start(initialState, e);
@@ -112,6 +114,63 @@ std::lock_guard<std::mutex>* Context::getStateLock()
 bool Context::isEventHandling() const
 {
 	return m_hContext->isEventHandling();
+}
+
+#pragma endregion
+
+AsyncContextHandle::AsyncContextHandle(StateMachine& stateMachine)
+	: ContextHandle(stateMachine)
+{
+}
+
+HRESULT AsyncContextHandle::start(AsyncContext& context, State* initialState, Event* userEvent)
+{
+	return S_OK;
+}
+
+HRESULT AsyncContextHandle::stop(AsyncContext& context)
+{}
+
+HRESULT AsyncContextHandle::handleEvent(AsyncContext& context, Event& e)
+{}
+
+HRESULT AsyncContextHandle::queueEvent(AsyncContext& context, Event* e)
+{}
+
+AsyncContext::AsyncContext(StateMachine& stateMachine)
+	: Context(nullptr), m_hAsyncContext(new AsyncContextHandle(stateMachine))
+{
+
+}
+
+#pragma region AsyncContext methods which invode AsyncContextHandle methods.
+
+HRESULT AsyncContext::start(State* initialState, Event& userEvent)
+{
+	LOG4CPLUS_FATAL(logger, __FUNCTION__ "(Event&) is not emplemented.");
+	return E_NOTIMPL;
+}
+HRESULT AsyncContext::start(State* initialState, Event* userEvent /*= nullptr*/)
+{
+	HR_ASSERT(initialState, E_POINTER);
+
+	if(!userEvent) userEvent = new Event();
+	return m_hAsyncContext->start(*this, initialState, userEvent);
+}
+
+HRESULT AsyncContext::stop()
+{
+	return m_hAsyncContext->stop(*this);
+}
+
+HRESULT AsyncContext::handleEvent(Event& e)
+{
+	return m_hAsyncContext->handleEvent(*this, e);
+}
+
+HRESULT AsyncContext::queueEvent(Event* e)
+{
+	return m_hAsyncContext->queueEvent(*this, e);
 }
 
 #pragma endregion

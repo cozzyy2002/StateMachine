@@ -11,11 +11,16 @@ namespace state_machine {
 class State;
 class StateMachine;
 class ContextHandle;
+class AsyncContextHandle;
 
 class Context : public Object
 {
 protected:
 	Context(StateMachine& stateMachine);
+
+	// Internal use.
+	// Initialize of all members should be preformed by derived class.
+	Context(ContextHandle* hContext) {}
 
 public:
 	virtual ~Context();
@@ -69,6 +74,29 @@ protected:
 
 	// Do NOT delete returned object.
 	State* getCurrentRawState() const;
+};
+
+class AsyncContext : public Context
+{
+protected:
+	AsyncContext(StateMachine& stateMachine);
+
+public:
+	virtual HRESULT start(State* initialState, Event& userEvent) override;
+	virtual HRESULT start(State* initialState, Event* userEvent = nullptr);
+	virtual HRESULT stop() override;
+	virtual HRESULT handleEvent(Event& e) override;
+	virtual HRESULT queueEvent(Event* e);
+
+	// Stete lock is necessary.
+	virtual INLINE bool isStateLockEnabled() const { return true; }
+
+	// Internal use.
+	INLINE AsyncContextHandle* getHandle() const { return m_hAsyncContext.get(); }
+
+protected:
+	// Note: Context::m_hContext is not used.
+	std::unique_ptr<AsyncContextHandle> m_hAsyncContext;
 };
 
 } // namespace state_machine

@@ -9,6 +9,7 @@ namespace state_machine {
 class Event;
 class State;
 class Context;
+class AsyncContext;
 class StateMachine;
 class StateMachineImpl;
 class StateHandle;
@@ -41,6 +42,25 @@ public:
 
 	// Mutex used to lock StateMachine::handleEvent().
 	std::mutex stateLock;
+};
+
+class AsyncContextHandle : public ContextHandle
+{
+public:
+	AsyncContextHandle(StateMachine& stateMachine);
+
+	virtual HRESULT start(AsyncContext& context, State* initialState, Event* userEvent);
+	virtual HRESULT stop(AsyncContext& context);
+	virtual HRESULT handleEvent(AsyncContext& context, Event& e);
+	virtual HRESULT queueEvent(AsyncContext& context, Event* e);
+
+	std::vector<std::unique_ptr<Event>> eventQueue;
+
+	// Mutex used to lock event queue
+	std::mutex eventQueueLock;
+
+	// Win32 event handle to notify that one or more events are in the event queue.
+	CHandle hEventAvailable;
 };
 
 class StateHandle : public Object
