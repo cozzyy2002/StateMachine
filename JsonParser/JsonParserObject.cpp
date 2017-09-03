@@ -36,6 +36,9 @@ void CParserContext::out(TCHAR character)
 	unsigned int columnAdd = 1;
 	switch(character) {
 	case ' ':
+	case '\t':
+		// Note: If expand tab, tab is replaced with space.
+		//       See CParserState::handleEvent().
 		if(canDiscard && option->removeSpace) {
 			return;
 		}
