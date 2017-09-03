@@ -1,8 +1,10 @@
 #pragma once
 
 #include <StateMachine/Object.h>
+#include <deque>
 #include <memory>
 #include <mutex>
+#include <thread>
 
 namespace state_machine {
 
@@ -21,12 +23,12 @@ public:
 	virtual ~ContextHandle();
 
 	// Set initialState as current state and call initialState->entry().
-	virtual HRESULT start(Context& context, State* initialState, Event& userEvent);
+	HRESULT start(Context& context, State* initialState, Event& userEvent);
 
 	// Stops state machine.
-	virtual HRESULT stop(Context& context);
+	HRESULT stop(Context& context);
 
-	virtual HRESULT handleEvent(Context& context, Event& e);
+	HRESULT handleEvent(Context& context, Event& e);
 
 	// See Context::getStateLock().
 	std::lock_guard<std::mutex>* getStateLock(Context& context);
@@ -49,18 +51,30 @@ class AsyncContextHandle : public ContextHandle
 public:
 	AsyncContextHandle(StateMachine& stateMachine);
 
-	virtual HRESULT start(AsyncContext& context, State* initialState, Event* userEvent);
-	virtual HRESULT stop(AsyncContext& context);
-	virtual HRESULT handleEvent(AsyncContext& context, Event& e);
-	virtual HRESULT queueEvent(AsyncContext& context, Event* e);
+	HRESULT start(AsyncContext& context, State* initialState, Event* userEvent);
+	HRESULT stop(AsyncContext& context);
+	HRESULT handleEvent(AsyncContext& context, Event& e);
+	HRESULT queueEvent(AsyncContext& context, Event* e);
 
-	std::vector<std::unique_ptr<Event>> eventQueue;
+	bool isStarted(const AsyncContext& context) const;
+
+protected:
+	// Event queue.
+	// push_back() to queue new event.
+	// pop_front() to retrieve the event to be handled.
+	// If event is nullptr, worker thread will terminate.
+	std::deque<std::unique_ptr<Event>> eventQueue;
+
+	bool isWorkerThreadRunning;
 
 	// Mutex used to lock event queue
 	std::mutex eventQueueLock;
 
 	// Win32 event handle to notify that one or more events are in the event queue.
 	CHandle hEventAvailable;
+
+	std::thread workerThread;
+	void handleEvent();
 };
 
 class StateHandle : public Object

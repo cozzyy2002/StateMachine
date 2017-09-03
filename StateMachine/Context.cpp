@@ -66,9 +66,9 @@ bool Context::isEventHandling() const
 #pragma endregion
 
 AsyncContext::AsyncContext(StateMachine& stateMachine)
-	: Context(nullptr), m_hAsyncContext(new AsyncContextHandle(stateMachine))
+	: Context(nullptr)
+	, m_hAsyncContext(new AsyncContextHandle(stateMachine))
 {
-
 }
 
 #pragma region AsyncContext methods which invode AsyncContextHandle methods.
@@ -89,6 +89,11 @@ HRESULT AsyncContext::start(State* initialState, Event* userEvent /*= nullptr*/)
 HRESULT AsyncContext::stop()
 {
 	return m_hAsyncContext->stop(*this);
+}
+
+bool AsyncContext::isStarted() const
+{
+	return m_hAsyncContext->isStarted(*this);
 }
 
 HRESULT AsyncContext::handleEvent(Event& e)

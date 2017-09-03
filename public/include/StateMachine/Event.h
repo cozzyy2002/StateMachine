@@ -6,6 +6,7 @@ namespace state_machine {
 
 class Context;
 class ContextHandle;
+class AsyncContextHandle;
 
 class Event : public Object
 {
@@ -37,6 +38,7 @@ public:
 private:
 	// Derived class(User event) can not modify members of this class.
 	friend class ContextHandle;
+	friend class AsyncContextHandle;
 	Context* m_context;
 };
 

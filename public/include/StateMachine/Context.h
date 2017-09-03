@@ -41,7 +41,7 @@ public:
 	virtual HRESULT stop();
 
 	// true if event handling has been started(After calling start() before stop()).
-	bool isStarted() const { return getCurrentState() ? true : false; }
+	virtual bool isStarted() const { return getCurrentState() ? true : false; }
 
 	// Handles event in this context.
 	virtual HRESULT handleEvent(Event& e);
@@ -82,14 +82,17 @@ protected:
 	AsyncContext(StateMachine& stateMachine);
 
 public:
+	// This method can't be called.
+	// Call start(State*, Event*) instead.
 	virtual HRESULT start(State* initialState, Event& userEvent) override;
 	virtual HRESULT start(State* initialState, Event* userEvent = nullptr);
 	virtual HRESULT stop() override;
+	virtual bool isStarted() const override;
 	virtual HRESULT handleEvent(Event& e) override;
 	virtual HRESULT queueEvent(Event* e);
 
 	// Stete lock is necessary.
-	virtual INLINE bool isStateLockEnabled() const { return true; }
+	virtual INLINE bool isStateLockEnabled() const override { return true; }
 
 	// Internal use.
 	INLINE AsyncContextHandle* getHandle() const { return m_hAsyncContext.get(); }
