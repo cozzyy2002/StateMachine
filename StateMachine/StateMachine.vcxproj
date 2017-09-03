@@ -173,6 +173,7 @@ xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(OutDir)"</Command>
   <ItemGroup>
     <ClCompile Include="Context.cpp" />
     <ClCompile Include="Event.cpp" />
+    <ClCompile Include="Handles.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="StateMachineImpl.cpp" />

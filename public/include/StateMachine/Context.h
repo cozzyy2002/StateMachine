@@ -20,7 +20,7 @@ protected:
 
 	// Internal use.
 	// Initialize of all members should be preformed by derived class.
-	Context(ContextHandle* hContext) {}
+	Context(ContextHandle* hContext);
 
 public:
 	virtual ~Context();
@@ -67,7 +67,7 @@ public:
 	T* getCurrentState() const { return dynamic_cast<T*>(getCurrentRawState()); }
 
 	// Internal use.
-	INLINE ContextHandle* getHandle() const { return m_hContext.get(); }
+	ContextHandle* getHandle() const { return m_hContext.get(); }
 
 protected:
 	std::unique_ptr<ContextHandle> m_hContext;
