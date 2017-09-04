@@ -16,24 +16,17 @@ class StateMachine;
 class StateMachineImpl;
 class StateHandle;
 
-class ContextHandle : public Object
+class ContextHandleBase : public Object
 {
 public:
-	ContextHandle();
-	virtual ~ContextHandle();
-
-	// Set initialState as current state and call initialState->entry().
-	HRESULT start(Context& context, State* initialState, Event& userEvent);
-
-	// Stops state machine.
-	HRESULT stop(Context& context);
-
-	HRESULT handleEvent(Context& context, Event& e);
+	ContextHandleBase();
+	virtual ~ContextHandleBase();
 
 	// See Context::getStateLock().
 	std::lock_guard<std::mutex>* getStateLock(Context& context);
 
-	bool isEventHandling() const { return m_isEventHandling; }
+	virtual bool isStarted() const { return currentState ? true : false; }
+	virtual bool isEventHandling() const { return m_isEventHandling; }
 
 	std::shared_ptr<State> currentState;
 	std::unique_ptr<StateMachineImpl> stateMachine;
@@ -46,7 +39,22 @@ public:
 	std::mutex stateLock;
 };
 
-class AsyncContextHandle : public ContextHandle
+class ContextHandle : public ContextHandleBase
+{
+public:
+	ContextHandle();
+	virtual ~ContextHandle();
+
+	// Set initialState as current state and call initialState->entry().
+	HRESULT start(Context& context, State* initialState, Event& userEvent);
+
+	// Stops state machine.
+	HRESULT stop(Context& context);
+
+	HRESULT handleEvent(Context& context, Event& e);
+};
+
+class AsyncContextHandle : public ContextHandleBase
 {
 public:
 	AsyncContextHandle();
@@ -56,7 +64,7 @@ public:
 	HRESULT handleEvent(AsyncContext& context, Event& e);
 	HRESULT queueEvent(AsyncContext& context, Event* e);
 
-	bool isStarted(const AsyncContext& context) const;
+	virtual bool isStarted() const override { return isWorkerThreadRunning && ContextHandleBase::isStarted(); }
 
 protected:
 	// Event queue.

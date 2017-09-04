@@ -81,6 +81,32 @@ TEST_F(ContextUnitTest, start_with_user_event_stop)
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 }
 
+TEST_F(ContextUnitTest, start_null_initialState)
+{
+	EXPECT_EQ(E_POINTER, testee.start(nullptr));
+
+	EXPECT_FALSE(testee.isStarted());
+	EXPECT_EQ(nullptr, testee.getCurrentState());
+}
+
+TEST_F(ContextUnitTest, start_on_started)
+{
+	auto state = new MockState(MockObjectId::CURRENT_STATE);
+	auto state1 = new MockState(MockObjectId::NEXT_STATE);
+
+	EXPECT_CALL(*state, entry(_, _)).Times(1);
+
+	EXPECT_HRESULT_SUCCEEDED(testee.start(state));
+
+	EXPECT_TRUE(testee.isStarted());
+	EXPECT_EQ(state, testee.getCurrentState());
+
+	EXPECT_EQ(E_ILLEGAL_METHOD_CALL, testee.start(state1));
+
+	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
+	EXPECT_TRUE(MockObject::deleted(MockObjectId::NEXT_STATE));
+}
+
 class ContextHandleEventUnitTest : public ContextUnitTest
 {
 public:

@@ -33,14 +33,18 @@ public:
 			e parameter if userEvent is not specified.
 			previousState parameter which points internal State object.
 	*/
+	// Supported by Context.
 	virtual HRESULT start(State* initialState, Event& userEvent);
+	// Supported by AsyncContext.
+	virtual HRESULT start(State* initialState, Event* userEvent);
+	// Supported by Context and AsyncContext.
 	virtual HRESULT start(State* initialState);
 
 	// Stops state machine.
 	virtual HRESULT stop();
 
 	// true if event handling has been started(After calling start() before stop()).
-	virtual bool isStarted() const { return getCurrentState() ? true : false; }
+	virtual bool isStarted() const;
 
 	// Handles event in this context.
 	virtual HRESULT handleEvent(Event& e);
@@ -84,7 +88,8 @@ public:
 	// This method can't be called.
 	// Call start(State*, Event*) instead.
 	virtual HRESULT start(State* initialState, Event& userEvent) override;
-	virtual HRESULT start(State* initialState, Event* userEvent = nullptr);
+	virtual HRESULT start(State* initialState, Event* userEvent) override;
+	virtual HRESULT start(State* initialState) override;
 	virtual HRESULT stop() override;
 	virtual bool isStarted() const override;
 	virtual HRESULT handleEvent(Event& e) override;
