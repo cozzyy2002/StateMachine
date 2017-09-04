@@ -83,6 +83,10 @@ AsyncContextHandle::AsyncContextHandle()
 {
 }
 
+AsyncContextHandle::~AsyncContextHandle()
+{
+}
+
 HRESULT AsyncContextHandle::start(AsyncContext& context, State* initialState, Event* userEvent)
 {
 	// Avoid memory leak even if exit before queue event.

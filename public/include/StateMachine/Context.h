@@ -85,6 +85,8 @@ protected:
 	AsyncContext();
 
 public:
+	virtual ~AsyncContext();
+
 	// This method can't be called.
 	// Call start(State*, Event*) instead.
 	virtual HRESULT start(State* initialState, Event& userEvent) override;

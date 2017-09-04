@@ -58,6 +58,7 @@ class AsyncContextHandle : public ContextHandleBase
 {
 public:
 	AsyncContextHandle();
+	virtual ~AsyncContextHandle();
 
 	HRESULT start(AsyncContext& context, State* initialState, Event* userEvent);
 	HRESULT stop(AsyncContext& context);

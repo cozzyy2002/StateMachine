@@ -37,7 +37,10 @@ HRESULT Context::start(State* initialState, Event& userEvent)
 
 HRESULT Context::start(State* initialState, Event* userEvent)
 {
-	LOG4CPLUS_FATAL(logger, __FUNCTION__ "(Event*) is not emplemented.");
+	delete initialState;
+	delete userEvent;
+
+	LOG4CPLUS_FATAL(logger, __FUNCTION__ "(Event*) is not implemented.");
 	return E_NOTIMPL;
 }
 
@@ -80,11 +83,17 @@ AsyncContext::AsyncContext()
 {
 }
 
+AsyncContext::~AsyncContext()
+{
+}
+
 #pragma region AsyncContext methods which invode AsyncContextHandle methods.
 
 HRESULT AsyncContext::start(State* initialState, Event& userEvent)
 {
-	LOG4CPLUS_FATAL(logger, __FUNCTION__ "(Event&) is not emplemented.");
+	delete initialState;
+
+	LOG4CPLUS_FATAL(logger, __FUNCTION__ "(Event&) is not implemented.");
 	return E_NOTIMPL;
 }
 HRESULT AsyncContext::start(State* initialState, Event* userEvent)

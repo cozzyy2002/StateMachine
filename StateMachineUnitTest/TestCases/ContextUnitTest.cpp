@@ -6,6 +6,44 @@
 using namespace state_machine;
 using namespace testing;
 
+class ContextBaseUnitTest : public Test
+{
+public:
+	class ContextTestee : public Context {};
+	class AsyncContextTestee : public AsyncContext {};
+
+	std::unique_ptr<Context> testee;
+};
+
+// Context::start(State*, Event*) is not implemented.
+// Object passed by pointer should be deleted.
+TEST_F(ContextBaseUnitTest, Context_start_notimpl)
+{
+	testee.reset(new ContextTestee());
+
+	auto state(new MockState(MockObjectId::CURRENT_STATE));
+	auto e(new MockEvent(MockObjectId::EVENT));
+
+	ASSERT_EQ(E_NOTIMPL, testee->start(state, e));
+
+	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
+	EXPECT_TRUE(MockObject::deleted(MockObjectId::EVENT));
+}
+
+// AsyncContext::start(State*, Event&) is not implemented.
+// Object passed by pointer should be deleted.
+TEST_F(ContextBaseUnitTest, AsyncContext_start_notimpl)
+{
+	testee.reset(new AsyncContextTestee());
+
+	auto state(new MockState(MockObjectId::CURRENT_STATE));
+	MockEvent e;
+
+	ASSERT_EQ(E_NOTIMPL, testee->start(state, e));
+
+	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
+}
+
 class ContextUnitTest : public Test
 {
 public:
