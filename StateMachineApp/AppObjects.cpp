@@ -5,8 +5,8 @@
 
 static log4cplus::Logger logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("AppObjects"));
 
-CAppContext::CAppContext(CStateMachineDoc* doc, LPCTSTR name, StateMachine& stateMachine)
-	: Context(stateMachine)
+CAppContext::CAppContext(CStateMachineDoc* doc, LPCTSTR name)
+	: Context()
 	, doc(doc)
 	, CAppObject(name)
 {

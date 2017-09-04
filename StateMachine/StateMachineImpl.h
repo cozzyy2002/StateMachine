@@ -1,12 +1,12 @@
 #pragma once
 
-#include <StateMachine/StateMachine.h>
+#include <StateMachine/Common.h>
 
 #include <functional>
 
 namespace state_machine {
 
-class StateMachineImpl : public StateMachine
+class StateMachineImpl
 {
 public:
 	StateMachineImpl();

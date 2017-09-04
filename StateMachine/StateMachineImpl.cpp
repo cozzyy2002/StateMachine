@@ -14,9 +14,9 @@ static auto logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("state_machin
 
 using namespace state_machine;
 
-/*static*/ std::tstring StateMachine::logConfigFileName;
+static std::tstring logConfigFileName;
 
-/*static*/ void StateMachine::configureLog(LPCTSTR configFileName)
+void state_machine::configureLog(LPCTSTR configFileName)
 {
 	if(logConfigFileName.empty()) {
 		logConfigFileName = configFileName;
@@ -26,7 +26,7 @@ using namespace state_machine;
 	} else { /* Already configured by same file. Do nothing */ }
 }
 
-/*static*/ StateMachine* StateMachine::createInstance()
+StateMachineImpl::StateMachineImpl()
 {
 	if(logConfigFileName.empty()) {
 		// Log is not configured yet.
@@ -39,11 +39,6 @@ using namespace state_machine;
 		}
 	}
 
-	return new StateMachineImpl();
-}
-
-StateMachineImpl::StateMachineImpl()
-{
 	LOG4CPLUS_DEBUG(logger, __FUNCTION__ ": Creating instance");
 }
 

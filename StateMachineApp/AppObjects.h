@@ -3,7 +3,6 @@
 #include <StateMachine/Context.h>
 #include <StateMachine/State.h>
 #include <StateMachine/Event.h>
-#include <StateMachine/StateMachine.h>
 
 using namespace state_machine;
 
@@ -25,7 +24,7 @@ protected:
 class CAppContext : public Context, public CAppObject
 {
 public:
-	CAppContext(CStateMachineDoc* doc, LPCTSTR name, StateMachine& stateMachine);
+	CAppContext(CStateMachineDoc* doc, LPCTSTR name);
 	~CAppContext();
 
 	CStateMachineDoc* const doc;

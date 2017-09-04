@@ -8,7 +8,6 @@
 #include "AppObjects.h"
 #include "JsonUtil.h"
 
-#include <StateMachine/StateMachine.h>
 #include <StateMachine/Context.h>
 #include <StateMachine/State.h>
 #include <StateMachine/Event.h>
@@ -35,7 +34,6 @@ protected: // create from serialization only
 public:
 	std::vector<CAppState*> m_stateStack;
 	std::unique_ptr<CAppContext> m_context;
-	StateMachine* m_stateMachine;
 	CStateMachineApp* m_app;
 
 // Operations

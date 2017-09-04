@@ -10,7 +10,7 @@ using namespace testing;
 class TestContext : public Context
 {
 public:
-	TestContext(StateMachine& stateMachine) : Context(stateMachine) {}
+	TestContext() : Context() {}
 };
 
 class StateMacineUnitTest : public Test
@@ -19,7 +19,7 @@ public:
 	typedef TestStateMachine Testee;
 
 	StateMacineUnitTest()
-		: context(new TestContext(testee))
+		: context(new TestContext())
 		, e(new MockEvent(*context)) {}
 
 	void SetUp() {

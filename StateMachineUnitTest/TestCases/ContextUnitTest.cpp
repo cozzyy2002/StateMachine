@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "TestUtils/Mocks.h"
 
-#include <StateMachine/StateMachine.h>
 #include <StateMachine/Context.h>
 
 using namespace state_machine;
@@ -13,14 +12,12 @@ public:
 	class Testee : public Context
 	{
 	public:
-		Testee(StateMachine& stateMachine) : Context(stateMachine) {}
+		Testee() : Context() {}
 	};
 
 	ContextUnitTest() 
-		: stateMachine(StateMachine::createInstance())
-		,testee(new Testee(*stateMachine)) {}
+		: testee(new Testee()) {}
 
-	std::unique_ptr<StateMachine> stateMachine;
 	std::unique_ptr<Testee> testee;
 	MockEvent e;
 };
@@ -127,7 +124,7 @@ TEST_F(ContextHandleEventUnitTest, recursive_call_check)
 class MultiContextHandleEventUnitTest : public ContextHandleEventUnitTest
 {
 public:
-	MultiContextHandleEventUnitTest() : testee1(new Testee(*stateMachine)) {}
+	MultiContextHandleEventUnitTest() : testee1(new Testee()) {}
 
 	void SetUp() {
 		ContextHandleEventUnitTest::SetUp();

@@ -19,7 +19,7 @@ class StateHandle;
 class ContextHandle : public Object
 {
 public:
-	ContextHandle(StateMachine& stateMachine);
+	ContextHandle();
 	virtual ~ContextHandle();
 
 	// Set initialState as current state and call initialState->entry().
@@ -36,7 +36,7 @@ public:
 	bool isEventHandling() const { return m_isEventHandling; }
 
 	std::shared_ptr<State> currentState;
-	StateMachineImpl* const stateMachine;
+	std::unique_ptr<StateMachineImpl> stateMachine;
 
 	// true if the state machine is handling event in this context.
 	// Used to recursive call check by state machine.
@@ -49,7 +49,7 @@ public:
 class AsyncContextHandle : public ContextHandle
 {
 public:
-	AsyncContextHandle(StateMachine& stateMachine);
+	AsyncContextHandle();
 
 	HRESULT start(AsyncContext& context, State* initialState, Event* userEvent);
 	HRESULT stop(AsyncContext& context);

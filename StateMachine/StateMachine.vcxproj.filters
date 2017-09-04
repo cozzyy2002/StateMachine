@@ -39,9 +39,6 @@
     <ClInclude Include="..\public\include\StateMachine\State.h">
       <Filter>public</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\include\StateMachine\StateMachine.h">
-      <Filter>public</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\include\StateMachine\stdafx.h">
       <Filter>public</Filter>
     </ClInclude>

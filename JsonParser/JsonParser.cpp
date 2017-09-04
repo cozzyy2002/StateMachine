@@ -7,7 +7,6 @@
 using namespace json_parser;
 
 CJsonParser::CJsonParser()
-	: m_stateMachine(state_machine::StateMachine::createInstance())
 {
 }
 
@@ -39,7 +38,7 @@ HRESULT json_parser::CJsonParser::preprocess(std::tistream& source, std::tostrea
 	// Tab stop should be greater than 1.
 	if(option.expandTab && (option.tabStop < 2)) return E_INVALIDARG;
 
-	CParserContext context(*m_stateMachine);
+	CParserContext context;
 	context.start(out, option, new CParserState());
 
 	// Prevent input stream from skipping white space and end of line characters.

@@ -17,3 +17,9 @@ typedef istream tistream;
 typedef ostream tostream;
 #endif
 }
+
+namespace state_machine {
+
+extern void configureLog(LPCTSTR configFileName);
+
+}

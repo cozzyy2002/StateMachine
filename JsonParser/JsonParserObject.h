@@ -8,7 +8,7 @@ namespace json_parser {
 class CParserContext : public state_machine::Context
 {
 public:
-	CParserContext(state_machine::StateMachine& stateMachine);
+	CParserContext();
 
 	HRESULT start(std::tostream& out, const CJsonParser::Option& option, state_machine::State* initialState);
 	HRESULT stop();

@@ -10,8 +10,8 @@ using namespace state_machine;
 
 static auto logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("state_machine.Context"));
 
-Context::Context(StateMachine& stateMachine)
-	: m_hContext(new ContextHandle(stateMachine))
+Context::Context()
+	: m_hContext(new ContextHandle())
 {
 }
 
@@ -65,9 +65,9 @@ bool Context::isEventHandling() const
 
 #pragma endregion
 
-AsyncContext::AsyncContext(StateMachine& stateMachine)
+AsyncContext::AsyncContext()
 	: Context(nullptr)
-	, m_hAsyncContext(new AsyncContextHandle(stateMachine))
+	, m_hAsyncContext(new AsyncContextHandle())
 {
 }
 

@@ -30,12 +30,10 @@ protected:
 	std::unique_ptr<State> userState;
 };
 
-ContextHandle::ContextHandle(StateMachine& stateMachine)
-	: stateMachine(dynamic_cast<StateMachineImpl*>(&stateMachine))
+ContextHandle::ContextHandle()
+	: stateMachine(new StateMachineImpl())
 	, m_isEventHandling(false)
 {
-	// Check if dynamic_cast<>() worked.
-	HR_EXPECT(this->stateMachine, E_ABORT);
 }
 
 ContextHandle::~ContextHandle()
@@ -67,8 +65,8 @@ std::lock_guard<std::mutex>* ContextHandle::getStateLock(Context& context)
 	return context.isStateLockEnabled() ? new std::lock_guard<std::mutex>(stateLock) : nullptr;
 }
 
-AsyncContextHandle::AsyncContextHandle(StateMachine& stateMachine)
-	: ContextHandle(stateMachine)
+AsyncContextHandle::AsyncContextHandle()
+	: ContextHandle()
 	, isWorkerThreadRunning(false)
 {
 }

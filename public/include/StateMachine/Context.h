@@ -9,14 +9,13 @@
 namespace state_machine {
 
 class State;
-class StateMachine;
 class ContextHandle;
 class AsyncContextHandle;
 
 class Context : public Object
 {
 protected:
-	Context(StateMachine& stateMachine);
+	Context();
 
 	// Internal use.
 	// Initialize of all members should be preformed by derived class.
@@ -79,7 +78,7 @@ protected:
 class AsyncContext : public Context
 {
 protected:
-	AsyncContext(StateMachine& stateMachine);
+	AsyncContext();
 
 public:
 	// This method can't be called.

@@ -42,12 +42,6 @@ CStateMachineApp::CStateMachineApp()
 	// Place all significant initialization in InitInstance
 }
 
-StateMachine * CStateMachineApp::getStateMachine()
-{
-	if(!m_stateMachine) m_stateMachine.reset(StateMachine::createInstance());
-	return m_stateMachine.get();
-}
-
 // The one and only CStateMachineApp object
 
 CStateMachineApp theApp;
@@ -57,7 +51,7 @@ CStateMachineApp theApp;
 
 BOOL CStateMachineApp::InitInstance()
 {
-	StateMachine::configureLog(LOG4CPLUS_TEXT("log4cplus.properties"));
+	configureLog(LOG4CPLUS_TEXT("log4cplus.properties"));
 	LOG4CPLUS_INFO(logger, __FUNCTION__);
 
 	// InitCommonControlsEx() is required on Windows XP if an application
