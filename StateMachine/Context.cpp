@@ -65,6 +65,14 @@ HRESULT Context::handleEvent(Event& e)
 	return m_hContext->handleEvent(*this, e);
 }
 
+HRESULT Context::queueEvent(Event* e)
+{
+	delete e;
+
+	LOG4CPLUS_FATAL(logger, __FUNCTION__ "(Event*) is not implemented.");
+	return E_NOTIMPL;
+}
+
 std::lock_guard<std::mutex>* Context::getStateLock()
 {
 	return 	m_hContext->getStateLock(*this);

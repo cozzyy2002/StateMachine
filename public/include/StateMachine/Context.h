@@ -49,6 +49,8 @@ public:
 	// Handles event in this context.
 	virtual HRESULT handleEvent(Event& e);
 
+	virtual HRESULT queueEvent(Event* e);
+
 	// Determine whether StateMachine::handleEvent() requires exclusive execution.
 	// Returning true means that the method might be called from more than one thread simultaneously.
 	// If this feature is required, override this method to return true.
@@ -95,7 +97,7 @@ public:
 	virtual HRESULT stop() override;
 	virtual bool isStarted() const override;
 	virtual HRESULT handleEvent(Event& e) override;
-	virtual HRESULT queueEvent(Event* e);
+	virtual HRESULT queueEvent(Event* e) override;
 
 	// Stete lock is necessary.
 	virtual INLINE bool isStateLockEnabled() const override { return true; }
