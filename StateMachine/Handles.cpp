@@ -30,12 +30,28 @@ protected:
 	std::unique_ptr<State> userState;
 };
 
-ContextHandle::ContextHandle(StateMachine& stateMachine)
-	: stateMachine(dynamic_cast<StateMachineImpl*>(&stateMachine))
+ContextHandleBase::ContextHandleBase()
+	: stateMachine(new StateMachineImpl())
 	, m_isEventHandling(false)
 {
-	// Check if dynamic_cast<>() worked.
-	HR_EXPECT(this->stateMachine, E_ABORT);
+}
+
+ContextHandleBase::~ContextHandleBase()
+{
+}
+
+std::lock_guard<std::mutex>* ContextHandleBase::getStateLock(Context& context)
+{
+	return context.isStateLockEnabled() ? new std::lock_guard<std::mutex>(stateLock) : nullptr;
+}
+
+StateMachine * ContextHandleBase::getStateMachine()
+{
+	return stateMachine.get();
+}
+
+ContextHandle::ContextHandle()
+{
 }
 
 ContextHandle::~ContextHandle()
@@ -44,9 +60,13 @@ ContextHandle::~ContextHandle()
 
 HRESULT ContextHandle::start(Context& context, State* initialState, Event& userEvent)
 {
+	// Avoid memory leak even if exit before handle event.
+	std::unique_ptr<State> _state(initialState);
+
+	HR_ASSERT(initialState, E_POINTER);
 	HR_ASSERT(!currentState, E_ILLEGAL_METHOD_CALL);
 
-	currentState.reset(new RootState(initialState));
+	currentState.reset(new RootState(_state.release()));
 	return handleEvent(context, userEvent);
 }
 
@@ -62,19 +82,23 @@ HRESULT ContextHandle::handleEvent(Context& context, Event& e)
 	return stateMachine->handleEvent(e);
 }
 
-std::lock_guard<std::mutex>* ContextHandle::getStateLock(Context& context)
+AsyncContextHandle::AsyncContextHandle()
+	: ContextHandleBase()
+	, isWorkerThreadRunning(false)
 {
-	return context.isStateLockEnabled() ? new std::lock_guard<std::mutex>(stateLock) : nullptr;
 }
 
-AsyncContextHandle::AsyncContextHandle(StateMachine& stateMachine)
-	: ContextHandle(stateMachine)
-	, isWorkerThreadRunning(false)
+AsyncContextHandle::~AsyncContextHandle()
 {
 }
 
 HRESULT AsyncContextHandle::start(AsyncContext& context, State* initialState, Event* userEvent)
 {
+	// Avoid memory leak even if exit before queue event.
+	std::unique_ptr<State> _state(initialState);
+	std::unique_ptr<Event> _e(userEvent);
+
+	HR_ASSERT(initialState, E_POINTER);
 	HR_ASSERT(!currentState, E_ILLEGAL_METHOD_CALL);
 
 	// Start event handling in worker thread.
@@ -82,8 +106,8 @@ HRESULT AsyncContextHandle::start(AsyncContext& context, State* initialState, Ev
 	workerThread = std::thread([this]() { handleEvent(); });
 
 	// Set initial state and queue event to be handled.
-	currentState.reset(new RootState(initialState));
-	return queueEvent(context, userEvent);
+	currentState.reset(new RootState(_state.release()));
+	return queueEvent(context, _e.release());
 }
 
 HRESULT AsyncContextHandle::stop(AsyncContext& context)
@@ -112,11 +136,6 @@ HRESULT AsyncContextHandle::queueEvent(AsyncContext& context, Event* e)
 	}
 	WIN32_ASSERT(SetEvent(hEventAvailable));
 	return S_OK;
-}
-
-bool AsyncContextHandle::isStarted(const AsyncContext & context) const
-{
-	return isWorkerThreadRunning && context.isStarted();
 }
 
 void AsyncContextHandle::handleEvent()

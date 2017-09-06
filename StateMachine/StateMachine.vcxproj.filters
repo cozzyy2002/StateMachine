@@ -39,9 +39,6 @@
     <ClInclude Include="..\public\include\StateMachine\State.h">
       <Filter>public</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\include\StateMachine\StateMachine.h">
-      <Filter>public</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\include\StateMachine\stdafx.h">
       <Filter>public</Filter>
     </ClInclude>
@@ -52,6 +49,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\public\include\StateMachine\Common.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\include\StateMachine\StateMachine.h">
       <Filter>public</Filter>
     </ClInclude>
   </ItemGroup>

@@ -9,14 +9,14 @@
 namespace state_machine {
 
 class State;
-class StateMachine;
 class ContextHandle;
 class AsyncContextHandle;
+class StateMachine;
 
 class Context : public Object
 {
 protected:
-	Context(StateMachine& stateMachine);
+	Context();
 
 	// Internal use.
 	// Initialize of all members should be preformed by derived class.
@@ -34,17 +34,23 @@ public:
 			e parameter if userEvent is not specified.
 			previousState parameter which points internal State object.
 	*/
+	// Supported by Context.
 	virtual HRESULT start(State* initialState, Event& userEvent);
+	// Supported by AsyncContext.
+	virtual HRESULT start(State* initialState, Event* userEvent);
+	// Supported by Context and AsyncContext.
 	virtual HRESULT start(State* initialState);
 
 	// Stops state machine.
 	virtual HRESULT stop();
 
 	// true if event handling has been started(After calling start() before stop()).
-	virtual bool isStarted() const { return getCurrentState() ? true : false; }
+	virtual bool isStarted() const;
 
 	// Handles event in this context.
 	virtual HRESULT handleEvent(Event& e);
+
+	virtual HRESULT queueEvent(Event* e);
 
 	// Determine whether StateMachine::handleEvent() requires exclusive execution.
 	// Returning true means that the method might be called from more than one thread simultaneously.
@@ -66,6 +72,9 @@ public:
 	template<class T = State>
 	T* getCurrentState() const { return dynamic_cast<T*>(getCurrentRawState()); }
 
+	// Do NOT delete returned object.
+	StateMachine* getStateMachine();
+
 	// Internal use.
 	ContextHandle* getHandle() const { return m_hContext.get(); }
 
@@ -79,17 +88,20 @@ protected:
 class AsyncContext : public Context
 {
 protected:
-	AsyncContext(StateMachine& stateMachine);
+	AsyncContext();
 
 public:
+	virtual ~AsyncContext();
+
 	// This method can't be called.
 	// Call start(State*, Event*) instead.
 	virtual HRESULT start(State* initialState, Event& userEvent) override;
-	virtual HRESULT start(State* initialState, Event* userEvent = nullptr);
+	virtual HRESULT start(State* initialState, Event* userEvent) override;
+	virtual HRESULT start(State* initialState) override;
 	virtual HRESULT stop() override;
 	virtual bool isStarted() const override;
 	virtual HRESULT handleEvent(Event& e) override;
-	virtual HRESULT queueEvent(Event* e);
+	virtual HRESULT queueEvent(Event* e) override;
 
 	// Stete lock is necessary.
 	virtual INLINE bool isStateLockEnabled() const override { return true; }

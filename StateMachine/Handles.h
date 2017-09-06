@@ -16,27 +16,22 @@ class StateMachine;
 class StateMachineImpl;
 class StateHandle;
 
-class ContextHandle : public Object
+class ContextHandleBase : public Object
 {
 public:
-	ContextHandle(StateMachine& stateMachine);
-	virtual ~ContextHandle();
-
-	// Set initialState as current state and call initialState->entry().
-	HRESULT start(Context& context, State* initialState, Event& userEvent);
-
-	// Stops state machine.
-	HRESULT stop(Context& context);
-
-	HRESULT handleEvent(Context& context, Event& e);
+	ContextHandleBase();
+	virtual ~ContextHandleBase();
 
 	// See Context::getStateLock().
 	std::lock_guard<std::mutex>* getStateLock(Context& context);
 
-	bool isEventHandling() const { return m_isEventHandling; }
+	virtual bool isStarted() const { return currentState ? true : false; }
+	virtual bool isEventHandling() const { return m_isEventHandling; }
+
+	StateMachine* getStateMachine();
 
 	std::shared_ptr<State> currentState;
-	StateMachineImpl* const stateMachine;
+	std::unique_ptr<StateMachineImpl> stateMachine;
 
 	// true if the state machine is handling event in this context.
 	// Used to recursive call check by state machine.
@@ -46,17 +41,33 @@ public:
 	std::mutex stateLock;
 };
 
-class AsyncContextHandle : public ContextHandle
+class ContextHandle : public ContextHandleBase
 {
 public:
-	AsyncContextHandle(StateMachine& stateMachine);
+	ContextHandle();
+	virtual ~ContextHandle();
+
+	// Set initialState as current state and call initialState->entry().
+	HRESULT start(Context& context, State* initialState, Event& userEvent);
+
+	// Stops state machine.
+	HRESULT stop(Context& context);
+
+	HRESULT handleEvent(Context& context, Event& e);
+};
+
+class AsyncContextHandle : public ContextHandleBase
+{
+public:
+	AsyncContextHandle();
+	virtual ~AsyncContextHandle();
 
 	HRESULT start(AsyncContext& context, State* initialState, Event* userEvent);
 	HRESULT stop(AsyncContext& context);
 	HRESULT handleEvent(AsyncContext& context, Event& e);
 	HRESULT queueEvent(AsyncContext& context, Event* e);
 
-	bool isStarted(const AsyncContext& context) const;
+	virtual bool isStarted() const override { return isWorkerThreadRunning && ContextHandleBase::isStarted(); }
 
 protected:
 	// Event queue.

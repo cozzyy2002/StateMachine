@@ -48,8 +48,7 @@ CStateMachineDoc::~CStateMachineDoc()
 
 CAppContext * CStateMachineDoc::createContext(LPCTSTR name)
 {
-	auto& stateMachine(*m_app->getStateMachine());
-	CAppContext* context = new CAppContext(this, name, stateMachine);
+	CAppContext* context = new CAppContext(this, name);
 	m_context.reset(context);
 	outputMessage(_T("Created CAppContext: '%s'"), context->toString());
 	SetTitle(nullptr);
@@ -135,7 +134,6 @@ BOOL CStateMachineDoc::OnNewDocument()
 
 	// TODO: add reinitialization code here
 	// (SDI documents will reuse this document)
-	m_stateMachine = m_app->getStateMachine();
 
 	return TRUE;
 }

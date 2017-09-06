@@ -3,8 +3,8 @@
 
 using namespace json_parser;
 
-CParserContext::CParserContext(state_machine::StateMachine & stateMachine)
-	: Context(stateMachine), column(0)
+CParserContext::CParserContext()
+	: Context(), column(0)
 {
 }
 

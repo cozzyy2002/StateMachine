@@ -26,6 +26,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "jpp", "jpp\jpp.vcxproj", "{
 		{5D559714-38BA-49C2-89BA-FFF1B69626B4} = {5D559714-38BA-49C2-89BA-FFF1B69626B4}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E46E5AB3-69A1-4D00-B607-49EACF4790A4}"
+	ProjectSection(SolutionItems) = preProject
+		log4cplus.properties = log4cplus.properties
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64

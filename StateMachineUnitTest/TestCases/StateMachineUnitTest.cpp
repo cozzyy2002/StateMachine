@@ -10,7 +10,7 @@ using namespace testing;
 class TestContext : public Context
 {
 public:
-	TestContext(StateMachine& stateMachine) : Context(stateMachine) {}
+	TestContext() : Context() {}
 };
 
 class StateMacineUnitTest : public Test
@@ -19,19 +19,17 @@ public:
 	typedef TestStateMachine Testee;
 
 	StateMacineUnitTest()
-		: context(new TestContext(testee))
-		, e(new MockEvent(*context)) {}
+		: e(new MockEvent(context)) {}
 
 	void SetUp() {
 		currentState = new MockState(MockObjectId::CURRENT_STATE);
-		testee.setNextState(*context, currentState);
+		testee.setNextState(context, currentState);
 	}
 	void TearDown() {
-		context.reset();
 	}
 
 	Testee testee;
-	std::unique_ptr<TestContext> context;
+	TestContext context;
 	MockState* currentState;
 	std::unique_ptr<MockEvent> e;
 };
@@ -45,7 +43,7 @@ TEST_F(StateMacineUnitTest, no_transition)
 
 	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(*e));
 
-	EXPECT_EQ(currentState, context->getCurrentState());
+	EXPECT_EQ(currentState, context.getCurrentState());
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_TRUE(e->isHandled);
 }
@@ -65,7 +63,7 @@ TEST_F(StateMacineUnitTest, no_transition_error)
 
 	ASSERT_EQ(E_NOTIMPL, testee.handleEvent(*e));
 
-	EXPECT_EQ(currentState, context->getCurrentState());
+	EXPECT_EQ(currentState, context.getCurrentState());
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_TRUE(e->isHandled);
 }
@@ -82,7 +80,7 @@ TEST_F(StateMacineUnitTest, transition)
 
 	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(*e));
 
-	EXPECT_EQ(nextState, context->getCurrentState());
+	EXPECT_EQ(nextState, context.getCurrentState());
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::NEXT_STATE));
 	EXPECT_TRUE(e->isHandled);
@@ -106,7 +104,7 @@ TEST_F(StateMacineUnitTest, transition_error)
 
 	ASSERT_EQ(E_NOTIMPL, testee.handleEvent(*e));
 
-	EXPECT_EQ(currentState, context->getCurrentState());
+	EXPECT_EQ(currentState, context.getCurrentState());
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::NEXT_STATE));
 	EXPECT_TRUE(e->isHandled);
@@ -119,13 +117,13 @@ public:
 		StateMacineUnitTest::SetUp();
 
 		// Clear current state to change to sub state.
-		testee.clearCurrentState(*context);
+		testee.clearCurrentState(context);
 		currentState = new MockSubState(MockObjectId::CURRENT_STATE);
 		masterState1 = new MockSubState(MockObjectId::MASTER_STATE1);
 		masterState2 = new MockState(MockObjectId::MASTER_STATE2);
-		testee.setNextState(*context, masterState2);
-		testee.setNextState(*context, masterState1);
-		testee.setNextState(*context, currentState);
+		testee.setNextState(context, masterState2);
+		testee.setNextState(context, masterState1);
+		testee.setNextState(context, currentState);
 		otherState = new MockState(MockObjectId::OTHER_STATE);
 
 		// Check master state setter/getter of State class.
@@ -155,7 +153,7 @@ TEST_F(StateMacineSubStateUnitTest, back_to_parent1)
 
 	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(*e));
 
-	EXPECT_EQ(masterState1, context->getCurrentState());
+	EXPECT_EQ(masterState1, context.getCurrentState());
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::MASTER_STATE1));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::MASTER_STATE2));
@@ -175,7 +173,7 @@ TEST_F(StateMacineSubStateUnitTest, back_to_parent2)
 
 	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(*e));
 
-	EXPECT_EQ(masterState2, context->getCurrentState());
+	EXPECT_EQ(masterState2, context.getCurrentState());
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::MASTER_STATE1));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::MASTER_STATE2));
@@ -197,7 +195,7 @@ TEST_F(StateMacineSubStateUnitTest, exit_to_other_state)
 
 	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(*e));
 
-	EXPECT_EQ(otherState, context->getCurrentState());
+	EXPECT_EQ(otherState, context.getCurrentState());
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::MASTER_STATE1));
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::MASTER_STATE2));
@@ -230,7 +228,7 @@ TEST_F(StateMacineSubStateUnitTest, event_ignored)
 
 	ASSERT_EQ(State::S_EVENT_IGNORED, testee.handleEvent(*e));
 
-	EXPECT_EQ(currentState, context->getCurrentState());
+	EXPECT_EQ(currentState, context.getCurrentState());
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::MASTER_STATE1));
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::MASTER_STATE2));
