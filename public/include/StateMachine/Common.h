@@ -20,6 +20,10 @@ typedef ostream tostream;
 
 namespace state_machine {
 
+static LPCTSTR defaultLogConigFileName(_T("log4cplus.properties"));
+static LPCTSTR globalLoggerName = _T("state_machine.global");
+static LPCTSTR stateMachineDefaultLoggerName = _T("state_machine.StateMachine");
+
 extern void configureLog(LPCTSTR configFileName);
 
 }
