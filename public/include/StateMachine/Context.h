@@ -72,6 +72,7 @@ public:
 	template<class T = State>
 	T* getCurrentState() const { return dynamic_cast<T*>(getCurrentRawState()); }
 
+	// Do NOT delete returned object.
 	StateMachine* getStateMachine();
 
 	// Internal use.
