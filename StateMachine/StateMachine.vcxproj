@@ -163,6 +163,7 @@ xcopy /D /I /Y "$(Solutiondir)log4cplus.properties" "$(OutDir)"</Command>
     <ClInclude Include="..\public\include\StateMachine\Event.h" />
     <ClInclude Include="..\public\include\StateMachine\Object.h" />
     <ClInclude Include="..\public\include\StateMachine\State.h" />
+    <ClInclude Include="..\public\include\StateMachine\StateMachine.h" />
     <ClInclude Include="..\public\include\StateMachine\stdafx.h" />
     <ClInclude Include="Handles.h" />
     <ClInclude Include="StateMachineImpl.h" />

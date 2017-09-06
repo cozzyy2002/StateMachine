@@ -9,10 +9,9 @@
 #include <log4cplus/configurator.h>
 #include <Shlwapi.h>
 
-static auto defaultLogConigFileName(LOG4CPLUS_TEXT("log4cplus.properties"));
-static auto logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("state_machine.StateMachine"));
-
 using namespace state_machine;
+
+auto globalLogger = log4cplus::Logger::getInstance(globalLoggerName);
 
 static std::tstring logConfigFileName;
 
@@ -22,7 +21,7 @@ void state_machine::configureLog(LPCTSTR configFileName)
 		logConfigFileName = configFileName;
 		log4cplus::PropertyConfigurator::doConfigure(configFileName);
 	} else if(logConfigFileName != configFileName) {
-		LOG4CPLUS_ERROR(logger, configFileName << _T(": Already configured by ") << logConfigFileName.c_str());
+		LOG4CPLUS_ERROR(globalLogger, configFileName << _T(": Already configured by ") << logConfigFileName.c_str());
 	} else { /* Already configured by same file. Do nothing */ }
 }
 
@@ -39,12 +38,11 @@ StateMachineImpl::StateMachineImpl()
 		}
 	}
 
-	LOG4CPLUS_DEBUG(logger, __FUNCTION__ ": Creating instance");
+	logger = log4cplus::Logger::getInstance(stateMachineDefaultLoggerName);
 }
 
 StateMachineImpl::~StateMachineImpl()
 {
-	LOG4CPLUS_DEBUG(logger, __FUNCTION__ ": Deleting instance");
 }
 
 HRESULT StateMachineImpl::handleEvent(Event& e)
@@ -124,7 +122,7 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 		} else {
 			// Transition to other state or master state of current state.
 			// Call exit() of current state and master state if any.
-			HR_ASSERT_OK(for_each_state(currentState, [&e, pNextState](std::shared_ptr<State>& state)
+			HR_ASSERT_OK(for_each_state(currentState, [this, &e, pNextState](std::shared_ptr<State>& state)
 			{
 				if(state.get() != pNextState) {
 					LOG4CPLUS_DEBUG(logger, "Calling " << state->toString() << "::exit()");

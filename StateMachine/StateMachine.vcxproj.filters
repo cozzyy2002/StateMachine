@@ -51,6 +51,9 @@
     <ClInclude Include="..\public\include\StateMachine\Common.h">
       <Filter>public</Filter>
     </ClInclude>
+    <ClInclude Include="..\public\include\StateMachine\StateMachine.h">
+      <Filter>public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

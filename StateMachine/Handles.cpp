@@ -45,6 +45,11 @@ std::lock_guard<std::mutex>* ContextHandleBase::getStateLock(Context& context)
 	return context.isStateLockEnabled() ? new std::lock_guard<std::mutex>(stateLock) : nullptr;
 }
 
+StateMachine * ContextHandleBase::getStateMachine()
+{
+	return stateMachine.get();
+}
+
 ContextHandle::ContextHandle()
 {
 }

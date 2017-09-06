@@ -83,6 +83,11 @@ bool Context::isEventHandling() const
 	return m_hContext->isEventHandling();
 }
 
+StateMachine* Context::getStateMachine()
+{
+	return m_hContext->getStateMachine();
+}
+
 #pragma endregion
 
 AsyncContext::AsyncContext()

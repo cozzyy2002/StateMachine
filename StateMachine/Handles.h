@@ -28,6 +28,8 @@ public:
 	virtual bool isStarted() const { return currentState ? true : false; }
 	virtual bool isEventHandling() const { return m_isEventHandling; }
 
+	StateMachine* getStateMachine();
+
 	std::shared_ptr<State> currentState;
 	std::unique_ptr<StateMachineImpl> stateMachine;
 

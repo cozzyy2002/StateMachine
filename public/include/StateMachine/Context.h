@@ -11,6 +11,7 @@ namespace state_machine {
 class State;
 class ContextHandle;
 class AsyncContextHandle;
+class StateMachine;
 
 class Context : public Object
 {
@@ -70,6 +71,8 @@ public:
 	// Do NOT delete returned object.
 	template<class T = State>
 	T* getCurrentState() const { return dynamic_cast<T*>(getCurrentRawState()); }
+
+	StateMachine* getStateMachine();
 
 	// Internal use.
 	ContextHandle* getHandle() const { return m_hContext.get(); }
