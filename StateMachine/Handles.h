@@ -11,7 +11,6 @@ namespace state_machine {
 class Event;
 class State;
 class Context;
-class AsyncContext;
 class StateMachine;
 class StateMachineImpl;
 class StateHandle;
@@ -62,10 +61,10 @@ public:
 	AsyncContextHandle();
 	virtual ~AsyncContextHandle();
 
-	HRESULT start(AsyncContext& context, State* initialState, Event* userEvent);
-	HRESULT stop(AsyncContext& context);
-	HRESULT handleEvent(AsyncContext& context, Event& e);
-	HRESULT queueEvent(AsyncContext& context, Event* e);
+	HRESULT start(Context& context, State* initialState, Event* userEvent);
+	HRESULT stop(Context& context);
+	HRESULT handleEvent(Context& context, Event& e);
+	HRESULT queueEvent(Context& context, Event* e);
 
 	virtual bool isStarted() const override { return isWorkerThreadRunning && ContextHandleBase::isStarted(); }
 

@@ -9,6 +9,7 @@
 namespace state_machine {
 
 class State;
+class ContextHandleBase;
 class ContextHandle;
 class AsyncContextHandle;
 class StateMachine;
@@ -16,14 +17,16 @@ class StateMachine;
 class Context : public Object
 {
 protected:
-	Context();
+	Context(bool isAsync);
 
 	// Internal use.
 	// Initialize of all members should be preformed by derived class.
-	Context(ContextHandle* hContext);
+	Context(bool isAsync, ContextHandleBase* hContext);
 
 public:
 	virtual ~Context();
+
+	INLINE bool isAsync() const { return m_isAsync; }
 
 	/*
 		Start event handling in this context.
@@ -76,42 +79,15 @@ public:
 	StateMachine* getStateMachine();
 
 	// Internal use.
-	ContextHandle* getHandle() const { return m_hContext.get(); }
+	template<class T = ContextHandleBase>
+	T* getHandle() const { return dynamic_cast<T*>(m_hContext.get()); }
 
-protected:
-	std::unique_ptr<ContextHandle> m_hContext;
-
+private:
 	// Do NOT delete returned object.
 	State* getCurrentRawState() const;
-};
 
-class AsyncContext : public Context
-{
-protected:
-	AsyncContext();
-
-public:
-	virtual ~AsyncContext();
-
-	// This method can't be called.
-	// Call start(State*, Event*) instead.
-	virtual HRESULT start(State* initialState, Event& userEvent) override;
-	virtual HRESULT start(State* initialState, Event* userEvent) override;
-	virtual HRESULT start(State* initialState) override;
-	virtual HRESULT stop() override;
-	virtual bool isStarted() const override;
-	virtual HRESULT handleEvent(Event& e) override;
-	virtual HRESULT queueEvent(Event* e) override;
-
-	// Stete lock is necessary.
-	virtual INLINE bool isStateLockEnabled() const override { return true; }
-
-	// Internal use.
-	INLINE AsyncContextHandle* getHandle() const { return m_hAsyncContext.get(); }
-
-protected:
-	// Note: Context::m_hContext is not used.
-	std::unique_ptr<AsyncContextHandle> m_hAsyncContext;
+	bool m_isAsync;
+	std::unique_ptr<ContextHandleBase> m_hContext;
 };
 
 } // namespace state_machine

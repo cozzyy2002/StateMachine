@@ -3,6 +3,7 @@
 */
 {
   "name": "Test config",
+  "is_async": true,
   "initial_state": "Initial",
   "events": [
     {

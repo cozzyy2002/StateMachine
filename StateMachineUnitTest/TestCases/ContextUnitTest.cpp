@@ -9,8 +9,17 @@ using namespace testing;
 class ContextBaseUnitTest : public Test
 {
 public:
-	class ContextTestee : public Context {};
-	class AsyncContextTestee : public AsyncContext {};
+	class ContextTestee : public Context
+	{
+	public:
+		ContextTestee() : Context(false) {}
+	};
+
+	class AsyncContextTestee : public Context
+	{
+	public:
+		AsyncContextTestee() : Context(true) {}
+	};
 
 	std::unique_ptr<Context> testee;
 };
@@ -50,6 +59,7 @@ public:
 	class Testee : public Context
 	{
 	public:
+		Testee() : Context(false) {}
 	};
 
 	Testee testee;

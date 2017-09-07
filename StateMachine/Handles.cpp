@@ -92,7 +92,7 @@ AsyncContextHandle::~AsyncContextHandle()
 {
 }
 
-HRESULT AsyncContextHandle::start(AsyncContext& context, State* initialState, Event* userEvent)
+HRESULT AsyncContextHandle::start(Context& context, State* initialState, Event* userEvent)
 {
 	// Avoid memory leak even if exit before queue event.
 	std::unique_ptr<State> _state(initialState);
@@ -110,7 +110,7 @@ HRESULT AsyncContextHandle::start(AsyncContext& context, State* initialState, Ev
 	return queueEvent(context, _e.release());
 }
 
-HRESULT AsyncContextHandle::stop(AsyncContext& context)
+HRESULT AsyncContextHandle::stop(Context& context)
 {
 	// Queue NULL event to terminate worker thread.
 	HR_ASSERT_OK(queueEvent(context, nullptr));
@@ -121,13 +121,13 @@ HRESULT AsyncContextHandle::stop(AsyncContext& context)
 	return S_OK;
 }
 
-HRESULT AsyncContextHandle::handleEvent(AsyncContext& context, Event& e)
+HRESULT AsyncContextHandle::handleEvent(Context& context, Event& e)
 {
 	e.m_context = &context;
 	return stateMachine->handleEvent(e);
 }
 
-HRESULT AsyncContextHandle::queueEvent(AsyncContext& context, Event* e)
+HRESULT AsyncContextHandle::queueEvent(Context& context, Event* e)
 {
 	if(e) e->m_context = &context;
 	{

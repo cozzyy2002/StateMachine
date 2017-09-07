@@ -10,7 +10,7 @@ using namespace testing;
 class TestContext : public Context
 {
 public:
-	TestContext() : Context() {}
+	TestContext() : Context(false) {}
 };
 
 class StateMacineUnitTest : public Test
