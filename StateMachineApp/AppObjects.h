@@ -24,7 +24,7 @@ protected:
 class CAppContext : public Context, public CAppObject
 {
 public:
-	CAppContext(CStateMachineDoc* doc, LPCTSTR name);
+	CAppContext(bool isAsync, CStateMachineDoc* doc, LPCTSTR name);
 	~CAppContext();
 
 	CStateMachineDoc* const doc;

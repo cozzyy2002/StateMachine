@@ -48,9 +48,11 @@ CStateMachineDoc::~CStateMachineDoc()
 
 CAppContext * CStateMachineDoc::createContext(LPCTSTR name)
 {
-	CAppContext* context = new CAppContext(this, name);
+	auto isAsync(m_config->getBool("is_async"));
+	CAppContext* context = new CAppContext(isAsync, this, name);
 	m_context.reset(context);
-	outputMessage(_T("Created CAppContext: '%s'"), context->toString());
+	outputMessage(_T("Created CAppContext: '%s'(%s)"),
+					context->toString(), context->isAsync() ? _T("AsyncContext") : _T("Context"));
 	SetTitle(nullptr);
 	return context;
 }
@@ -67,8 +69,12 @@ HRESULT CStateMachineDoc::start(LPCTSTR stateName, CAppEvent* e /*= nullptr*/)
 	CAppState* state = createState(stateName, false);
 	HRESULT hr;
 	if(e) {
-		std::unique_ptr<CAppEvent> _e(e);
-		hr = m_context->start(state, *_e);
+		if(!m_context->isAsync()) {
+			std::unique_ptr<CAppEvent> _e(e);
+			hr = m_context->start(state, *_e);
+		} else {
+			hr = m_context->start(state, e);
+		}
 	} else {
 		hr = m_context->start(state);
 	}

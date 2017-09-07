@@ -4,7 +4,7 @@
 using namespace json_parser;
 
 CParserContext::CParserContext()
-	: Context(), column(0)
+	: Context(false), column(0)
 {
 }
 
