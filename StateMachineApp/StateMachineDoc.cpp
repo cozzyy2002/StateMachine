@@ -66,20 +66,26 @@ CAppState * CStateMachineDoc::createState(LPCTSTR name, BOOL isSubState)
 
 HRESULT CStateMachineDoc::start(LPCTSTR stateName, CAppEvent* e /*= nullptr*/)
 {
+	// Own Event* in this scope.
+	std::unique_ptr<CAppEvent> _e(e);
+
 	CAppState* state = createState(stateName, false);
+
+	// Get name of state object.
+	// state object might be deleted after calling Context::start() in async Config.
+	std::tstring _stateName(state->toString());
 	HRESULT hr;
-	if(e) {
+	if(_e) {
 		if(!m_context->isAsync()) {
-			std::unique_ptr<CAppEvent> _e(e);
 			hr = m_context->start(state, *_e);
 		} else {
-			hr = m_context->start(state, e);
+			hr = m_context->start(state, _e.release());
 		}
 	} else {
 		hr = m_context->start(state);
 	}
 	outputMessage(_T("Started CAppContext '%s': Initial state is '%s', HRESULT=0x%lx"),
-					m_context->toString(), state->toString(), hr);
+					m_context->toString(), _stateName.c_str(), hr);
 	SetTitle(nullptr);
 	return hr;
 }
