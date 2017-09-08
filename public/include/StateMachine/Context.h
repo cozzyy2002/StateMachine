@@ -10,8 +10,6 @@ namespace state_machine {
 
 class State;
 class ContextHandleBase;
-class ContextHandle;
-class AsyncContextHandle;
 class StateMachine;
 
 class Context : public Object
@@ -38,22 +36,22 @@ public:
 			previousState parameter which points internal State object.
 	*/
 	// Supported by Context.
-	virtual HRESULT start(State* initialState, Event& userEvent);
+	HRESULT start(State* initialState, Event& userEvent);
 	// Supported by AsyncContext.
-	virtual HRESULT start(State* initialState, Event* userEvent);
+	HRESULT start(State* initialState, Event* userEvent);
 	// Supported by Context and AsyncContext.
-	virtual HRESULT start(State* initialState);
+	HRESULT start(State* initialState);
 
 	// Stops state machine.
-	virtual HRESULT stop();
+	HRESULT stop();
 
 	// true if event handling has been started(After calling start() before stop()).
-	virtual bool isStarted() const;
+	bool isStarted() const;
 
 	// Handles event in this context.
-	virtual HRESULT handleEvent(Event& e);
+	HRESULT handleEvent(Event& e);
 
-	virtual HRESULT queueEvent(Event* e);
+	HRESULT queueEvent(Event* e);
 
 	// Determine whether StateMachine::handleEvent() requires exclusive execution.
 	// Returning true means that the method might be called from more than one thread simultaneously.

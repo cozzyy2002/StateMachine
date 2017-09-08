@@ -72,11 +72,15 @@ HRESULT Context::start(State * initialState)
 
 HRESULT Context::stop()
 {
-	if(!isAsync()) {
-		return getHandle<ContextHandle>()->stop(*this);
-	} else {
-		return getHandle<AsyncContextHandle>()->stop(*this);
+	if(isStarted()) {
+		if(!isAsync()) {
+			return getHandle<ContextHandle>()->stop(*this);
+		} else {
+			return getHandle<AsyncContextHandle>()->stop(*this);
+		}
 	}
+	// Already stopped.
+	return S_FALSE;
 }
 
 bool Context::isStarted() const
