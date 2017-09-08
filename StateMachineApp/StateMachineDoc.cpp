@@ -116,7 +116,9 @@ void CStateMachineDoc::onStateEntryCalled(CAppState * state)
 	for(auto st = state; st; st = st->getMasterState()) {
 		m_stateStack.push_back(st);
 	}
-	UpdateAllViews(nullptr, (LPARAM)UpdateViewHint::StateChanged, this);
+	CMainFrame* frame = (CMainFrame*)AfxGetApp()->GetMainWnd();
+	frame->PostMessage(WM_USER_UPDATE_VIEW, NULL, (LPARAM)UpdateViewHint::StateChanged);
+	//UpdateAllViews(nullptr, (LPARAM)UpdateViewHint::StateChanged, this);
 }
 
 void CStateMachineDoc::onStateExitCalled(CAppState * state)

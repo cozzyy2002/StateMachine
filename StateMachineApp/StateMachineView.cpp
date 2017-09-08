@@ -30,6 +30,7 @@ BEGIN_MESSAGE_MAP(CStateMachineView, CFormView)
 //	ON_BN_CLICKED(IDC_BUTTON_PARSE, &CStateMachineView::OnClickedButtonParse)
 	ON_BN_CLICKED(IDC_BUTTON_HANDLE_EVENT, &CStateMachineView::OnClickedButtonHandleEvent)
 	ON_BN_CLICKED(IDC_BUTTON_POST_EVENT, &CStateMachineView::OnClickedButtonPostEvent)
+	ON_MESSAGE(WM_USER_UPDATE_VIEW, &CStateMachineView::OnUserUpdateView)
 END_MESSAGE_MAP()
 
 // CStateMachineView construction/destruction
@@ -227,4 +228,12 @@ void CStateMachineView::OnClickedButtonHandleEvent()
 void CStateMachineView::OnClickedButtonPostEvent()
 {
 	// TODO: Add your control notification handler code here
+}
+
+
+afx_msg LRESULT CStateMachineView::OnUserUpdateView(WPARAM wParam, LPARAM lParam)
+{
+	auto doc = GetDocument();
+	doc->UpdateAllViews(nullptr, lParam, doc);
+	return 0;
 }

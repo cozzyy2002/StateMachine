@@ -27,6 +27,7 @@ state_machine::Context::Context(bool isAsync, ContextHandleBase* hContext)
 
 Context::~Context()
 {
+	HR_EXPECT_OK(stop());
 }
 
 State* Context::getCurrentRawState() const

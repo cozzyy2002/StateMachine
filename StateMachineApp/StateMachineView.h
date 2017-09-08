@@ -6,7 +6,6 @@
 #include "afxwin.h"
 #include "afxcmn.h"
 
-
 class CStateMachineView : public CFormView
 {
 protected: // create from serialization only
@@ -65,6 +64,8 @@ public:
 	afx_msg void OnClickedButtonHandleEvent();
 	afx_msg void OnClickedButtonPostEvent();
 	CComboBox m_eventNames;
+protected:
+	afx_msg LRESULT OnUserUpdateView(WPARAM wParam, LPARAM lParam);
 };
 
 #ifndef _DEBUG  // debug version in StateMachineView.cpp

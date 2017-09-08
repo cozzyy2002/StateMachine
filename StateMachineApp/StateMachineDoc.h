@@ -95,3 +95,7 @@ public:
 //	afx_msg void OnUpdateButtonContextCreate(CCmdUI *pCmdUI);
 	virtual void SetTitle(LPCTSTR lpszTitle);
 };
+
+enum {
+	WM_USER_UPDATE_VIEW = WM_USER + 1,
+};
