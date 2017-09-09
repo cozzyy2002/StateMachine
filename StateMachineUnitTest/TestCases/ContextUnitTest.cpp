@@ -9,16 +9,10 @@ using namespace testing;
 class ContextBaseUnitTest : public Test
 {
 public:
-	class ContextTestee : public Context
+	class Testee : public Context
 	{
 	public:
-		ContextTestee() : Context(false) {}
-	};
-
-	class AsyncContextTestee : public Context
-	{
-	public:
-		AsyncContextTestee() : Context(true) {}
+		Testee(bool isAsync) : Context(isAsync) {}
 	};
 
 	std::unique_ptr<Context> testee;
@@ -28,7 +22,7 @@ public:
 // Object passed by pointer should be deleted.
 TEST_F(ContextBaseUnitTest, Context_start_notimpl)
 {
-	testee.reset(new ContextTestee());
+	testee.reset(new Testee(false));
 
 	auto state(new MockState(MockObjectId::CURRENT_STATE));
 	auto e(new MockEvent(MockObjectId::EVENT));
@@ -43,7 +37,7 @@ TEST_F(ContextBaseUnitTest, Context_start_notimpl)
 // Object passed by pointer should be deleted.
 TEST_F(ContextBaseUnitTest, Context_queueEvent_notimpl)
 {
-	testee.reset(new ContextTestee());
+	testee.reset(new Testee(false));
 
 	auto state(new MockState(MockObjectId::CURRENT_STATE));
 	MockEvent e;
@@ -62,7 +56,7 @@ TEST_F(ContextBaseUnitTest, Context_queueEvent_notimpl)
 // Object passed by pointer should be deleted.
 TEST_F(ContextBaseUnitTest, AsyncContext_start_notimpl)
 {
-	testee.reset(new AsyncContextTestee());
+	testee.reset(new Testee(true));
 
 	auto state(new MockState(MockObjectId::CURRENT_STATE));
 	MockEvent e;

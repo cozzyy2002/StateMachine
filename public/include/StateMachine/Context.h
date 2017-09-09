@@ -54,12 +54,12 @@ public:
 
 	HRESULT queueEvent(Event* e);
 
-	// Worker thread procedure.
+	// Type of worker thread procedure.
 	// Worker thread is the thread in which event passed to Context::queueEvent() is handled.
 	// onStartThread() mehtod calls this method in worker thread.
 	using WorkerThreadProc = void(*)(Context& contex);
 
-	// Creates worker thread and calls proc in the thread.
+	// Creates worker thread and calls WorkerThreadProc in the thread.
 	// This method is called by Context::start() method.
 	// If Context is created by constructor Context(isAsync = false), this method is not called.
 	virtual HRESULT onStartThread(WorkerThreadProc proc) {

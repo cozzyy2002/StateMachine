@@ -57,6 +57,7 @@ HRESULT ContextHandle::start(Context& context, State* initialState, Event& userE
 
 	HR_ASSERT(initialState, E_POINTER);
 	HR_ASSERT(!currentState, E_ILLEGAL_METHOD_CALL);
+	HR_ASSERT(!isStarted(), E_ILLEGAL_METHOD_CALL);
 
 	currentState.reset(new RootState(_state.release()));
 	return handleEvent(context, userEvent);
@@ -78,12 +79,15 @@ HRESULT ContextHandle::start(Context& context, State* initialState)
 
 HRESULT ContextHandle::stop(Context& /*context*/)
 {
+	// Note: stop() can be called even if stopped.
 	currentState.reset();
 	return S_OK;
 }
 
 HRESULT ContextHandle::handleEvent(Context& context, Event& e)
 {
+	HR_ASSERT(isStarted(), E_ILLEGAL_METHOD_CALL);
+
 	e.m_context = &context;
 	return stateMachine->handleEvent(e);
 }
@@ -119,6 +123,7 @@ HRESULT AsyncContextHandle::start(Context& context, State* initialState, Event* 
 	std::unique_ptr<Event> _e(userEvent);
 
 	HR_ASSERT(initialState, E_POINTER);
+	HR_ASSERT(!isStarted(), E_ILLEGAL_METHOD_CALL);
 
 	// Caller should set event object anyway.
 	// NULL event makes worker thread terminate.
@@ -141,21 +146,32 @@ HRESULT AsyncContextHandle::start(Context& context, State* initialState)
 
 HRESULT AsyncContextHandle::stop(Context& context)
 {
-	// Queue NULL event to terminate worker thread.
-	HR_ASSERT_OK(queueEvent(context, nullptr));
-	HR_ASSERT_OK(context.onStopThread());
+	// Note: stop() can be called even if stopped.
+	if(isStarted()) {
+		// Queue NULL event to terminate worker thread.
+		HR_ASSERT_OK(queueEvent(context, nullptr));
+		HR_ASSERT_OK(context.onStopThread());
+
+		ContextHandle::stop(context);
+	}
 
 	return S_OK;
 }
 
 HRESULT AsyncContextHandle::handleEvent(Context& context, Event& e)
 {
+	HR_ASSERT(isStarted(), E_ILLEGAL_METHOD_CALL);
+
 	e.m_context = &context;
 	return stateMachine->handleEvent(e);
 }
 
 HRESULT AsyncContextHandle::queueEvent(Context& context, Event* e)
 {
+	// When start() calls this method, worker thread is not running yet.
+	// So we check only ContextHandle::isStarted() not this->isStarted().
+	HR_ASSERT(ContextHandle::isStarted(), E_ILLEGAL_METHOD_CALL);
+
 	if(e) e->m_context = &context;
 	{
 		std::lock_guard<std::mutex> _lock(eventQueueLock);
@@ -197,6 +213,8 @@ void AsyncContextHandle::handleEvent()
 	}
 }
 
+// Worker thread procedure.
+// Called by Context::onStartThread() as WorkerThreadProc.
 /*static*/ void AsyncContextHandle::workerThreadProc(Context & context)
 {
 	LOG4CPLUS_INFO(logger, __FUNCTION__ ": Starting worker thread.");
