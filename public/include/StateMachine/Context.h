@@ -5,6 +5,7 @@
 
 #include <mutex>
 #include <memory>
+#include <thread>
 
 namespace state_machine {
 
@@ -53,6 +54,29 @@ public:
 
 	HRESULT queueEvent(Event* e);
 
+	// Worker thread procedure.
+	// Worker thread is the thread in which event passed to Context::queueEvent() is handled.
+	// onStartThread() mehtod calls this method in worker thread.
+	using WorkerThreadProc = void(*)(Context& contex);
+
+	// Creates worker thread and calls proc in the thread.
+	// This method is called by Context::start() method.
+	// If Context is created by constructor Context(isAsync = false), this method is not called.
+	virtual HRESULT onStartThread(WorkerThreadProc proc) {
+		workerThread = std::thread([this, proc]() { proc(*this); });
+		return S_OK;
+	}
+
+	// Waits for worker thread to exit.
+	// This method is called by Context::stop() method.
+	// If Context is created by constructor Context(isAsync = false), this method is not called.
+	virtual HRESULT onStopThread() {
+		if(workerThread.joinable()) {
+			workerThread.join();
+		}
+		return S_OK;
+	}
+
 	// Determine whether StateMachine::handleEvent() requires exclusive execution.
 	// Returning true means that the method might be called from more than one thread simultaneously.
 	// If this feature is required, override this method to return true.
@@ -86,6 +110,8 @@ private:
 
 	bool m_isAsync;
 	std::unique_ptr<ContextHandle> m_hContext;
+
+	std::thread workerThread;
 };
 
 } // namespace state_machine

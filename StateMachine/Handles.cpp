@@ -127,7 +127,7 @@ HRESULT AsyncContextHandle::start(Context& context, State* initialState, Event* 
 
 	// Start event handling in worker thread.
 	hEventAvailable.Attach(CreateEvent(nullptr, TRUE, FALSE, nullptr));
-	workerThread = std::thread([this]() { handleEvent(); });
+	HR_ASSERT_OK(context.onStartThread(workerThreadProc));
 
 	// Set initial state and queue event to be handled.
 	currentState.reset(new RootState(_state.release()));
@@ -143,10 +143,8 @@ HRESULT AsyncContextHandle::stop(Context& context)
 {
 	// Queue NULL event to terminate worker thread.
 	HR_ASSERT_OK(queueEvent(context, nullptr));
-	if(workerThread.joinable()) {
-		workerThread.join();
-		LOG4CPLUS_INFO(logger, __FUNCTION__ ": Worker thread has terminated.");
-	}
+	HR_ASSERT_OK(context.onStopThread());
+
 	return S_OK;
 }
 
@@ -169,8 +167,6 @@ HRESULT AsyncContextHandle::queueEvent(Context& context, Event* e)
 
 void AsyncContextHandle::handleEvent()
 {
-	LOG4CPLUS_INFO(logger, __FUNCTION__ ": started.");
-
 	// Set running flag and it will be reset when this method exits.
 	ScopedStore<bool> _running(isWorkerThreadRunning, false, true);
 
@@ -194,10 +190,16 @@ void AsyncContextHandle::handleEvent()
 		}
 		if(!e) {
 			// stop() method sets NULL event.
-			LOG4CPLUS_INFO(logger, __FUNCTION__ ": exit.");
 			return;
 		}
 
 		HR_EXPECT_OK(stateMachine->handleEvent(*e));
 	}
+}
+
+/*static*/ void AsyncContextHandle::workerThreadProc(Context & context)
+{
+	LOG4CPLUS_INFO(logger, __FUNCTION__ ": Starting worker thread.");
+	context.getHandle<AsyncContextHandle>()->handleEvent();
+	LOG4CPLUS_INFO(logger, __FUNCTION__ ": Terminating worker thread.");
 }

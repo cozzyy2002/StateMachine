@@ -4,7 +4,6 @@
 #include <deque>
 #include <memory>
 #include <mutex>
-#include <thread>
 
 namespace state_machine {
 
@@ -81,8 +80,9 @@ protected:
 	// Win32 event handle to notify that one or more events are in the event queue.
 	CHandle hEventAvailable;
 
-	std::thread workerThread;
 	void handleEvent();
+
+	static void workerThreadProc(Context& context);
 };
 
 class StateHandle : public Object
