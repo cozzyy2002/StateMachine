@@ -56,6 +56,7 @@ HRESULT ContextHandle::start(Context& context, State* initialState, Event& userE
 	std::unique_ptr<State> _state(initialState);
 
 	HR_ASSERT(initialState, E_POINTER);
+	HR_ASSERT(userEvent.isLegalAppEvent(), E_INVALIDARG);
 	HR_ASSERT(!currentState, E_ILLEGAL_METHOD_CALL);
 	HR_ASSERT(!isStarted(), E_ILLEGAL_METHOD_CALL);
 
@@ -86,6 +87,7 @@ HRESULT ContextHandle::stop(Context& /*context*/)
 
 HRESULT ContextHandle::handleEvent(Context& context, Event& e)
 {
+	HR_ASSERT(e.isLegalAppEvent(), E_INVALIDARG);
 	HR_ASSERT(isStarted(), E_ILLEGAL_METHOD_CALL);
 
 	e.m_context = &context;
@@ -126,6 +128,7 @@ HRESULT AsyncContextHandle::start(Context& context, State* initialState, Event* 
 	HR_ASSERT(!isStarted(), E_ILLEGAL_METHOD_CALL);
 
 	HR_ASSERT(userEvent, E_POINTER);
+	HR_ASSERT(userEvent->isLegalAppEvent(), E_INVALIDARG);
 	HR_ASSERT(!currentState, E_ILLEGAL_METHOD_CALL);
 
 	// Start event handling in worker thread.
@@ -158,6 +161,7 @@ HRESULT AsyncContextHandle::stop(Context& context)
 
 HRESULT AsyncContextHandle::handleEvent(Context& context, Event& e)
 {
+	HR_ASSERT(e.isLegalAppEvent(), E_INVALIDARG);
 	HR_ASSERT(isStarted(), E_ILLEGAL_METHOD_CALL);
 
 	e.m_context = &context;
@@ -169,6 +173,7 @@ HRESULT AsyncContextHandle::queueEvent(Context& context, Event* e)
 	// Avoid memory leak even if exit before event is queued.
 	std::unique_ptr<Event> _e(e);
 	HR_ASSERT(e, E_POINTER);
+	HR_ASSERT(e->isLegalAppEvent(), E_INVALIDARG);
 
 	// When start() calls this method, worker thread is not running yet.
 	// So we check only ContextHandle::isStarted() not this->isStarted().

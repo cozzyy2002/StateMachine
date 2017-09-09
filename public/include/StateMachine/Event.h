@@ -17,10 +17,11 @@ public:
 	// Calling Context::queueEvent() with event that has priority other than Normal
 	// causes sorting event queue by priority.
 	enum class Priority {
-		Lower,
 		Normal,
 		Higher,
+		Highest,
 		// Internal use.
+		Internal,		// Application should use priority value less than this.
 		StopContext,	// Terminates worker thread of async context.
 	};
 
@@ -62,6 +63,8 @@ private:
 			return _Left->priority > _Right->priority;
 		}
 	};
+
+	INLINE bool isLegalAppEvent() const { return priority < Priority::Internal; }
 };
 
 } // namespace state_machine
