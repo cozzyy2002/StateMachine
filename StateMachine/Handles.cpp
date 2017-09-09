@@ -30,27 +30,19 @@ protected:
 	std::unique_ptr<State> userState;
 };
 
-ContextHandleBase::ContextHandleBase()
-	: stateMachine(new StateMachineImpl())
-	, m_isEventHandling(false)
-{
-}
-
-ContextHandleBase::~ContextHandleBase()
-{
-}
-
-std::lock_guard<std::mutex>* ContextHandleBase::getStateLock(Context& context)
+std::lock_guard<std::mutex>* ContextHandle::getStateLock(Context& context)
 {
 	return context.isStateLockEnabled() ? new std::lock_guard<std::mutex>(stateLock) : nullptr;
 }
 
-StateMachine * ContextHandleBase::getStateMachine()
+StateMachine * ContextHandle::getStateMachine()
 {
 	return stateMachine.get();
 }
 
 ContextHandle::ContextHandle()
+	: stateMachine(new StateMachineImpl())
+	, m_isEventHandling(false)
 {
 }
 
@@ -70,6 +62,20 @@ HRESULT ContextHandle::start(Context& context, State* initialState, Event& userE
 	return handleEvent(context, userEvent);
 }
 
+HRESULT ContextHandle::start(Context& context, State* initialState, Event* userEvent)
+{
+	delete initialState;
+	delete userEvent;
+	LOG4CPLUS_FATAL(logger, __FUNCTION__ "(Event*) is not implemented.");
+	return E_NOTIMPL;
+}
+
+HRESULT ContextHandle::start(Context& context, State* initialState)
+{
+	Event e;
+	return this->start(context, initialState, e);
+}
+
 HRESULT ContextHandle::stop(Context& /*context*/)
 {
 	currentState.reset();
@@ -82,14 +88,28 @@ HRESULT ContextHandle::handleEvent(Context& context, Event& e)
 	return stateMachine->handleEvent(e);
 }
 
+HRESULT ContextHandle::queueEvent(Context& context, Event* e)
+{
+	delete e;
+	LOG4CPLUS_FATAL(logger, __FUNCTION__ "() is not implemented.");
+	return E_NOTIMPL;
+}
+
 AsyncContextHandle::AsyncContextHandle()
-	: ContextHandleBase()
+	: ContextHandle()
 	, isWorkerThreadRunning(false)
 {
 }
 
 AsyncContextHandle::~AsyncContextHandle()
 {
+}
+
+HRESULT AsyncContextHandle::start(Context& context, State* initialState, Event& userEvent)
+{
+	delete initialState;
+	LOG4CPLUS_FATAL(logger, __FUNCTION__ "(Event&) is not implemented.");
+	return E_NOTIMPL;
 }
 
 HRESULT AsyncContextHandle::start(Context& context, State* initialState, Event* userEvent)
@@ -99,6 +119,10 @@ HRESULT AsyncContextHandle::start(Context& context, State* initialState, Event* 
 	std::unique_ptr<Event> _e(userEvent);
 
 	HR_ASSERT(initialState, E_POINTER);
+
+	// Caller should set event object anyway.
+	// NULL event makes worker thread terminate.
+	HR_ASSERT(userEvent, E_POINTER);
 	HR_ASSERT(!currentState, E_ILLEGAL_METHOD_CALL);
 
 	// Start event handling in worker thread.
@@ -108,6 +132,11 @@ HRESULT AsyncContextHandle::start(Context& context, State* initialState, Event* 
 	// Set initial state and queue event to be handled.
 	currentState.reset(new RootState(_state.release()));
 	return queueEvent(context, _e.release());
+}
+
+HRESULT AsyncContextHandle::start(Context& context, State* initialState)
+{
+	return this->start(context, initialState, new Event());
 }
 
 HRESULT AsyncContextHandle::stop(Context& context)

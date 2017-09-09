@@ -9,7 +9,7 @@
 namespace state_machine {
 
 class State;
-class ContextHandleBase;
+class ContextHandle;
 class StateMachine;
 
 class Context : public Object
@@ -19,7 +19,7 @@ protected:
 
 	// Internal use.
 	// Initialize of all members should be preformed by derived class.
-	Context(bool isAsync, ContextHandleBase* hContext);
+	Context(bool isAsync, ContextHandle* hContext);
 
 public:
 	virtual ~Context();
@@ -77,7 +77,7 @@ public:
 	StateMachine* getStateMachine();
 
 	// Internal use.
-	template<class T = ContextHandleBase>
+	template<class T = ContextHandle>
 	T* getHandle() const { return dynamic_cast<T*>(m_hContext.get()); }
 
 private:
@@ -85,7 +85,7 @@ private:
 	State* getCurrentRawState() const;
 
 	bool m_isAsync;
-	std::unique_ptr<ContextHandleBase> m_hContext;
+	std::unique_ptr<ContextHandle> m_hContext;
 };
 
 } // namespace state_machine

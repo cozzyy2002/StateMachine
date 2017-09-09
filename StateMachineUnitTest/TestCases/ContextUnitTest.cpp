@@ -39,6 +39,25 @@ TEST_F(ContextBaseUnitTest, Context_start_notimpl)
 	EXPECT_TRUE(MockObject::deleted(MockObjectId::EVENT));
 }
 
+// Context::queueEvent() is not implemented.
+// Object passed by pointer should be deleted.
+TEST_F(ContextBaseUnitTest, Context_queueEvent_notimpl)
+{
+	testee.reset(new ContextTestee());
+
+	auto state(new MockState(MockObjectId::CURRENT_STATE));
+	MockEvent e;
+
+	EXPECT_CALL(*state, entry(_, _)).WillOnce(Return(S_OK));
+	ASSERT_HRESULT_SUCCEEDED(testee->start(state, e));
+
+	ASSERT_EQ(E_NOTIMPL, testee->queueEvent(new MockEvent(MockObjectId::EVENT)));
+
+	ASSERT_HRESULT_SUCCEEDED(testee->stop());
+	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
+	EXPECT_TRUE(MockObject::deleted(MockObjectId::EVENT));
+}
+
 // AsyncContext::start(State*, Event&) is not implemented.
 // Object passed by pointer should be deleted.
 TEST_F(ContextBaseUnitTest, AsyncContext_start_notimpl)

@@ -20,7 +20,7 @@ Context::Context(bool isAsync)
 	}
 }
 
-state_machine::Context::Context(bool isAsync, ContextHandleBase* hContext)
+state_machine::Context::Context(bool isAsync, ContextHandle* hContext)
 	: m_isAsync(isAsync), m_hContext(hContext)
 {
 }
@@ -39,48 +39,22 @@ State* Context::getCurrentRawState() const
 
 HRESULT Context::start(State* initialState, Event& userEvent)
 {
-	if(!isAsync()) {
-		return getHandle<ContextHandle>()->start(*this, initialState, userEvent);
-	} else {
-		delete initialState;
-		LOG4CPLUS_FATAL(logger, __FUNCTION__ "(Event&) is not implemented.");
-		return E_NOTIMPL;
-	}
+	return m_hContext->start(*this, initialState, userEvent);
 }
 
 HRESULT Context::start(State* initialState, Event* userEvent)
 {
-	if(!isAsync()) {
-		delete initialState;
-		delete userEvent;
-
-		LOG4CPLUS_FATAL(logger, __FUNCTION__ "(Event*) is not implemented.");
-		return E_NOTIMPL;
-	} else {
-		return getHandle<AsyncContextHandle>()->start(*this, initialState, userEvent);
-	}
+	return m_hContext->start(*this, initialState, userEvent);
 }
 
 HRESULT Context::start(State * initialState)
 {
-	if(!isAsync()) {
-		return getHandle<ContextHandle>()->start(*this, initialState, Event());
-	} else {
-		return getHandle<AsyncContextHandle>()->start(*this, initialState, new Event());
-	}
+	return m_hContext->start(*this, initialState, Event());
 }
 
 HRESULT Context::stop()
 {
-	if(isStarted()) {
-		if(!isAsync()) {
-			return getHandle<ContextHandle>()->stop(*this);
-		} else {
-			return getHandle<AsyncContextHandle>()->stop(*this);
-		}
-	}
-	// Already stopped.
-	return S_FALSE;
+	return m_hContext->stop(*this);
 }
 
 bool Context::isStarted() const
@@ -90,23 +64,12 @@ bool Context::isStarted() const
 
 HRESULT Context::handleEvent(Event& e)
 {
-	if(!isAsync()) {
-		return getHandle<ContextHandle>()->handleEvent(*this, e);
-	} else {
-		LOG4CPLUS_FATAL(logger, __FUNCTION__ "(Event&) is not implemented.");
-		return E_NOTIMPL;
-	}
+	return m_hContext->handleEvent(*this, e);
 }
 
 HRESULT Context::queueEvent(Event* e)
 {
-	if(!isAsync()) {
-		delete e;
-		LOG4CPLUS_FATAL(logger, __FUNCTION__ "(Event*) is not implemented.");
-		return E_NOTIMPL;
-	} else {
-		return getHandle<AsyncContextHandle>()->queueEvent(*this, e);
-	}
+	return m_hContext->queueEvent(*this, e);
 }
 
 std::lock_guard<std::mutex>* Context::getStateLock()
