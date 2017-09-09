@@ -2,6 +2,8 @@
 
 #include "Object.h"
 
+#include <memory>
+
 namespace state_machine {
 
 class Context;
@@ -11,8 +13,19 @@ class AsyncContextHandle;
 class Event : public Object
 {
 public:
-	Event();
-	Event(Context& context);
+	// Queueing priority of async Context.
+	// Calling Context::queueEvent() with event that has priority other than Normal
+	// causes sorting event queue by priority.
+	enum class Priority {
+		Lower,
+		Normal,
+		Higher,
+		// Internal use.
+		StopContext,	// Terminates worker thread of async context.
+	};
+
+	Event(Priority priority = Priority::Normal);
+	Event(Context& context, Priority priority = Priority::Normal);
 	virtual ~Event();
 	typedef int LogLevel;
 	virtual LogLevel getLogLevel() const;
@@ -40,6 +53,15 @@ private:
 	friend class ContextHandle;
 	friend class AsyncContextHandle;
 	Context* m_context;
+	const Priority priority;
+
+	// Comparator used by sorting event queue.
+	struct HigherPriority {
+		using event_t = std::unique_ptr<Event>;
+		bool operator()(const event_t& _Left, const event_t& _Right) const {
+			return _Left->priority > _Right->priority;
+		}
+	};
 };
 
 } // namespace state_machine

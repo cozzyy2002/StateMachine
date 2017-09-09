@@ -125,8 +125,6 @@ HRESULT AsyncContextHandle::start(Context& context, State* initialState, Event* 
 	HR_ASSERT(initialState, E_POINTER);
 	HR_ASSERT(!isStarted(), E_ILLEGAL_METHOD_CALL);
 
-	// Caller should set event object anyway.
-	// NULL event makes worker thread terminate.
 	HR_ASSERT(userEvent, E_POINTER);
 	HR_ASSERT(!currentState, E_ILLEGAL_METHOD_CALL);
 
@@ -148,8 +146,8 @@ HRESULT AsyncContextHandle::stop(Context& context)
 {
 	// Note: stop() can be called even if stopped.
 	if(isStarted()) {
-		// Queue NULL event to terminate worker thread.
-		HR_ASSERT_OK(queueEvent(context, nullptr));
+		// Queue event with Shutdown priority to terminate worker thread.
+		HR_ASSERT_OK(queueEvent(context, new Event(Event::Priority::StopContext)));
 		HR_ASSERT_OK(context.onStopThread());
 
 		ContextHandle::stop(context);
@@ -168,14 +166,21 @@ HRESULT AsyncContextHandle::handleEvent(Context& context, Event& e)
 
 HRESULT AsyncContextHandle::queueEvent(Context& context, Event* e)
 {
+	// Avoid memory leak even if exit before event is queued.
+	std::unique_ptr<Event> _e(e);
+	HR_ASSERT(e, E_POINTER);
+
 	// When start() calls this method, worker thread is not running yet.
 	// So we check only ContextHandle::isStarted() not this->isStarted().
 	HR_ASSERT(ContextHandle::isStarted(), E_ILLEGAL_METHOD_CALL);
 
-	if(e) e->m_context = &context;
+	_e->m_context = &context;
 	{
 		std::lock_guard<std::mutex> _lock(eventQueueLock);
-		eventQueue.push_back(std::unique_ptr<Event>(e));
+		eventQueue.push_back(std::move(_e));
+		if(e->priority != Event::Priority::Normal) {
+			eventQueue.sort(Event::HigherPriority());
+		}
 	}
 	WIN32_ASSERT(SetEvent(hEventAvailable));
 	return S_OK;
@@ -204,8 +209,7 @@ void AsyncContextHandle::handleEvent()
 			e.reset(eventQueue.front().release());
 			eventQueue.pop_front();
 		}
-		if(!e) {
-			// stop() method sets NULL event.
+		if(e->priority == Event::Priority::StopContext) {
 			return;
 		}
 

@@ -18,10 +18,6 @@ class Context : public Object
 protected:
 	Context(bool isAsync);
 
-	// Internal use.
-	// Initialize of all members should be preformed by derived class.
-	Context(bool isAsync, ContextHandle* hContext);
-
 public:
 	virtual ~Context();
 
@@ -57,6 +53,7 @@ public:
 	// Type of worker thread procedure.
 	// Worker thread is the thread in which event passed to Context::queueEvent() is handled.
 	// onStartThread() mehtod calls this method in worker thread.
+	// This method never return until Context::stop() is called.
 	using WorkerThreadProc = void(*)(Context& contex);
 
 	// Creates worker thread and calls WorkerThreadProc in the thread.
@@ -69,6 +66,7 @@ public:
 
 	// Waits for worker thread to exit.
 	// This method is called by Context::stop() method.
+	// In case derived class overrides onStartThread(), the class should override this mehtod also.
 	// If Context is created by constructor Context(isAsync = false), this method is not called.
 	virtual HRESULT onStopThread() {
 		if(workerThread.joinable()) {

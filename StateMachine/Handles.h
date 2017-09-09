@@ -1,7 +1,7 @@
 #pragma once
 
 #include <StateMachine/Object.h>
-#include <deque>
+#include <list>
 #include <memory>
 #include <mutex>
 
@@ -69,8 +69,8 @@ protected:
 	// Event queue.
 	// push_back() to queue new event.
 	// pop_front() to retrieve the event to be handled.
-	// If event is nullptr, worker thread will terminate.
-	std::deque<std::unique_ptr<Event>> eventQueue;
+	// Queueing event with priority other than Normal causes sorting this queue.
+	std::list<std::unique_ptr<Event>> eventQueue;
 
 	bool isWorkerThreadRunning;
 

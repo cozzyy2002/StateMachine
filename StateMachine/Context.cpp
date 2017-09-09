@@ -20,11 +20,6 @@ Context::Context(bool isAsync)
 	}
 }
 
-state_machine::Context::Context(bool isAsync, ContextHandle* hContext)
-	: m_isAsync(isAsync), m_hContext(hContext)
-{
-}
-
 Context::~Context()
 {
 	HR_EXPECT_OK(stop());
