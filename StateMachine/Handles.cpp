@@ -140,7 +140,7 @@ HRESULT AsyncContextHandle::start(Context& context, State* initialState, Event* 
 	HR_ASSERT(!currentState, E_ILLEGAL_METHOD_CALL);
 
 	// Start event handling in worker thread.
-	HR_ASSERT_OK(context.onStartThread(workerThreadProc));
+	HR_ASSERT_OK(context.onStartThread(workerThreadProc, hWorkerThreadStarted));
 
 	// Set initial state and queue event to be handled.
 	currentState.reset(new RootState(_state.release()));
@@ -160,7 +160,7 @@ HRESULT AsyncContextHandle::stop(Context& context)
 		auto e(new Event(Event::Priority::StopContext));
 		e->isInternal = true;
 		HR_ASSERT_OK(queueEvent(context, e));
-		HR_ASSERT_OK(context.onStopThread());
+		HR_ASSERT_OK(context.onStopThread(hWorkerThreadTerminated));
 
 		ContextHandle::stop(context);
 	}

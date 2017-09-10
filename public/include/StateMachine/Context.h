@@ -59,7 +59,7 @@ public:
 	// Creates worker thread and calls WorkerThreadProc in the thread.
 	// This method is called by Context::start() method.
 	// If Context is created by constructor Context(isAsync = false), this method is not called.
-	virtual HRESULT onStartThread(WorkerThreadProc proc) {
+	virtual HRESULT onStartThread(WorkerThreadProc proc, HANDLE /*hStartedEvent*/) {
 		workerThread = std::thread([this, proc]() { proc(*this); });
 		return S_OK;
 	}
@@ -68,7 +68,7 @@ public:
 	// This method is called by Context::stop() method.
 	// In case derived class overrides onStartThread(), the class should override this mehtod also.
 	// If Context is created by constructor Context(isAsync = false), this method is not called.
-	virtual HRESULT onStopThread() {
+	virtual HRESULT onStopThread(HANDLE /*hTerminatedEvent*/) {
 		if(workerThread.joinable()) {
 			workerThread.join();
 		}
