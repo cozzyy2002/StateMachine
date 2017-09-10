@@ -8,12 +8,17 @@
 ENUM(MockObjectId,
 	UNKNOWN,
 	EVENT,
+	EVENT_0, EVENT_1, EVENT_2, EVENT_3, EVENT_4,
+	EVENT_5, EVENT_6, EVENT_7, EVENT_8, EVENT_9,
 	CURRENT_STATE,
 	NEXT_STATE,
 	MASTER_STATE1,
 	MASTER_STATE2,
-	OTHER_STATE
-);
+	OTHER_STATE,
+	STATE,
+	STATE_0, STATE_1, STATE_2, STATE_3, STATE_4,
+	STATE_5, STATE_6, STATE_7, STATE_8, STATE_9
+	);
 
 class MockObject
 {
@@ -38,9 +43,12 @@ protected:
 class MockEvent : public state_machine::Event, public MockObject
 {
 public:
-	MockEvent() : state_machine::Event(), MockObject() {}
-	MockEvent(state_machine::Context& context) : state_machine::Event(context), MockObject() {}
-	MockEvent(MockObjectId id) : MockObject(id) {}
+	MockEvent(Priority priority = Priority::Normal)
+		: state_machine::Event(priority), MockObject() {}
+	MockEvent(state_machine::Context& context, Priority priority = Priority::Normal)
+		: state_machine::Event(context, priority), MockObject() {}
+	MockEvent(MockObjectId id, Priority priority = Priority::Normal)
+		: state_machine::Event(priority), MockObject(id) {}
 	virtual log4cplus::LogLevel getLogLevel() const override { return logLevel; }
 
 	// Default loglevel

@@ -259,6 +259,12 @@ public:
 
 		// Sequence number to be handled.
 		const int sequence;
+
+		virtual void modifyString(std::tstring& _string) override {
+			TCHAR str[100];
+			_stprintf_s(str, _T(": priority=%d, sequence=%d"), (int)getPriority(), sequence);
+			_string += str;
+		}
 	};
 
 	class Testee : public Context
@@ -273,19 +279,53 @@ public:
 	void SetUp() {
 		EXPECT_CALL(*state, entry(_, _)).WillOnce(Return(S_OK));
 		ASSERT_HRESULT_SUCCEEDED(testee.start(state));
-		Sleep(1000);
+		Sleep(100);
 		ASSERT_TRUE(testee.isStarted());
 	}
 	void TearDown() {
-		Sleep(1000);
+		Sleep(100);
 		ASSERT_HRESULT_SUCCEEDED(testee.stop());
 	}
 
 	Testee testee;
 	MockState* state;
+	using P = Event::Priority;
 };
 
 TEST_F(AsyncContextPriorityTest, illegal_priority)
 {
-	ASSERT_EQ(E_INVALIDARG, testee.queueEvent(new Event(Event::Priority::StopContext)));
+	ASSERT_EQ(E_INVALIDARG, testee.queueEvent(new Event(P::StopContext)));
+}
+
+TEST_F(AsyncContextPriorityTest, priority_order)
+{
+	// Sequence of events are priority order.
+	auto e0(new TestEvent(P::Highest, 0));
+	auto e1(new TestEvent(P::Higher, 1));
+	auto e2(new TestEvent(P::Normal, 3));	// Queued after e3 that has same priority.
+	auto e3(new TestEvent(P::Normal, 2));
+	auto e4(new TestEvent(P::Lower, 4));
+	auto e5(new TestEvent(P::Lowest, 5));
+
+	int sequence = 0;
+	EXPECT_CALL(*state, handleEvent(_, _, _))
+		.WillRepeatedly(Invoke([&sequence](Event& e, State&, State**)
+		{
+			if(sequence == 0) Sleep(1000);
+
+			// Test if TestEvent::sequence is right.
+			EXPECT_EQ(sequence++, e.cast<TestEvent>()->sequence);
+			return S_OK;
+		}));
+
+	// Queue events reverse priority order.
+	ASSERT_HRESULT_SUCCEEDED(testee.queueEvent(e5));
+	ASSERT_HRESULT_SUCCEEDED(testee.queueEvent(e4));
+	ASSERT_HRESULT_SUCCEEDED(testee.queueEvent(e3));
+	ASSERT_HRESULT_SUCCEEDED(testee.queueEvent(e2));
+	ASSERT_HRESULT_SUCCEEDED(testee.queueEvent(e1));
+	ASSERT_HRESULT_SUCCEEDED(testee.queueEvent(e0));
+
+	Sleep(5000);
+	EXPECT_EQ(6, sequence);
 }

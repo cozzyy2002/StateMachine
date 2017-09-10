@@ -184,10 +184,10 @@ HRESULT AsyncContextHandle::queueEvent(Context& context, Event* e)
 	_e->m_context = &context;
 	{
 		std::lock_guard<std::mutex> _lock(eventQueueLock);
+
+		// Queue event and sort by priority order.
 		eventQueue.push_back(std::move(_e));
-		if(e->priority != Event::Priority::Normal) {
-			eventQueue.sort(Event::HigherPriority());
-		}
+		eventQueue.sort(Event::HigherPriority());
 	}
 	WIN32_ASSERT(SetEvent(hEventAvailable));
 	return S_OK;
@@ -209,18 +209,20 @@ void AsyncContextHandle::handleEvent()
 			return;
 		}
 
-		std::unique_ptr<Event> e;
-		{
-			std::lock_guard<std::mutex> _lock(eventQueueLock);
-			if(eventQueue.empty()) continue;
-			e.reset(eventQueue.front().release());
-			eventQueue.pop_front();
-		}
-		if(e->priority == Event::Priority::StopContext) {
-			return;
-		}
+		while(!eventQueue.empty()) {
+			std::unique_ptr<Event> e;
+			{
+				std::lock_guard<std::mutex> _lock(eventQueueLock);
+				if(eventQueue.empty()) break;
+				e.reset(eventQueue.front().release());
+				eventQueue.pop_front();
+			}
+			if(e->priority == Event::Priority::StopContext) {
+				return;
+			}
 
-		HR_EXPECT_OK(stateMachine->handleEvent(*e));
+			HR_EXPECT_OK(stateMachine->handleEvent(*e));
+		}
 	}
 }
 

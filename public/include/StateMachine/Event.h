@@ -14,9 +14,11 @@ class Event : public Object
 {
 public:
 	// Queueing priority of async Context.
-	// Calling Context::queueEvent() with event that has priority other than Normal
-	// causes sorting event queue by priority.
+	// Application can not use value greater than Highest.
 	enum class Priority {
+		// Application use.
+		Lowest,
+		Lower,
 		Normal,
 		Higher,
 		Highest,
@@ -28,6 +30,8 @@ public:
 	Event(Priority priority = Priority::Normal);
 	Event(Context& context, Priority priority = Priority::Normal);
 	virtual ~Event();
+
+	Priority getPriority() const { return priority; }
 	typedef int LogLevel;
 	virtual LogLevel getLogLevel() const;
 
