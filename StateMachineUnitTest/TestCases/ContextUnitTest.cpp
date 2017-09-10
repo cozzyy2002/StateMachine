@@ -247,3 +247,45 @@ TEST_F(MultiContextHandleEventUnitTest, recursive_call_check)
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::OTHER_STATE));
 	EXPECT_TRUE(e.isHandled);
 }
+
+class AsyncContextPriorityTest : public Test
+{
+public:
+	class TestEvent : public Event
+	{
+	public:
+		TestEvent(Priority priority, int sequence)
+			: Event(priority), sequence(sequence) {}
+
+		// Sequence number to be handled.
+		const int sequence;
+	};
+
+	class Testee : public Context
+	{
+	public:
+		Testee() : Context(true) {}
+	};
+
+	AsyncContextPriorityTest()
+		: state(new MockState(MockObjectId::CURRENT_STATE)) {}
+
+	void SetUp() {
+		EXPECT_CALL(*state, entry(_, _)).WillOnce(Return(S_OK));
+		ASSERT_HRESULT_SUCCEEDED(testee.start(state));
+		Sleep(1000);
+		ASSERT_TRUE(testee.isStarted());
+	}
+	void TearDown() {
+		Sleep(1000);
+		ASSERT_HRESULT_SUCCEEDED(testee.stop());
+	}
+
+	Testee testee;
+	MockState* state;
+};
+
+TEST_F(AsyncContextPriorityTest, illegal_priority)
+{
+	ASSERT_EQ(E_INVALIDARG, testee.queueEvent(new Event(Event::Priority::StopContext)));
+}

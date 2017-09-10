@@ -55,6 +55,7 @@ private:
 	friend class AsyncContextHandle;
 	Context* m_context;
 	const Priority priority;
+	bool isInternal;
 
 	// Comparator used by sorting event queue.
 	struct HigherPriority {
@@ -64,7 +65,8 @@ private:
 		}
 	};
 
-	INLINE bool isLegalAppEvent() const { return priority < Priority::Internal; }
+	// Internal event is always legal.
+	INLINE bool isLegalEvent() const { return isInternal || (priority < Priority::Internal); }
 };
 
 } // namespace state_machine

@@ -56,7 +56,7 @@ HRESULT ContextHandle::start(Context& context, State* initialState, Event& userE
 	std::unique_ptr<State> _state(initialState);
 
 	HR_ASSERT(initialState, E_POINTER);
-	HR_ASSERT(userEvent.isLegalAppEvent(), E_INVALIDARG);
+	HR_ASSERT(userEvent.isLegalEvent(), E_INVALIDARG);
 	HR_ASSERT(!currentState, E_ILLEGAL_METHOD_CALL);
 	HR_ASSERT(!isStarted(), E_ILLEGAL_METHOD_CALL);
 
@@ -87,7 +87,7 @@ HRESULT ContextHandle::stop(Context& /*context*/)
 
 HRESULT ContextHandle::handleEvent(Context& context, Event& e)
 {
-	HR_ASSERT(e.isLegalAppEvent(), E_INVALIDARG);
+	HR_ASSERT(e.isLegalEvent(), E_INVALIDARG);
 	HR_ASSERT(isStarted(), E_ILLEGAL_METHOD_CALL);
 
 	e.m_context = &context;
@@ -128,7 +128,7 @@ HRESULT AsyncContextHandle::start(Context& context, State* initialState, Event* 
 	HR_ASSERT(!isStarted(), E_ILLEGAL_METHOD_CALL);
 
 	HR_ASSERT(userEvent, E_POINTER);
-	HR_ASSERT(userEvent->isLegalAppEvent(), E_INVALIDARG);
+	HR_ASSERT(userEvent->isLegalEvent(), E_INVALIDARG);
 	HR_ASSERT(!currentState, E_ILLEGAL_METHOD_CALL);
 
 	// Start event handling in worker thread.
@@ -150,7 +150,9 @@ HRESULT AsyncContextHandle::stop(Context& context)
 	// Note: stop() can be called even if stopped.
 	if(isStarted()) {
 		// Queue event with Shutdown priority to terminate worker thread.
-		HR_ASSERT_OK(queueEvent(context, new Event(Event::Priority::StopContext)));
+		auto e(new Event(Event::Priority::StopContext));
+		e->isInternal = true;
+		HR_ASSERT_OK(queueEvent(context, e));
 		HR_ASSERT_OK(context.onStopThread());
 
 		ContextHandle::stop(context);
@@ -161,7 +163,7 @@ HRESULT AsyncContextHandle::stop(Context& context)
 
 HRESULT AsyncContextHandle::handleEvent(Context& context, Event& e)
 {
-	HR_ASSERT(e.isLegalAppEvent(), E_INVALIDARG);
+	HR_ASSERT(e.isLegalEvent(), E_INVALIDARG);
 	HR_ASSERT(isStarted(), E_ILLEGAL_METHOD_CALL);
 
 	e.m_context = &context;
@@ -173,7 +175,7 @@ HRESULT AsyncContextHandle::queueEvent(Context& context, Event* e)
 	// Avoid memory leak even if exit before event is queued.
 	std::unique_ptr<Event> _e(e);
 	HR_ASSERT(e, E_POINTER);
-	HR_ASSERT(e->isLegalAppEvent(), E_INVALIDARG);
+	HR_ASSERT(e->isLegalEvent(), E_INVALIDARG);
 
 	// When start() calls this method, worker thread is not running yet.
 	// So we check only ContextHandle::isStarted() not this->isStarted().
@@ -226,7 +228,12 @@ void AsyncContextHandle::handleEvent()
 // Called by Context::onStartThread() as WorkerThreadProc.
 /*static*/ void AsyncContextHandle::workerThreadProc(Context & context)
 {
+	auto h = context.getHandle<AsyncContextHandle>();
+	if(!h) {
+		LOG4CPLUS_FATAL(logger, __FUNCTION__ ": Illegal Context pointer.");
+		return;
+	}
 	LOG4CPLUS_INFO(logger, __FUNCTION__ ": Starting worker thread.");
-	context.getHandle<AsyncContextHandle>()->handleEvent();
+	h->handleEvent();
 	LOG4CPLUS_INFO(logger, __FUNCTION__ ": Terminating worker thread.");
 }

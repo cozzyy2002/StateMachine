@@ -44,7 +44,11 @@ HRESULT Context::start(State* initialState, Event* userEvent)
 
 HRESULT Context::start(State * initialState)
 {
-	return m_hContext->start(*this, initialState, Event());
+	if(!isAsync()) {
+		return getHandle<ContextHandle>()->start(*this, initialState);
+	} else {
+		return getHandle<AsyncContextHandle>()->start(*this, initialState);
+	}
 }
 
 HRESULT Context::stop()
