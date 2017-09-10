@@ -70,7 +70,7 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 	State* pNextState = nullptr;
 	std::shared_ptr<State> nextState;
 	bool backToMaster = false;
-	HRESULT hr = State::S_EVENT_IGNORED;
+	auto hr(State::S_EVENT_IGNORED);
 	e.isHandled = false;
 
 	// Call State::handleEvent()
@@ -167,7 +167,7 @@ std::shared_ptr<State>* StateMachineImpl::findState(std::shared_ptr<State>& curr
 
 HRESULT StateMachineImpl::for_each_state(std::shared_ptr<State>& currentState, std::function<HRESULT(std::shared_ptr<State>& state)> func)
 {
-	HRESULT hr = S_FALSE;
+	auto hr(S_FALSE);
 	for(auto state(&currentState);
 		state && state->get();
 		state = (*state)->isSubState() ? &((*state)->getHandle<SubStateHandle>()->m_masterState) : nullptr)

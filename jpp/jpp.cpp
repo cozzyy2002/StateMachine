@@ -16,12 +16,12 @@ namespace std {
 static auto& tcin(wcin);
 static auto& tcout(wcout);
 static auto& tcerr(wcerr);
-typedef wifstream tifstream;
+using tifstream = wifstream;
 #else
 static auto& tcin(cin);
 static auto& tcout(cout);
 static auto& tcerror(cerr);
-typedef ifstream tifstream;
+using tifstream = ifstream;
 #endif
 }
 
@@ -137,7 +137,7 @@ enum {
 
 /*static*/ int checkOptions(TCHAR* options, CJsonParser::Option& option)
 {
-	int ret = CHECK_OPTIONS_OK;
+	auto ret(CHECK_OPTIONS_OK);
 	for(auto p = options; *p; p++) {
 		switch(*p) {
 		case 'c': option.removeComment = true; break;

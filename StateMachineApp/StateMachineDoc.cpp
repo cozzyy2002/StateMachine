@@ -96,7 +96,7 @@ bool CStateMachineDoc::parse(LPCTSTR source)
 	json_parser::CJsonParser jsonParser;
 	jsonParser.removeComment(source, true, preParsed);
 	CT2A _source(preParsed.c_str());
-	std::string error = picojson::parse(m_configJson, (LPCSTR)_source);
+	auto error(picojson::parse(m_configJson, (LPCSTR)_source));
 	std::tstring _error;
 	if(error.empty()) {
 		m_configSource = source;
@@ -116,9 +116,13 @@ void CStateMachineDoc::onStateEntryCalled(CAppState * state)
 	for(auto st = state; st; st = st->getMasterState()) {
 		m_stateStack.push_back(st);
 	}
-	CMainFrame* frame = (CMainFrame*)AfxGetApp()->GetMainWnd();
-	frame->PostMessage(WM_USER_UPDATE_VIEW, NULL, (LPARAM)UpdateViewHint::StateChanged);
-	//UpdateAllViews(nullptr, (LPARAM)UpdateViewHint::StateChanged, this);
+	if(m_context->isAsync()) {
+		auto frame((CMainFrame*)AfxGetApp()->GetMainWnd());
+		auto ok = frame->PostMessage(WM_USER_UPDATE_VIEW, NULL, (LPARAM)UpdateViewHint::StateChanged);
+		if(!ok) LOG4CPLUS_ERROR(logger, __FUNCTION__ ": CMainFrame::PostMessage() failed. error=" << GetLastError());
+	} else {
+		UpdateAllViews(nullptr, (LPARAM)UpdateViewHint::StateChanged, this);
+	}
 }
 
 void CStateMachineDoc::onStateExitCalled(CAppState * state)
@@ -135,7 +139,7 @@ void CStateMachineDoc::outputMessage(LPCTSTR format, ...)
 	TCHAR message[256];
 	_vstprintf_s(message, format, arg);
 	LOG4CPLUS_DEBUG(logger, message);
-	CMainFrame* frame = (CMainFrame*)AfxGetApp()->GetMainWnd();
+	auto frame((CMainFrame*)AfxGetApp()->GetMainWnd());
 	if(frame) {
 		frame->OutputMessage(message);
 	}

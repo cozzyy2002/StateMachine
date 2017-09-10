@@ -112,7 +112,7 @@ private:
 	// Do NOT delete returned object.
 	State* getCurrentRawState() const;
 
-	bool m_isAsync;
+	const bool m_isAsync;
 	std::unique_ptr<ContextHandle> m_hContext;
 
 	std::thread workerThread;

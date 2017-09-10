@@ -32,7 +32,7 @@ public:
 	static bool deleted(MockObjectId id);
 
 	MockObjectId m_id;
-	typedef std::map<MockObjectId, MockObject*> MockObjects_t;
+	using MockObjects_t = std::map<MockObjectId, MockObject*>;
 	static MockObjects_t m_mockObjects;
 
 protected:

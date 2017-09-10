@@ -16,7 +16,7 @@ public:
 class StateMacineUnitTest : public Test
 {
 public:
-	typedef TestStateMachine Testee;
+	using Testee = TestStateMachine;
 
 	StateMacineUnitTest()
 		: e(new MockEvent(context)) {}

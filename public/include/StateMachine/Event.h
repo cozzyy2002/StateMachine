@@ -32,7 +32,7 @@ public:
 	virtual ~Event();
 
 	Priority getPriority() const { return priority; }
-	typedef int LogLevel;
+	using LogLevel = int;
 	virtual LogLevel getLogLevel() const;
 
 	// Returns this pointer as user event type.
