@@ -297,6 +297,7 @@ TEST_F(AsyncContextPriorityTest, illegal_priority)
 	ASSERT_EQ(E_INVALIDARG, testee.queueEvent(new Event(P::StopContext)));
 }
 
+// Events should be handled by it's priority order.
 TEST_F(AsyncContextPriorityTest, priority_order)
 {
 	// Sequence of events are priority order.
@@ -335,4 +336,37 @@ TEST_F(AsyncContextPriorityTest, priority_order)
 
 	Sleep(3000);
 	EXPECT_EQ(6, sequence);
+}
+
+// Events should not be handled.
+// Context::stop() should be processed prior to other events.
+TEST_F(AsyncContextPriorityTest, stop)
+{
+	auto e0(new TestEvent(P::Highest, 0));
+	auto e1(new TestEvent(P::Higher, 1));
+
+	EXPECT_CALL(*state, handleEvent(_, _, _))
+		.WillRepeatedly(Invoke([](Event& e, State&, State**)
+	{
+		auto _e(e.cast<TestEvent>());
+		if(_e->sequence < 0) {
+			// Dummy event
+			Sleep(100);
+		} else {
+			// Event should not be handled.
+			ADD_FAILURE() << "Event handled: Priority=" << (int)_e->getPriority();
+		}
+		return S_OK;
+	}));
+
+	// Dummy event to wait for all events to be queued.
+	ASSERT_HRESULT_SUCCEEDED(testee.queueEvent(new TestEvent(P::Highest, -1)));
+
+	// Queue events reverse priority order.
+	ASSERT_HRESULT_SUCCEEDED(testee.queueEvent(e1));
+	ASSERT_HRESULT_SUCCEEDED(testee.queueEvent(e0));
+
+	ASSERT_HRESULT_SUCCEEDED(testee.stop());
+
+	Sleep(1000);
 }

@@ -185,9 +185,19 @@ HRESULT AsyncContextHandle::queueEvent(Context& context, Event* e)
 	{
 		std::lock_guard<std::mutex> _lock(eventQueueLock);
 
+#ifdef USE_SORT
 		// Queue event and sort by priority order.
 		eventQueue.push_back(std::move(_e));
 		eventQueue.sort(Event::HigherPriority());
+#else
+		// Queue event by priority order
+		auto it(eventQueue.begin());
+		while(it != eventQueue.end()) {
+			if((*it)->getPriority() < e->getPriority()) break;
+			it++;
+		}
+		eventQueue.insert(it, std::move(_e));
+#endif
 	}
 	WIN32_ASSERT(SetEvent(hEventAvailable));
 	return S_OK;
@@ -237,5 +247,5 @@ void AsyncContextHandle::handleEvent()
 	}
 	LOG4CPLUS_INFO(logger, __FUNCTION__ ": Starting worker thread.");
 	h->handleEvent();
-	LOG4CPLUS_INFO(logger, __FUNCTION__ ": Terminating worker thread.");
+	LOG4CPLUS_INFO(logger, __FUNCTION__ ": Terminating worker thread. Queued events=" << h->eventQueue.size());
 }
