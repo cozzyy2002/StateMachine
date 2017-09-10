@@ -311,12 +311,19 @@ TEST_F(AsyncContextPriorityTest, priority_order)
 	EXPECT_CALL(*state, handleEvent(_, _, _))
 		.WillRepeatedly(Invoke([&sequence](Event& e, State&, State**)
 		{
-			if(sequence == 0) Sleep(1000);
-
-			// Test if TestEvent::sequence is right.
-			EXPECT_EQ(sequence++, e.cast<TestEvent>()->sequence);
+			auto _e(e.cast<TestEvent>());
+			if(_e->sequence < 0) {
+				// Dummy event
+				Sleep(100);
+			} else {
+				// Test if TestEvent::sequence is right.
+				EXPECT_EQ(sequence++, _e->sequence);
+			}
 			return S_OK;
 		}));
+
+	// Dummy event to wait for all events to be queued.
+	ASSERT_HRESULT_SUCCEEDED(testee.queueEvent(new TestEvent(P::Highest, -1)));
 
 	// Queue events reverse priority order.
 	ASSERT_HRESULT_SUCCEEDED(testee.queueEvent(e5));
@@ -326,6 +333,6 @@ TEST_F(AsyncContextPriorityTest, priority_order)
 	ASSERT_HRESULT_SUCCEEDED(testee.queueEvent(e1));
 	ASSERT_HRESULT_SUCCEEDED(testee.queueEvent(e0));
 
-	Sleep(5000);
+	Sleep(3000);
 	EXPECT_EQ(6, sequence);
 }
