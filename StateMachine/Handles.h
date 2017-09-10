@@ -65,6 +65,11 @@ public:
 
 	virtual bool isStarted() const override { return isWorkerThreadRunning && ContextHandle::isStarted(); }
 
+	// Win32 event handle to notify that worker thread has started.
+	CHandle hWorkerThreadStarted;
+	// Win32 event handle to notify that worker thread has terminated.
+	CHandle hWorkerThreadTerminated;
+
 protected:
 	// Event queue.
 	// push_back() to queue new event.
@@ -83,6 +88,7 @@ protected:
 	void handleEvent();
 
 	static void workerThreadProc(Context& context);
+	static void onWorkerThreadTerminated(AsyncContextHandle* h);
 };
 
 class StateHandle : public Object

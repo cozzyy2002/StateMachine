@@ -101,9 +101,17 @@ HRESULT ContextHandle::queueEvent(Context& context, Event* e)
 	return E_NOTIMPL;
 }
 
+static HANDLE createWin32Event()
+{
+	return CreateEvent(nullptr, TRUE, FALSE, nullptr);
+}
+
 AsyncContextHandle::AsyncContextHandle()
 	: ContextHandle()
 	, isWorkerThreadRunning(false)
+	, hWorkerThreadStarted(createWin32Event())
+	, hWorkerThreadTerminated(createWin32Event())
+	, hEventAvailable(createWin32Event())
 {
 }
 
@@ -132,7 +140,6 @@ HRESULT AsyncContextHandle::start(Context& context, State* initialState, Event* 
 	HR_ASSERT(!currentState, E_ILLEGAL_METHOD_CALL);
 
 	// Start event handling in worker thread.
-	hEventAvailable.Attach(CreateEvent(nullptr, TRUE, FALSE, nullptr));
 	HR_ASSERT_OK(context.onStartThread(workerThreadProc));
 
 	// Set initial state and queue event to be handled.
@@ -205,9 +212,6 @@ HRESULT AsyncContextHandle::queueEvent(Context& context, Event* e)
 
 void AsyncContextHandle::handleEvent()
 {
-	// Set running flag and it will be reset when this method exits.
-	ScopedStore<bool> _running(isWorkerThreadRunning, false, true);
-
 	while(true) {
 		auto wait = WaitForSingleObject(hEventAvailable, INFINITE);
 		switch(wait) {
@@ -246,6 +250,19 @@ void AsyncContextHandle::handleEvent()
 		return;
 	}
 	LOG4CPLUS_INFO(logger, __FUNCTION__ ": Starting worker thread.");
+
+	// Setup method to be called when worker thread is terminated.
+	using _Ty = AsyncContextHandle;
+	std::unique_ptr<_Ty, void(*)(_Ty*)> _deleter(h, onWorkerThreadTerminated);
+
+	h->isWorkerThreadRunning = true;
+	WIN32_EXPECT(SetEvent(h->hWorkerThreadStarted));
 	h->handleEvent();
 	LOG4CPLUS_INFO(logger, __FUNCTION__ ": Terminating worker thread. Queued events=" << h->eventQueue.size());
+}
+
+/*static*/ void AsyncContextHandle::onWorkerThreadTerminated(AsyncContextHandle* h)
+{
+	h->isWorkerThreadRunning = false;
+	WIN32_EXPECT(SetEvent(h->hWorkerThreadTerminated));
 }

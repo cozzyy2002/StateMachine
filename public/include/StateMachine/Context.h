@@ -75,6 +75,12 @@ public:
 		return S_OK;
 	}
 
+	// Utility method.
+	HRESULT waitForEvent(HANDLE hEvent, DWORD timeout);
+
+	HANDLE getWorkerThreadStartEvent() const;
+	HANDLE getWorkerThreadTerminateEvent() const;
+
 	// Determine whether StateMachine::handleEvent() requires exclusive execution.
 	// Returning true means that the method might be called from more than one thread simultaneously.
 	// If this feature is required, override this method to return true.

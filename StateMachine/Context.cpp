@@ -71,6 +71,34 @@ HRESULT Context::queueEvent(Event* e)
 	return m_hContext->queueEvent(*this, e);
 }
 
+HRESULT Context::waitForEvent(HANDLE hEvent, DWORD timeout)
+{
+	auto wait(WaitForSingleObject(hEvent, timeout));
+	switch(wait) {
+	case WAIT_OBJECT_0:	return S_OK;
+	case WAIT_TIMEOUT:	return HRESULT_FROM_WIN32(WAIT_TIMEOUT);
+	default:			return HRESULT_FROM_WIN32(GetLastError());
+	}
+}
+
+HANDLE Context::getWorkerThreadStartEvent() const
+{
+	if(!isAsync()) {
+		LOG4CPLUS_FATAL(logger, __FUNCTION__ "() is not implemented.");
+		return NULL;
+	}
+	return getHandle<AsyncContextHandle>()->hWorkerThreadStarted;
+}
+
+HANDLE Context::getWorkerThreadTerminateEvent() const
+{
+	if(!isAsync()) {
+		LOG4CPLUS_FATAL(logger, __FUNCTION__ "() is not implemented.");
+		return NULL;
+	}
+	return getHandle<AsyncContextHandle>()->hWorkerThreadTerminated;
+}
+
 std::lock_guard<std::mutex>* Context::getStateLock()
 {
 	return 	m_hContext->getStateLock(*this);

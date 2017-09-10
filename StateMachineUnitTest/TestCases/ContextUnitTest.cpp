@@ -279,7 +279,7 @@ public:
 	void SetUp() {
 		EXPECT_CALL(*state, entry(_, _)).WillOnce(Return(S_OK));
 		ASSERT_HRESULT_SUCCEEDED(testee.start(state));
-		Sleep(100);
+		ASSERT_HRESULT_SUCCEEDED(testee.waitForEvent(testee.getWorkerThreadStartEvent(), 100));
 		ASSERT_TRUE(testee.isStarted());
 	}
 	void TearDown() {
