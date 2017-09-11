@@ -94,6 +94,8 @@ public:
 //	afx_msg void OnButtonContextCreate();
 //	afx_msg void OnUpdateButtonContextCreate(CCmdUI *pCmdUI);
 	virtual void SetTitle(LPCTSTR lpszTitle);
+	void UpdateAllViews(UpdateViewHint hint);
+	using CDocument::UpdateAllViews;
 };
 
 enum {

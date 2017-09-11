@@ -4,6 +4,7 @@
 
 #include "stdafx.h"
 #include "StateMachineApp.h"
+#include "StateMachineDoc.h"
 
 #include "MainFrm.h"
 
@@ -27,6 +28,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)
 	ON_COMMAND_RANGE(ID_VIEW_APPLOOK_WIN_2000, ID_VIEW_APPLOOK_WINDOWS_7, &CMainFrame::OnApplicationLook)
 	ON_UPDATE_COMMAND_UI_RANGE(ID_VIEW_APPLOOK_WIN_2000, ID_VIEW_APPLOOK_WINDOWS_7, &CMainFrame::OnUpdateApplicationLook)
 	ON_WM_SETTINGCHANGE()
+	ON_MESSAGE(WM_USER_UPDATE_VIEW, &CMainFrame::OnUserUpdateView)
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -431,4 +433,14 @@ void CMainFrame::OnSettingChange(UINT uFlags, LPCTSTR lpszSection)
 {
 	CMDIFrameWndEx::OnSettingChange(uFlags, lpszSection);
 	m_wndOutput.UpdateFonts();
+}
+
+// Handles WM_USER_UPDATE_VIEW message.
+// Calls CDocument::UpdateAllViews() in UI thread.
+afx_msg LRESULT CMainFrame::OnUserUpdateView(WPARAM wParam, LPARAM lParam)
+{
+	auto doc = (CStateMachineDoc*)lParam;
+	auto hint = (UpdateViewHint)wParam;
+	doc->UpdateAllViews(nullptr, (LPARAM)hint, doc);
+	return 0;
 }

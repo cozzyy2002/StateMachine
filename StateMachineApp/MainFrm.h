@@ -58,6 +58,7 @@ protected:
 
 	BOOL CreateDockingWindows();
 	void SetDockingWindowIcons(BOOL bHiColorIcons);
+	afx_msg LRESULT OnUserUpdateView(WPARAM wParam, LPARAM lParam);
 };
 
 

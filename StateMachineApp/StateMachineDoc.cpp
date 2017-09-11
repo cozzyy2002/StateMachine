@@ -117,9 +117,7 @@ void CStateMachineDoc::onStateEntryCalled(CAppState * state)
 		m_stateStack.push_back(st);
 	}
 	if(m_context->isAsync()) {
-		auto frame((CMainFrame*)AfxGetApp()->GetMainWnd());
-		auto ok = frame->PostMessage(WM_USER_UPDATE_VIEW, NULL, (LPARAM)UpdateViewHint::StateChanged);
-		if(!ok) LOG4CPLUS_ERROR(logger, __FUNCTION__ ": CMainFrame::PostMessage() failed. error=" << GetLastError());
+		UpdateAllViews(UpdateViewHint::StateChanged);
 	} else {
 		UpdateAllViews(nullptr, (LPARAM)UpdateViewHint::StateChanged, this);
 	}
@@ -271,4 +269,12 @@ void CStateMachineDoc::SetTitle(LPCTSTR lpszTitle)
 		lpszTitle = title.c_str();
 	}
 	CDocument::SetTitle(lpszTitle);
+}
+
+// Posts WM_USER_UPDATE_VIEW message to call this->UpdateAllViews() in UI thread.
+void CStateMachineDoc::UpdateAllViews(UpdateViewHint hint)
+{
+	auto frame((CMainFrame*)AfxGetApp()->GetMainWnd());
+	auto ok = frame->PostMessage(WM_USER_UPDATE_VIEW, (WPARAM)hint, (LPARAM)this);
+	if(!ok) LOG4CPLUS_ERROR(logger, __FUNCTION__ ": CMainFrame::PostMessage() failed. error=" << GetLastError());
 }

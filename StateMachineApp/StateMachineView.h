@@ -65,7 +65,7 @@ public:
 	afx_msg void OnClickedButtonPostEvent();
 	CComboBox m_eventNames;
 protected:
-	afx_msg LRESULT OnUserUpdateView(WPARAM wParam, LPARAM lParam);
+//	afx_msg LRESULT OnUserUpdateView(WPARAM wParam, LPARAM lParam);
 };
 
 #ifndef _DEBUG  // debug version in StateMachineView.cpp
