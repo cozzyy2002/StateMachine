@@ -30,28 +30,28 @@ protected:
 class CParserState : public state_machine::State
 {
 public:
-	virtual HRESULT handleEvent(state_machine::Event& e, State& currentState, State** nextState) override;
+	virtual HRESULT handleEvent(state_machine::Context& context, state_machine::Event& e, State& currentState, State** nextState) override;
 };
 
 // Comment state started by "/*" and ended by "*/"
 class CCommentState : public state_machine::SubState
 {
 public:
-	virtual HRESULT handleEvent(state_machine::Event& e, State& currentState, State** nextState) override;
+	virtual HRESULT handleEvent(state_machine::Context& context, state_machine::Event& e, State& currentState, State** nextState) override;
 };
 
 // Comment state started by "//" and ended by end of line(EOL)
 class CSingleLineCommentState : public state_machine::SubState
 {
 public:
-	virtual HRESULT handleEvent(state_machine::Event& e, State& currentState, State** nextState) override;
+	virtual HRESULT handleEvent(state_machine::Context& context, state_machine::Event& e, State& currentState, State** nextState) override;
 };
 
 // Literal state enclosed by single/double quotation mark.
 class CLiteralState : public state_machine::SubState
 {
 public:
-	virtual HRESULT handleEvent(state_machine::Event& e, State& currentState, State** nextState) override;
+	virtual HRESULT handleEvent(state_machine::Context& context, state_machine::Event& e, State& currentState, State** nextState) override;
 };
 
 class CParserEvent : public state_machine::Event

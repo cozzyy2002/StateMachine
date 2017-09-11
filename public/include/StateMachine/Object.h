@@ -20,6 +20,11 @@ class Object
 	Object& operator=(const Object&) = delete;
 
 public:
+	// Returns this pointer as user class type.
+	// Do NOT delete returned object.
+	template<class T>
+	INLINE T* cast() { return dynamic_cast<T*>(this); }
+
 	// Returns string representation.
 	// If modify the string in derived class, override modifyString() method.
 	// Do NOT delete returned string.

@@ -75,7 +75,8 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 
 	// Call State::handleEvent()
 	// If event is ignored and the state is sub state, delegate handling event to master state.
-	HR_ASSERT_OK(for_each_state(currentState, [&](std::shared_ptr<State>& state)
+	// Note: Do not use HR_ASSERT_OK() macro to prevent log from long source code when error occurs.
+	auto hr_for = for_each_state(currentState, [&](std::shared_ptr<State>& state)
 	{
 		auto pCurrentState = state.get();
 		LOG4CPLUS_DEBUG(logger, "Calling " << pCurrentState->toString() << "::handleEvent()");
@@ -109,7 +110,8 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 		} else {
 			return S_FOR_EACH_BREAK;
 		}
-	}));
+	});
+	if(FAILED(hr_for)) return hr_for;
 
 	if(SUCCEEDED(hr) && pNextState) {
 		LOG4CPLUS_INFO(logger, "Next state is " << pNextState->toString());
@@ -122,7 +124,7 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 		} else {
 			// Transition to other state or master state of current state.
 			// Call exit() of current state and master state if any.
-			HR_ASSERT_OK(for_each_state(currentState, [this, &e, pNextState](std::shared_ptr<State>& state)
+			hr = for_each_state(currentState, [this, &e, pNextState](std::shared_ptr<State>& state)
 			{
 				if(state.get() != pNextState) {
 					LOG4CPLUS_DEBUG(logger, "Calling " << state->toString() << "::exit()");
@@ -132,7 +134,8 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 					// If the state is next state, don't call it's exit().
 					return S_FOR_EACH_BREAK;
 				}
-			}));
+			});
+			if(FAILED(hr)) return hr;
 		}
 		// Preserve current state as previous state until calling entry() of next stete.
 		// Note: Current state and it's master state(which is not next state) will be deleted when current state is updated.

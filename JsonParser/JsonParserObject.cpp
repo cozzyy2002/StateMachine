@@ -62,9 +62,9 @@ void CParserContext::out(TCHAR character)
 
 	This state is created as initial state on CParserContext::start().
 */
-HRESULT CParserState::handleEvent(state_machine::Event & e, State & currentState, State ** nextState)
+HRESULT CParserState::handleEvent(state_machine::Context& _context, state_machine::Event & e, State & currentState, State ** nextState)
 {
-	auto context = e.getContext<CParserContext>();
+	auto context(_context.cast<CParserContext>());
 	auto option(context->option);
 	auto _e(e.cast<CParserEvent>());
 	auto isOut(true);
@@ -121,9 +121,9 @@ HRESULT CParserState::handleEvent(state_machine::Event & e, State & currentState
 	Returns back to parent state on end of the comment.
 	Other characters than end of line(EOL) are ignored.
 */
-HRESULT CCommentState::handleEvent(state_machine::Event & e, State & currentState, State ** nextState)
+HRESULT CCommentState::handleEvent(state_machine::Context& _context, state_machine::Event & e, State & currentState, State ** nextState)
 {
-	auto context = e.getContext<CParserContext>();
+	auto context(_context.cast<CParserContext>());
 	auto _e(e.cast<CParserEvent>());
 	switch(_e->character) {
 	case '/':
@@ -153,9 +153,9 @@ HRESULT CCommentState::handleEvent(state_machine::Event & e, State & currentStat
 	Other characters than above are ignored.
 	Returns back to parent state on end of the comment.
 */
-HRESULT CSingleLineCommentState::handleEvent(state_machine::Event & e, State & currentState, State ** nextState)
+HRESULT CSingleLineCommentState::handleEvent(state_machine::Context& _context, state_machine::Event & e, State & currentState, State ** nextState)
 {
-	auto context = e.getContext<CParserContext>();
+	auto context(_context.cast<CParserContext>());
 	auto _e(e.cast<CParserEvent>());
 	switch(_e->character) {
 	case '\r':
@@ -174,10 +174,10 @@ HRESULT CSingleLineCommentState::handleEvent(state_machine::Event & e, State & c
 	Recognizes escape sequence '\x' and end of literal '"'.
 	Returns back to parent state on end of literal.
 */
-HRESULT CLiteralState::handleEvent(state_machine::Event & e, State & currentState, State ** nextState)
+HRESULT CLiteralState::handleEvent(state_machine::Context& _context, state_machine::Event & e, State & currentState, State ** nextState)
 {
 	static const TCHAR escapeChar('\\');
-	auto context = e.getContext<CParserContext>();
+	auto context(_context.cast<CParserContext>());
 	auto _e(e.cast<CParserEvent>());
 	auto character(_e->character);
 	if(context->previousCharacter == escapeChar) {

@@ -34,11 +34,6 @@ public:
 	using LogLevel = int;
 	virtual LogLevel getLogLevel() const;
 
-	// Returns this pointer as user event type.
-	// Do NOT delete returned object.
-	template<class T>
-	INLINE T* cast() { return dynamic_cast<T*>(this); }
-
 	// true if the event is handled by the State::handleEvent().
 	// This value is set to true by state machine,
 	// when State::handleEvent() returns other than S_EVENT_IGNORED or state transition occurs.
