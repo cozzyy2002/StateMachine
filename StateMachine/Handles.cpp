@@ -21,7 +21,7 @@ public:
 
 	// Returns user state as next state regardless of the event.
 	// Then state machine calls entry() of user state and sets user state as current state.
-	virtual HRESULT handleEvent(Event&, State&, State** nextState) override {
+	virtual HRESULT handleEvent(Context&, Event&, State&, State** nextState) override {
 		*nextState = userState.release();
 		return S_OK;
 	}
@@ -30,18 +30,19 @@ protected:
 	std::unique_ptr<State> userState;
 };
 
-std::lock_guard<std::mutex>* ContextHandle::getStateLock(Context& context)
+std::lock_guard<std::mutex>* ContextHandle::getStateLock()
 {
 	return context.isStateLockEnabled() ? new std::lock_guard<std::mutex>(stateLock) : nullptr;
 }
 
-StateMachine * ContextHandle::getStateMachine()
+StateMachine* ContextHandle::getStateMachine()
 {
 	return stateMachine.get();
 }
 
-ContextHandle::ContextHandle()
-	: stateMachine(new StateMachineImpl())
+ContextHandle::ContextHandle(Context& context)
+	: context(context)
+	, stateMachine(new StateMachineImpl(context))
 	, m_isEventHandling(false)
 {
 }
@@ -50,7 +51,7 @@ ContextHandle::~ContextHandle()
 {
 }
 
-HRESULT ContextHandle::start(Context& context, State* initialState, Event& userEvent)
+HRESULT ContextHandle::start(State* initialState, Event& userEvent)
 {
 	// Avoid memory leak even if exit before handle event.
 	std::unique_ptr<State> _state(initialState);
@@ -61,10 +62,10 @@ HRESULT ContextHandle::start(Context& context, State* initialState, Event& userE
 	HR_ASSERT(!isStarted(), E_ILLEGAL_METHOD_CALL);
 
 	currentState.reset(new RootState(_state.release()));
-	return handleEvent(context, userEvent);
+	return handleEvent(userEvent);
 }
 
-HRESULT ContextHandle::start(Context& context, State* initialState, Event* userEvent)
+HRESULT ContextHandle::start(State* initialState, Event* userEvent)
 {
 	delete initialState;
 	delete userEvent;
@@ -72,29 +73,28 @@ HRESULT ContextHandle::start(Context& context, State* initialState, Event* userE
 	return E_NOTIMPL;
 }
 
-HRESULT ContextHandle::start(Context& context, State* initialState)
+HRESULT ContextHandle::start(State* initialState)
 {
 	Event e;
-	return this->start(context, initialState, e);
+	return this->start(initialState, e);
 }
 
-HRESULT ContextHandle::stop(Context& /*context*/)
+HRESULT ContextHandle::stop()
 {
 	// Note: stop() can be called even if stopped.
 	currentState.reset();
 	return S_OK;
 }
 
-HRESULT ContextHandle::handleEvent(Context& context, Event& e)
+HRESULT ContextHandle::handleEvent(Event& e)
 {
 	HR_ASSERT(e.isLegalEvent(), E_INVALIDARG);
 	HR_ASSERT(isStarted(), E_ILLEGAL_METHOD_CALL);
 
-	e.m_context = &context;
 	return stateMachine->handleEvent(e);
 }
 
-HRESULT ContextHandle::queueEvent(Context& context, Event* e)
+HRESULT ContextHandle::queueEvent(Event* e)
 {
 	delete e;
 	LOG4CPLUS_FATAL(logger, __FUNCTION__ "() is not implemented.");
@@ -106,8 +106,8 @@ static HANDLE createWin32Event()
 	return CreateEvent(nullptr, TRUE, FALSE, nullptr);
 }
 
-AsyncContextHandle::AsyncContextHandle()
-	: ContextHandle()
+AsyncContextHandle::AsyncContextHandle(Context& context)
+	: ContextHandle(context)
 	, isWorkerThreadRunning(false)
 	, hWorkerThreadStarted(createWin32Event())
 	, hWorkerThreadTerminated(createWin32Event())
@@ -119,14 +119,14 @@ AsyncContextHandle::~AsyncContextHandle()
 {
 }
 
-HRESULT AsyncContextHandle::start(Context& context, State* initialState, Event& userEvent)
+HRESULT AsyncContextHandle::start(State* initialState, Event& userEvent)
 {
 	delete initialState;
 	LOG4CPLUS_FATAL(logger, __FUNCTION__ "(Event&) is not implemented.");
 	return E_NOTIMPL;
 }
 
-HRESULT AsyncContextHandle::start(Context& context, State* initialState, Event* userEvent)
+HRESULT AsyncContextHandle::start(State* initialState, Event* userEvent)
 {
 	// Avoid memory leak even if exit before queue event.
 	std::unique_ptr<State> _state(initialState);
@@ -144,40 +144,39 @@ HRESULT AsyncContextHandle::start(Context& context, State* initialState, Event* 
 
 	// Set initial state and queue event to be handled.
 	currentState.reset(new RootState(_state.release()));
-	return queueEvent(context, _e.release());
+	return queueEvent(_e.release());
 }
 
-HRESULT AsyncContextHandle::start(Context& context, State* initialState)
+HRESULT AsyncContextHandle::start(State* initialState)
 {
-	return this->start(context, initialState, new Event());
+	return this->start(initialState, new Event());
 }
 
-HRESULT AsyncContextHandle::stop(Context& context)
+HRESULT AsyncContextHandle::stop()
 {
 	// Note: stop() can be called even if stopped.
 	if(isStarted()) {
 		// Queue event with Shutdown priority to terminate worker thread.
 		auto e(new Event(Event::Priority::StopContext));
 		e->isInternal = true;
-		HR_ASSERT_OK(queueEvent(context, e));
+		HR_ASSERT_OK(queueEvent(e));
 		HR_ASSERT_OK(context.onStopThread(hWorkerThreadTerminated));
 
-		ContextHandle::stop(context);
+		ContextHandle::stop();
 	}
 
 	return S_OK;
 }
 
-HRESULT AsyncContextHandle::handleEvent(Context& context, Event& e)
+HRESULT AsyncContextHandle::handleEvent(Event& e)
 {
 	HR_ASSERT(e.isLegalEvent(), E_INVALIDARG);
 	HR_ASSERT(isStarted(), E_ILLEGAL_METHOD_CALL);
 
-	e.m_context = &context;
 	return stateMachine->handleEvent(e);
 }
 
-HRESULT AsyncContextHandle::queueEvent(Context& context, Event* e)
+HRESULT AsyncContextHandle::queueEvent(Event* e)
 {
 	// Avoid memory leak even if exit before event is queued.
 	std::unique_ptr<Event> _e(e);
@@ -188,7 +187,6 @@ HRESULT AsyncContextHandle::queueEvent(Context& context, Event* e)
 	// So we check only ContextHandle::isStarted() not this->isStarted().
 	HR_ASSERT(ContextHandle::isStarted(), E_ILLEGAL_METHOD_CALL);
 
-	_e->m_context = &context;
 	{
 		std::lock_guard<std::mutex> _lock(eventQueueLock);
 

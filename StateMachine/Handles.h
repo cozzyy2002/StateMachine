@@ -17,28 +17,29 @@ class StateHandle;
 class ContextHandle : public Object
 {
 public:
-	ContextHandle();
+	ContextHandle(Context& context);
 	virtual ~ContextHandle();
 
 	// Set initialState as current state and call initialState->entry().
-	virtual HRESULT start(Context& context, State* initialState, Event& userEvent);
-	virtual HRESULT start(Context& context, State* initialState, Event* userEvent);
-	virtual HRESULT start(Context& context, State* initialState);
+	virtual HRESULT start(State* initialState, Event& userEvent);
+	virtual HRESULT start(State* initialState, Event* userEvent);
+	virtual HRESULT start(State* initialState);
 
 	// Stops state machine.
-	virtual HRESULT stop(Context& context);
+	virtual HRESULT stop();
 
-	virtual HRESULT handleEvent(Context& context, Event& e);
-	virtual HRESULT queueEvent(Context& context, Event* e);
+	virtual HRESULT handleEvent(Event& e);
+	virtual HRESULT queueEvent(Event* e);
 
 	// See Context::getStateLock().
-	std::lock_guard<std::mutex>* getStateLock(Context& context);
+	std::lock_guard<std::mutex>* getStateLock();
 
 	virtual bool isStarted() const { return currentState ? true : false; }
 	virtual bool isEventHandling() const { return m_isEventHandling; }
 
 	StateMachine* getStateMachine();
 
+	Context& context;
 	std::shared_ptr<State> currentState;
 	std::unique_ptr<StateMachineImpl> stateMachine;
 
@@ -53,15 +54,15 @@ public:
 class AsyncContextHandle : public ContextHandle
 {
 public:
-	AsyncContextHandle();
+	AsyncContextHandle(Context& context);
 	virtual ~AsyncContextHandle();
 
-	virtual HRESULT start(Context& context, State* initialState, Event& userEvent) override;
-	virtual HRESULT start(Context& context, State* initialState, Event* userEvent) override;
-	virtual HRESULT start(Context& context, State* initialState) override;
-	virtual HRESULT stop(Context& context) override;
-	virtual HRESULT handleEvent(Context& context, Event& e) override;
-	virtual HRESULT queueEvent(Context& context, Event* e) override;
+	virtual HRESULT start(State* initialState, Event& userEvent) override;
+	virtual HRESULT start(State* initialState, Event* userEvent) override;
+	virtual HRESULT start(State* initialState) override;
+	virtual HRESULT stop() override;
+	virtual HRESULT handleEvent(Event& e) override;
+	virtual HRESULT queueEvent(Event* e) override;
 
 	virtual bool isStarted() const override { return isWorkerThreadRunning && ContextHandle::isStarted(); }
 

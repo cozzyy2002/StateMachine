@@ -6,6 +6,7 @@
 
 namespace state_machine {
 
+class Context;
 class Event;
 class StateHandle;
 class SubStateHandle;
@@ -18,11 +19,11 @@ protected:
 public:
 	virtual ~State();
 
-	virtual HRESULT handleEvent(Event& e, State& currentState, State** nextState) { return S_OK; }
-	virtual HRESULT handleIgnoredEvent(Event& e) { return S_EVENT_IGNORED; }
-	virtual HRESULT handleError(Event& e, HRESULT hr) { return hr; }
-	virtual HRESULT entry(Event& e, State& previousState) { return S_OK; }
-	virtual HRESULT exit(Event& e, State& nextState) { return S_OK; }
+	virtual HRESULT handleEvent(Context& context, Event& e, State& currentState, State** nextState) { return S_OK; }
+	virtual HRESULT handleIgnoredEvent(Context& context, Event& e) { return S_EVENT_IGNORED; }
+	virtual HRESULT handleError(Context& context, Event& e, HRESULT hr) { return hr; }
+	virtual HRESULT entry(Context& context, Event& e, State& previousState) { return S_OK; }
+	virtual HRESULT exit(Context& context, Event& e, State& nextState) { return S_OK; }
 
 	// Value to tell state machine that event is not handled.
 	// Default value is assigned (S_FALSE + 1).

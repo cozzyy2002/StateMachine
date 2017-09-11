@@ -10,7 +10,7 @@ namespace state_machine {
 class StateMachineImpl : public StateMachine
 {
 public:
-	StateMachineImpl();
+	StateMachineImpl(Context& context);
 	virtual ~StateMachineImpl();
 
 	HRESULT handleEvent(Event& e);
@@ -19,6 +19,8 @@ public:
 	virtual const std::tstring& getLoggerName() const override { return logger.getName(); }
 
 protected:
+	Context& context;
+
 	std::shared_ptr<State>* findState(std::shared_ptr<State>& currentState, State* pState);
 	HRESULT for_each_state(std::shared_ptr<State>& currentState, std::function<HRESULT(std::shared_ptr<State>& state)> func);
 

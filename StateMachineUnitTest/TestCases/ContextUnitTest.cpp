@@ -42,7 +42,7 @@ TEST_F(ContextBaseUnitTest, Context_queueEvent_notimpl)
 	auto state(new MockState(MockObjectId::CURRENT_STATE));
 	MockEvent e;
 
-	EXPECT_CALL(*state, entry(_, _)).WillOnce(Return(S_OK));
+	EXPECT_CALL(*state, entry(Ref(*testee), Ref(e), _)).WillOnce(Return(S_OK));
 	ASSERT_HRESULT_SUCCEEDED(testee->start(state, e));
 
 	ASSERT_EQ(E_NOTIMPL, testee->queueEvent(new MockEvent(MockObjectId::EVENT)));
@@ -93,9 +93,9 @@ TEST_F(ContextUnitTest, start_stop)
 {
 	auto state = new MockState(MockObjectId::CURRENT_STATE);
 
-	EXPECT_CALL(*state, handleEvent(_, _, _)).Times(0);
-	EXPECT_CALL(*state, entry(Property(&Event::getContext<Testee>, Eq(&testee)), _)).Times(1);
-	EXPECT_CALL(*state, exit(_, _)).Times(0);
+	EXPECT_CALL(*state, handleEvent(_, _, _, _)).Times(0);
+	EXPECT_CALL(*state, entry(Ref(testee), _, _)).Times(1);
+	EXPECT_CALL(*state, exit(_, _, _)).Times(0);
 
 	ASSERT_HRESULT_SUCCEEDED(testee.start(state));
 
@@ -124,13 +124,12 @@ TEST_F(ContextUnitTest, start_with_user_event_stop)
 {
 	auto state = new MockState(MockObjectId::CURRENT_STATE);
 
-	EXPECT_CALL(*state, handleEvent(_, _, _)).Times(0);
-	EXPECT_CALL(*state, entry(Ref(e), _)).Times(1);
-	EXPECT_CALL(*state, exit(_, _)).Times(0);
+	EXPECT_CALL(*state, handleEvent(_, _, _, _)).Times(0);
+	EXPECT_CALL(*state, entry(Ref(testee), Ref(e), _)).Times(1);
+	EXPECT_CALL(*state, exit(_, _, _)).Times(0);
 
 	ASSERT_HRESULT_SUCCEEDED(testee.start(state, e));
 
-	EXPECT_EQ(&testee, e.getContext());
 	EXPECT_TRUE(testee.isStarted());
 	EXPECT_EQ(state, testee.getCurrentState());
 	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
@@ -155,7 +154,7 @@ TEST_F(ContextUnitTest, start_on_started)
 	auto state = new MockState(MockObjectId::CURRENT_STATE);
 	auto state1 = new MockState(MockObjectId::NEXT_STATE);
 
-	EXPECT_CALL(*state, entry(_, _)).Times(1);
+	EXPECT_CALL(*state, entry(Ref(testee), _, _)).Times(1);
 
 	EXPECT_HRESULT_SUCCEEDED(testee.start(state));
 
@@ -173,7 +172,7 @@ class ContextHandleEventUnitTest : public ContextUnitTest
 public:
 	void SetUp() {
 		state = new MockState(MockObjectId::CURRENT_STATE);
-		EXPECT_CALL(*state, entry(_, _)).Times(1);
+		EXPECT_CALL(*state, entry(Ref(testee), Ref(e), _)).Times(1);
 		e.logLevel = log4cplus::INFO_LOG_LEVEL;
 		ASSERT_HRESULT_SUCCEEDED(testee.start(state, e));
 	}
@@ -186,8 +185,8 @@ public:
 
 TEST_F(ContextHandleEventUnitTest, recursive_call_check)
 {
-	EXPECT_CALL(*state, handleEvent(Ref(e), Ref(*state), _))
-		.WillOnce(Invoke([this](Event& _e, State&, State**)
+	EXPECT_CALL(*state, handleEvent(Ref(testee), Ref(e), Ref(*state), _))
+		.WillOnce(Invoke([this](Context& context, Event& _e, State&, State**)
 	{
 		EXPECT_TRUE(testee.isEventHandling());
 
@@ -211,7 +210,7 @@ public:
 		ContextHandleEventUnitTest::SetUp();
 
 		state1 = new MockState(MockObjectId::OTHER_STATE);
-		EXPECT_CALL(*state1, entry(_, _)).Times(1);
+		EXPECT_CALL(*state1, entry(Ref(testee1), _, _)).Times(1);
 		ASSERT_HRESULT_SUCCEEDED(testee1.start(state1));
 	}
 	void TearDown() {
@@ -226,8 +225,8 @@ public:
 
 TEST_F(MultiContextHandleEventUnitTest, recursive_call_check)
 {
-	EXPECT_CALL(*state, handleEvent(Ref(e), Ref(*state), _))
-		.WillOnce(Invoke([this](Event& _e, State&, State**)
+	EXPECT_CALL(*state, handleEvent(Ref(testee), Ref(e), Ref(*state), _))
+		.WillOnce(Invoke([this](Context& context, Event& _e, State&, State**)
 		{
 			EXPECT_TRUE(testee.isEventHandling());
 
@@ -235,7 +234,7 @@ TEST_F(MultiContextHandleEventUnitTest, recursive_call_check)
 			EXPECT_HRESULT_SUCCEEDED(testee1.handleEvent(_e));
 			return S_OK;
 		}));
-	EXPECT_CALL(*state1, handleEvent(Ref(e), Ref(*state1), _))
+	EXPECT_CALL(*state1, handleEvent(Ref(testee1), Ref(e), Ref(*state1), _))
 		.WillOnce(Return(S_OK));
 
 	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(e));
@@ -277,7 +276,7 @@ public:
 		: state(new MockState(MockObjectId::CURRENT_STATE)) {}
 
 	void SetUp() {
-		EXPECT_CALL(*state, entry(_, _)).WillOnce(Return(S_OK));
+		EXPECT_CALL(*state, entry(Ref(testee), _, _)).WillOnce(Return(S_OK));
 		ASSERT_HRESULT_SUCCEEDED(testee.start(state));
 		ASSERT_HRESULT_SUCCEEDED(testee.waitForEvent(testee.getWorkerThreadStartEvent(), 100));
 		ASSERT_TRUE(testee.isStarted());
@@ -309,8 +308,8 @@ TEST_F(AsyncContextPriorityTest, priority_order)
 	auto e5(new TestEvent(P::Lowest, 5));
 
 	int sequence = 0;
-	EXPECT_CALL(*state, handleEvent(_, _, _))
-		.WillRepeatedly(Invoke([&sequence](Event& e, State&, State**)
+	EXPECT_CALL(*state, handleEvent(Ref(testee), _, _, _))
+		.WillRepeatedly(Invoke([&sequence](Context& context, Event& e, State&, State**)
 		{
 			auto _e(e.cast<TestEvent>());
 			if(_e->sequence < 0) {
@@ -345,8 +344,8 @@ TEST_F(AsyncContextPriorityTest, stop)
 	auto e0(new TestEvent(P::Highest, 0));
 	auto e1(new TestEvent(P::Higher, 1));
 
-	EXPECT_CALL(*state, handleEvent(_, _, _))
-		.WillRepeatedly(Invoke([](Event& e, State&, State**)
+	EXPECT_CALL(*state, handleEvent(Ref(testee), _, _, _))
+		.WillRepeatedly(Invoke([](Context& context, Event& e, State&, State**)
 	{
 		auto _e(e.cast<TestEvent>());
 		if(_e->sequence < 0) {

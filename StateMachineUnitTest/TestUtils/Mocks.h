@@ -1,5 +1,6 @@
 #pragma once
 
+#include <StateMachine/Context.h>
 #include <StateMachine/Event.h>
 #include <StateMachine/State.h>
 #include <win32/Enum.h>
@@ -45,8 +46,6 @@ class MockEvent : public state_machine::Event, public MockObject
 public:
 	MockEvent(Priority priority = Priority::Normal)
 		: state_machine::Event(priority), MockObject() {}
-	MockEvent(state_machine::Context& context, Priority priority = Priority::Normal)
-		: state_machine::Event(context, priority), MockObject() {}
 	MockEvent(MockObjectId id, Priority priority = Priority::Normal)
 		: state_machine::Event(priority), MockObject(id) {}
 	virtual log4cplus::LogLevel getLogLevel() const override { return logLevel; }
@@ -63,11 +62,11 @@ class MockState : public state_machine::State, public MockObject
 public:
 	MockState(MockObjectId id) : MockObject(id) {}
 
-	MOCK_METHOD3(handleEvent, HRESULT(state_machine::Event& e, state_machine::State& currentState, state_machine::State** nextState));
-	MOCK_METHOD1(handleIgnoredEvent, HRESULT(state_machine::Event& e));
-	MOCK_METHOD2(handleError, HRESULT(state_machine::Event& e, HRESULT hr));
-	MOCK_METHOD2(entry, HRESULT(state_machine::Event& e, state_machine::State& previousState));
-	MOCK_METHOD2(exit, HRESULT(state_machine::Event& e, state_machine::State& nextState));
+	MOCK_METHOD4(handleEvent, HRESULT(state_machine::Context& context, state_machine::Event& e, state_machine::State& currentState, state_machine::State** nextState));
+	MOCK_METHOD2(handleIgnoredEvent, HRESULT(state_machine::Context& context, state_machine::Event& e));
+	MOCK_METHOD3(handleError, HRESULT(state_machine::Context& context, state_machine::Event& e, HRESULT hr));
+	MOCK_METHOD3(entry, HRESULT(state_machine::Context& context, state_machine::Event& e, state_machine::State& previousState));
+	MOCK_METHOD3(exit, HRESULT(state_machine::Context& context, state_machine::Event& e, state_machine::State& nextState));
 
 	using State::eventIsIgnored;
 
@@ -80,11 +79,11 @@ class MockSubState : public state_machine::SubState, public MockObject
 public:
 	MockSubState(MockObjectId id) : MockObject(id) {}
 
-	MOCK_METHOD3(handleEvent, HRESULT(state_machine::Event& e, state_machine::State& currentState, state_machine::State** nextState));
-	MOCK_METHOD1(handleIgnoredEvent, HRESULT(state_machine::Event& e));
-	MOCK_METHOD2(handleError, HRESULT(state_machine::Event& e, HRESULT hr));
-	MOCK_METHOD2(entry, HRESULT(state_machine::Event& e, state_machine::State& previousState));
-	MOCK_METHOD2(exit, HRESULT(state_machine::Event& e, state_machine::State& nextState));
+	MOCK_METHOD4(handleEvent, HRESULT(state_machine::Context& context, state_machine::Event& e, state_machine::State& currentState, state_machine::State** nextState));
+	MOCK_METHOD2(handleIgnoredEvent, HRESULT(state_machine::Context& context, state_machine::Event& e));
+	MOCK_METHOD3(handleError, HRESULT(state_machine::Context& context, state_machine::Event& e, HRESULT hr));
+	MOCK_METHOD3(entry, HRESULT(state_machine::Context& context, state_machine::Event& e, state_machine::State& previousState));
+	MOCK_METHOD3(exit, HRESULT(state_machine::Context& context, state_machine::Event& e, state_machine::State& nextState));
 
 	using SubState::backToMaster;
 	using State::eventIsIgnored;

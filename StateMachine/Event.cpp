@@ -6,15 +6,7 @@
 using namespace state_machine;
 
 Event::Event(Priority priority /*= Priority::Normal*/)
-	: m_context(nullptr)
-	, isHandled(false)
-	, priority(priority), isInternal(false)
-{
-}
-
-Event::Event(Context& context, Priority priority /*= Priority::Normal*/)
-	: m_context(&context)
-	, isHandled(false)
+	: isHandled(false)
 	, priority(priority), isInternal(false)
 {
 }

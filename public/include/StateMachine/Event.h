@@ -28,7 +28,6 @@ public:
 	};
 
 	Event(Priority priority = Priority::Normal);
-	Event(Context& context, Priority priority = Priority::Normal);
 	virtual ~Event();
 
 	Priority getPriority() const { return priority; }
@@ -39,11 +38,6 @@ public:
 	// Do NOT delete returned object.
 	template<class T>
 	INLINE T* cast() { return dynamic_cast<T*>(this); }
-
-	// Returns context as user context type.
-	// Do NOT delete returned object.
-	template<class T = Context>
-	INLINE T* getContext() const { return dynamic_cast<T*>(m_context); }
 
 	// true if the event is handled by the State::handleEvent().
 	// This value is set to true by state machine,
@@ -57,7 +51,6 @@ private:
 	// Derived class(User event) can not modify members of this class.
 	friend class ContextHandle;
 	friend class AsyncContextHandle;
-	Context* m_context;
 	const Priority priority;
 	bool isInternal;
 

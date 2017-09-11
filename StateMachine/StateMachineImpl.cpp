@@ -25,7 +25,8 @@ void state_machine::configureLog(LPCTSTR configFileName)
 	} else { /* Already configured by same file. Do nothing */ }
 }
 
-StateMachineImpl::StateMachineImpl()
+StateMachineImpl::StateMachineImpl(Context& context)
+	: context(context)
 {
 	if(logConfigFileName.empty()) {
 		// Log is not configured yet.
@@ -47,13 +48,12 @@ StateMachineImpl::~StateMachineImpl()
 
 HRESULT StateMachineImpl::handleEvent(Event& e)
 {
-	auto context = e.getContext();
-	auto hContext = context->getHandle();
+	auto hContext = context.getHandle();
 
 	if(logger.isEnabledFor(e.getLogLevel())) {
 		// Suppress low level log output.
 		std::tstringstream stream;
-		stream << "Handling " << e.toString() << " in " << context->toString();
+		stream << "Handling " << e.toString() << " in " << context.toString();
 		logger.forcedLog(e.getLogLevel(), stream.str());
 	}
 
@@ -62,7 +62,7 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 	ScopedStore<bool> _recursive_guard(hContext->m_isEventHandling, false, true);
 
 	// Lock this scope(If necessary)
-	std::unique_ptr<std::lock_guard<std::mutex>> _lock(context->getStateLock());
+	std::unique_ptr<std::lock_guard<std::mutex>> _lock(context.getStateLock());
 
 	// Current state is contained by Context object in the Event.
 	auto& currentState(hContext->currentState);
@@ -79,7 +79,7 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 	{
 		auto pCurrentState = state.get();
 		LOG4CPLUS_DEBUG(logger, "Calling " << pCurrentState->toString() << "::handleEvent()");
-		hr = HR_EXPECT_OK(pCurrentState->handleEvent(e, *currentState, &pNextState));
+		hr = HR_EXPECT_OK(pCurrentState->handleEvent(context, e, *currentState, &pNextState));
 		// Set Event::isHandled.
 		// If state transition occurs, assume that the event is handled even if S_EVENT_IGNORED was returned.
 		// Setting true by State::handleEvent() is prior to above condition.
@@ -100,11 +100,11 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 		}
 		if(FAILED(hr)) {
 			LOG4CPLUS_DEBUG(logger, "Calling " << pCurrentState->toString() << "::handleError()");
-			HR_ASSERT_OK(pCurrentState->handleError(e, hr));
+			HR_ASSERT_OK(pCurrentState->handleError(context, e, hr));
 		}
 		if(!e.isHandled) {
 			LOG4CPLUS_DEBUG(logger, "Calling " << pCurrentState->toString() << "::handleIgnoredEvent()");
-			HR_ASSERT_OK(pCurrentState->handleIgnoredEvent(e));
+			HR_ASSERT_OK(pCurrentState->handleIgnoredEvent(context, e));
 			return S_FOR_EACH_CONTINUE;
 		} else {
 			return S_FOR_EACH_BREAK;
@@ -126,7 +126,7 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 			{
 				if(state.get() != pNextState) {
 					LOG4CPLUS_DEBUG(logger, "Calling " << state->toString() << "::exit()");
-					HR_ASSERT_OK(state->exit(e, *pNextState));
+					HR_ASSERT_OK(state->exit(context, e, *pNextState));
 					return S_FOR_EACH_CONTINUE;
 				} else {
 					// If the state is next state, don't call it's exit().
@@ -140,7 +140,7 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 		currentState = nextState;
 		if(!backToMaster) {
 			LOG4CPLUS_DEBUG(logger, "Calling " << currentState->toString() << "::entry()");
-			HR_ASSERT_OK(currentState->entry(e, *previousState));
+			HR_ASSERT_OK(currentState->entry(context, e, *previousState));
 		}
 	}
 

@@ -14,9 +14,9 @@ Context::Context(bool isAsync)
 	: m_isAsync(isAsync)
 {
 	if(!isAsync) {
-		m_hContext.reset(new ContextHandle());
+		m_hContext.reset(new ContextHandle(*this));
 	} else {
-		m_hContext.reset(new AsyncContextHandle());
+		m_hContext.reset(new AsyncContextHandle(*this));
 	}
 }
 
@@ -34,26 +34,26 @@ State* Context::getCurrentRawState() const
 
 HRESULT Context::start(State* initialState, Event& userEvent)
 {
-	return m_hContext->start(*this, initialState, userEvent);
+	return m_hContext->start(initialState, userEvent);
 }
 
 HRESULT Context::start(State* initialState, Event* userEvent)
 {
-	return m_hContext->start(*this, initialState, userEvent);
+	return m_hContext->start(initialState, userEvent);
 }
 
 HRESULT Context::start(State * initialState)
 {
 	if(!isAsync()) {
-		return getHandle<ContextHandle>()->start(*this, initialState);
+		return getHandle<ContextHandle>()->start(initialState);
 	} else {
-		return getHandle<AsyncContextHandle>()->start(*this, initialState);
+		return getHandle<AsyncContextHandle>()->start(initialState);
 	}
 }
 
 HRESULT Context::stop()
 {
-	return m_hContext->stop(*this);
+	return m_hContext->stop();
 }
 
 bool Context::isStarted() const
@@ -63,12 +63,12 @@ bool Context::isStarted() const
 
 HRESULT Context::handleEvent(Event& e)
 {
-	return m_hContext->handleEvent(*this, e);
+	return m_hContext->handleEvent(e);
 }
 
 HRESULT Context::queueEvent(Event* e)
 {
-	return m_hContext->queueEvent(*this, e);
+	return m_hContext->queueEvent(e);
 }
 
 HRESULT Context::waitForEvent(HANDLE hEvent, DWORD timeout)
@@ -101,7 +101,7 @@ HANDLE Context::getWorkerThreadTerminateEvent() const
 
 std::lock_guard<std::mutex>* Context::getStateLock()
 {
-	return 	m_hContext->getStateLock(*this);
+	return 	m_hContext->getStateLock();
 }
 
 bool Context::isEventHandling() const
