@@ -40,11 +40,11 @@ public:
 		: CAppObject(name), m_isSubState(_isSubState) {}
 	virtual ~CAppState() {}
 
-	HRESULT handleEvent(Event& e, State& currentState, State** nextState) override;
-	HRESULT handleIgnoredEvent(Event& e) override;
-	HRESULT handleError(Event& e, HRESULT hr) override;
-	HRESULT entry(Event& e, State& previousState) override;
-	HRESULT exit(Event& e, State& nextState) override;
+	HRESULT handleEvent(Context& context, Event& e, State& currentState, State** nextState) override;
+	HRESULT handleIgnoredEvent(Context& context, Event& e) override;
+	HRESULT handleError(Context& context, Event& e, HRESULT hr) override;
+	HRESULT entry(Context& context, Event& e, State& previousState) override;
+	HRESULT exit(Context& context, Event& e, State& nextState) override;
 
 	virtual bool isSubState() const override { return m_isSubState; }
 	CAppState* getMasterState() const { return isSubState() ? SubState::getMasterState<CAppState>() : nullptr; }
