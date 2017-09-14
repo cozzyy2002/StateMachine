@@ -189,6 +189,7 @@
     </ClCompile>
     <ClCompile Include="TestCases\ContextUnitTest.cpp" />
     <ClCompile Include="TestCases\StateMachineUnitTest.cpp" />
+    <ClCompile Include="TestCases\StateUnitTest.cpp" />
     <ClCompile Include="TestUtils\Mocks.cpp" />
   </ItemGroup>
   <ItemGroup>
