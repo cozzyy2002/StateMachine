@@ -264,3 +264,14 @@ void AsyncContextHandle::handleEvent()
 	h->isWorkerThreadRunning = false;
 	WIN32_EXPECT(SetEvent(h->hWorkerThreadTerminated));
 }
+
+State* StateHandle::backToMaster() const
+{
+	LOG4CPLUS_FATAL(logger, __FUNCTION__ "() can be called.");
+	return nullptr;
+}
+
+State* SubStateHandle::backToMaster() const
+{
+	return getRawMasterState();
+}

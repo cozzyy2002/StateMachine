@@ -12,10 +12,10 @@ ENUM(MockObjectId,
 	EVENT_0, EVENT_1, EVENT_2, EVENT_3, EVENT_4,
 	EVENT_5, EVENT_6, EVENT_7, EVENT_8, EVENT_9,
 	CURRENT_STATE,
-	NEXT_STATE,
-	MASTER_STATE1,
-	MASTER_STATE2,
-	OTHER_STATE,
+	NEXT_STATE, NEXT_STATE1, NEXT_STATE2,
+	MASTER_STATE, MASTER_STATE1, MASTER_STATE2,
+	SUB_STATE, SUB_STATE1, SUB_STATE2,
+	OTHER_STATE, OTHER_STATE1, OTHER_STATE2,
 	STATE,
 	STATE_0, STATE_1, STATE_2, STATE_3, STATE_4,
 	STATE_5, STATE_6, STATE_7, STATE_8, STATE_9
@@ -74,10 +74,10 @@ protected:
 	virtual void modifyString(std::tstring& _string) override { MockObject::modifyString(_string); }
 };
 
-class MockSubState : public state_machine::SubState, public MockObject
+class MockSubState : public state_machine::State, public MockObject
 {
 public:
-	MockSubState(MockObjectId id) : MockObject(id) {}
+	MockSubState(MockObjectId id) : State(true), MockObject(id) {}
 
 	MOCK_METHOD4(handleEvent, HRESULT(state_machine::Context& context, state_machine::Event& e, state_machine::State& currentState, state_machine::State** nextState));
 	MOCK_METHOD2(handleIgnoredEvent, HRESULT(state_machine::Context& context, state_machine::Event& e));
@@ -85,7 +85,7 @@ public:
 	MOCK_METHOD3(entry, HRESULT(state_machine::Context& context, state_machine::Event& e, state_machine::State& previousState));
 	MOCK_METHOD3(exit, HRESULT(state_machine::Context& context, state_machine::Event& e, state_machine::State& nextState));
 
-	using SubState::backToMaster;
+	using State::backToMaster;
 	using State::eventIsIgnored;
 
 protected:

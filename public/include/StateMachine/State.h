@@ -14,7 +14,7 @@ class SubStateHandle;
 class State : public Object
 {
 protected:
-	State();
+	State(bool isSubState = false);
 
 public:
 	virtual ~State();
@@ -36,32 +36,12 @@ public:
 		Returns whether the class is sub state or not.
 		State transition to sub state means that previous state becomes master state of the state(sub state).
 	*/
-	virtual INLINE bool isSubState() const { return false; }
+	virtual bool isSubState() const;
 
 	// Internal use.
 	// Do NOT delete returned object.
 	template<class T = StateHandle>
 	INLINE T* getHandle() const { return dynamic_cast<T*>(m_hState.get()); }
-
-protected:
-	// Return value to tell state machine that event is not handled.
-	// This method can be used in handleEvent() method.
-	// Useage in State::handleEvent(): return eventIsIgnored();
-	INLINE HRESULT eventIsIgnored() const { return S_EVENT_IGNORED; }
-
-	std::unique_ptr<StateHandle> m_hState;
-};
-
-class SubState : public State
-{
-protected:
-	SubState();
-
-public:
-	virtual ~SubState();
-
-	// See State::isSubState().
-	virtual INLINE bool isSubState() const override { return true; }
 
 	/*
 		Template method that returns master state pointer.
@@ -72,6 +52,11 @@ public:
 	INLINE T* getMasterState() const { return dynamic_cast<T*>(getRawMasterState()); }
 
 protected:
+	// Return value to tell state machine that event is not handled.
+	// This method can be used in handleEvent() method.
+	// Useage in State::handleEvent(): return eventIsIgnored();
+	INLINE HRESULT eventIsIgnored() const { return S_EVENT_IGNORED; }
+
 	// Next state to tell state machine to go back to the master state.
 	// This method can be used in handleEvent() method of sub state.
 	// Useage in State::handleEvent(Event&, State&, State** nextState): *nextState = backToMaster();
@@ -80,6 +65,16 @@ protected:
 
 	// Do NOT delete returned object.
 	State* getRawMasterState() const;
+
+private:
+	std::unique_ptr<StateHandle> m_hState;
+};
+
+// Alias for application
+class SubState : public State
+{
+public:
+	SubState() : State(true) {}
 };
 
 } // namespace state_machine

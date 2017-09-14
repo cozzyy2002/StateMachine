@@ -98,8 +98,13 @@ public:
 	StateHandle() {}
 	virtual ~StateHandle() {}
 
+	virtual bool isSubState() const { return false; }
+
+	// Returns nullptr, and log fatal message.
+	virtual State* backToMaster() const;
+
 	// Always returns no master state.
-	virtual State* getMasterState() const { return nullptr; }
+	virtual State* getRawMasterState() const { return nullptr; }
 };
 
 class SubStateHandle : public StateHandle
@@ -108,11 +113,13 @@ public:
 	SubStateHandle() {}
 	virtual ~SubStateHandle() {}
 
+	virtual bool isSubState() const override { return true; }
+
 	// See SubState::backToMaster().
-	State* backToMaster();
+	virtual State* backToMaster() const override;
 
 	// Returns master state.
-	virtual State* getMasterState() const override { return m_masterState.get(); }
+	virtual State* getRawMasterState() const override { return m_masterState.get(); }
 
 	std::shared_ptr<State> m_masterState;
 };

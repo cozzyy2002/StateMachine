@@ -7,10 +7,12 @@ using namespace state_machine;
 
 /*static*/ HRESULT State::S_EVENT_IGNORED = S_FALSE + 1;
 
-State::State()
+State::State(bool isSubState /*= false*/)
 {
-	if(!isSubState()) {
+	if(!isSubState) {
 		m_hState.reset(new StateHandle());
+	} else {
+		m_hState.reset(new SubStateHandle());
 	}
 }
 
@@ -18,30 +20,21 @@ State::~State()
 {
 }
 
-SubState::SubState()
+bool State::isSubState() const
 {
-	m_hState.reset(new SubStateHandle());
-}
-
-SubState::~SubState()
-{
-}
-
-State* SubStateHandle::backToMaster()
-{
-	return m_masterState.get();
+	return m_hState->isSubState();
 }
 
 #pragma region State/SubState methods which invode ContextHandle methods.
 
-State* SubState::backToMaster()
+State* State::backToMaster()
 {
-	return getHandle<SubStateHandle>()->backToMaster();
+	return m_hState->backToMaster();
 }
 
-State* SubState::getRawMasterState() const
+State* State::getRawMasterState() const
 {
-	return getHandle<SubStateHandle>()->getMasterState();
+	return m_hState->getRawMasterState();
 }
 
 #pragma endregion
