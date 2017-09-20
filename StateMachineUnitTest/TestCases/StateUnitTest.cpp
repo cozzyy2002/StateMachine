@@ -13,10 +13,8 @@ public:
 	{
 	public:
 		Testee() : State(), MockObject(MockObjectId::MASTER_STATE) {}
-		Testee(Testee* testee)
-			: State(true), MockObject(MockObjectId::SUB_STATE) {
-			getHandle<SubStateHandle>()->m_masterState.reset(testee);
-		}
+		Testee(Testee* masterState)
+			: State(masterState), MockObject(MockObjectId::SUB_STATE) {}
 
 		using State::backToMaster;
 	};

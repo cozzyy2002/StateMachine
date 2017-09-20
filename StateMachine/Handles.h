@@ -105,6 +105,8 @@ public:
 
 	// Always returns no master state.
 	virtual State* getRawMasterState() const { return nullptr; }
+
+	State* subState;
 };
 
 class SubStateHandle : public StateHandle
@@ -119,9 +121,13 @@ public:
 	virtual State* backToMaster() const override;
 
 	// Returns master state.
-	virtual State* getRawMasterState() const override { return m_masterState.get(); }
+	virtual State* getRawMasterState() const override { return masterState.get(); }
 
-	std::shared_ptr<State> m_masterState;
+	void setMasterState(State* masterState);
+
+protected:
+	friend class StateMachineImpl;
+	std::shared_ptr<State> masterState;
 };
 
 } // namespace state_machine

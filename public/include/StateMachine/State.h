@@ -14,7 +14,7 @@ class SubStateHandle;
 class State : public Object
 {
 protected:
-	State(bool isSubState = false);
+	State(State* masterState = nullptr);
 
 public:
 	virtual ~State();
@@ -68,13 +68,6 @@ protected:
 
 private:
 	std::unique_ptr<StateHandle> m_hState;
-};
-
-// Alias for application
-class SubState : public State
-{
-public:
-	SubState() : State(true) {}
 };
 
 } // namespace state_machine

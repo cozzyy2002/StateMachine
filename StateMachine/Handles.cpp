@@ -204,8 +204,7 @@ HRESULT AsyncContextHandle::queueEvent(Event* e)
 		eventQueue.insert(it, std::move(_e));
 #endif
 	}
-	WIN32_ASSERT(SetEvent(hEventAvailable));
-	return S_OK;
+	return WIN32_EXPECT(SetEvent(hEventAvailable));
 }
 
 void AsyncContextHandle::handleEvent()
@@ -274,4 +273,9 @@ State* StateHandle::backToMaster() const
 State* SubStateHandle::backToMaster() const
 {
 	return getRawMasterState();
+}
+
+void SubStateHandle::setMasterState(State* masterState)
+{
+	this->masterState.reset(masterState);
 }

@@ -77,7 +77,7 @@ protected:
 class MockSubState : public state_machine::State, public MockObject
 {
 public:
-	MockSubState(MockObjectId id) : State(true), MockObject(id) {}
+	MockSubState(State* masterState, MockObjectId id) : State(masterState), MockObject(id) {}
 
 	MOCK_METHOD4(handleEvent, HRESULT(state_machine::Context& context, state_machine::Event& e, state_machine::State& currentState, state_machine::State** nextState));
 	MOCK_METHOD2(handleIgnoredEvent, HRESULT(state_machine::Context& context, state_machine::Event& e));

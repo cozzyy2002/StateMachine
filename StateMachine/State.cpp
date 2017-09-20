@@ -7,12 +7,14 @@ using namespace state_machine;
 
 /*static*/ HRESULT State::S_EVENT_IGNORED = S_FALSE + 1;
 
-State::State(bool isSubState /*= false*/)
+State::State(State* masterState /*= nullptr*/)
 {
-	if(!isSubState) {
+	if(!masterState) {
 		m_hState.reset(new StateHandle());
 	} else {
-		m_hState.reset(new SubStateHandle());
+		auto h(new SubStateHandle());
+		h->setMasterState(masterState);
+		m_hState.reset(h);
 	}
 }
 
