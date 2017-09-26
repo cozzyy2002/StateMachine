@@ -9,7 +9,6 @@ namespace state_machine {
 class Context;
 class Event;
 class StateHandle;
-class SubStateHandle;
 
 class State : public Object
 {

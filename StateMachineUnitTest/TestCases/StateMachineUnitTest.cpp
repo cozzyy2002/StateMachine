@@ -13,7 +13,7 @@ public:
 	TestContext() : Context(false) {}
 };
 
-class StateMacineUnitTest : public Test
+class StateMachineUnitTest : public Test
 {
 public:
 	class Testee : public TestStateMachine
@@ -22,7 +22,7 @@ public:
 		Testee(Context& context) : TestStateMachine(context) {}
 	};
 
-	StateMacineUnitTest()
+	StateMachineUnitTest()
 		: testee(context), e(new MockEvent()) {}
 
 	void SetUp() {
@@ -38,7 +38,7 @@ public:
 	std::unique_ptr<MockEvent> e;
 };
 
-TEST_F(StateMacineUnitTest, no_transition)
+TEST_F(StateMachineUnitTest, no_transition)
 {
 	EXPECT_CALL(*currentState, handleEvent(Ref(context), Ref(*e), Ref(*currentState), _))
 		.WillOnce(Return(S_OK));
@@ -52,7 +52,7 @@ TEST_F(StateMacineUnitTest, no_transition)
 	EXPECT_TRUE(e->isHandled);
 }
 
-TEST_F(StateMacineUnitTest, no_transition_error)
+TEST_F(StateMachineUnitTest, no_transition_error)
 {
 	EXPECT_CALL(*currentState, handleEvent(Ref(context), Ref(*e), Ref(*currentState), _))
 		.WillOnce(Return(E_NOTIMPL));
@@ -72,7 +72,7 @@ TEST_F(StateMacineUnitTest, no_transition_error)
 	EXPECT_TRUE(e->isHandled);
 }
 
-TEST_F(StateMacineUnitTest, transition)
+TEST_F(StateMachineUnitTest, transition)
 {
 	auto nextState = new MockState(MockObjectId::NEXT_STATE);
 	EXPECT_CALL(*currentState, handleEvent(Ref(context), Ref(*e), Ref(*currentState), _))
@@ -90,7 +90,7 @@ TEST_F(StateMacineUnitTest, transition)
 	EXPECT_TRUE(e->isHandled);
 }
 
-TEST_F(StateMacineUnitTest, transition_error)
+TEST_F(StateMachineUnitTest, transition_error)
 {
 	auto nextState = new MockState(MockObjectId::NEXT_STATE);
 	EXPECT_CALL(*currentState, handleEvent(Ref(context), Ref(*e), Ref(*currentState), _))
@@ -114,11 +114,11 @@ TEST_F(StateMacineUnitTest, transition_error)
 	EXPECT_TRUE(e->isHandled);
 }
 
-class StateMacineSubStateUnitTest : public StateMacineUnitTest
+class StateMachineSubStateUnitTest : public StateMachineUnitTest
 {
 public:
 	void SetUp() {
-		StateMacineUnitTest::SetUp();
+		StateMachineUnitTest::SetUp();
 
 		// Clear current state to change to sub state.
 		testee.clearCurrentState(context);
@@ -133,7 +133,7 @@ public:
 		ASSERT_EQ(masterState2, masterState1->getMasterState<MockState>());
 	}
 	void TearDown() {
-		StateMacineUnitTest::TearDown();
+		StateMachineUnitTest::TearDown();
 	}
 
 	MockSubState* currentState;	// Sub state(Different from currentState ot base class).
@@ -146,7 +146,7 @@ public:
 	before: MASTER_STATE2 - MASTER_STATE1 - CURRENT_STATE
 	after : MASTER_STATE2 - MASTER_STATE1
 */
-TEST_F(StateMacineSubStateUnitTest, back_to_master1)
+TEST_F(StateMachineSubStateUnitTest, back_to_master1)
 {
 	EXPECT_CALL(*currentState, handleEvent(Ref(context), Ref(*e), Ref(*currentState), _))
 		.WillOnce(DoAll(SetArgPointee<3>(currentState->backToMaster()), Return(S_OK)));
@@ -170,7 +170,7 @@ TEST_F(StateMacineSubStateUnitTest, back_to_master1)
 	before: MASTER_STATE2 - MASTER_STATE1 - CURRENT_STATE
 	after : MASTER_STATE2
 */
-TEST_F(StateMacineSubStateUnitTest, back_to_master2)
+TEST_F(StateMachineSubStateUnitTest, back_to_master2)
 {
 	EXPECT_CALL(*currentState, handleEvent(Ref(context), Ref(*e), Ref(*currentState), _))
 		.WillOnce(DoAll(SetArgPointee<3>(masterState2), Return(S_OK)));
@@ -194,7 +194,7 @@ TEST_F(StateMacineSubStateUnitTest, back_to_master2)
 	before: MASTER_STATE2 - MASTER_STATE1 - CURRENT_STATE
 	after : OTHER_STATE
 */
-TEST_F(StateMacineSubStateUnitTest, exit_to_other_state)
+TEST_F(StateMachineSubStateUnitTest, exit_to_other_state)
 {
 	EXPECT_CALL(*currentState, handleEvent(Ref(context), Ref(*e), Ref(*currentState), _))
 		.WillOnce(DoAll(SetArgPointee<3>(otherState), Return(S_OK)));
@@ -219,21 +219,22 @@ TEST_F(StateMacineSubStateUnitTest, exit_to_other_state)
 
 /*
 	before: MASTER_STATE2 - MASTER_STATE1 - CURRENT_STATE
+			CURRENT_STATE returns SUB_STATE as next state.
 	after : MASTER_STATE2 - MASTER_STATE1 - SUB_STATE
  */
-TEST_F(StateMacineSubStateUnitTest, exit_to_sub_state)
+TEST_F(StateMachineSubStateUnitTest, exit_to_sub_state)
 {
 	MockSubState* subState = new MockSubState(masterState1, MockObjectId::SUB_STATE);
 
 	EXPECT_CALL(*currentState, handleEvent(Ref(context), Ref(*e), Ref(*currentState), _))
 		.WillOnce(DoAll(SetArgPointee<3>(subState), Return(S_OK)));
 	EXPECT_CALL(*currentState, entry(_, _, _)).Times(0);
-	EXPECT_CALL(*currentState, exit(Ref(context), Ref(*e), _)).Times(1);
+	EXPECT_CALL(*currentState, exit(Ref(context), Ref(*e), Ref(*subState))).Times(1);
 	EXPECT_CALL(*masterState1, entry(_, _, _)).Times(0);
 	EXPECT_CALL(*masterState1, exit(_, _, _)).Times(0);
 	EXPECT_CALL(*masterState2, entry(_, _, _)).Times(0);
 	EXPECT_CALL(*masterState2, exit(_, _, _)).Times(0);
-	EXPECT_CALL(*subState, entry(Ref(context), Ref(*e), _)).Times(1);
+	EXPECT_CALL(*subState, entry(Ref(context), Ref(*e), Ref(*currentState))).Times(1);
 	EXPECT_CALL(*subState, exit(_, _, _)).Times(0);
 
 	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(*e));
@@ -247,26 +248,23 @@ TEST_F(StateMacineSubStateUnitTest, exit_to_sub_state)
 }
 
 /*
-before: MASTER_STATE2 - MASTER_STATE1 - CURRENT_STATE
-after : MASTER_STATE2 - SUB_STATE
+	before: MASTER_STATE2 - MASTER_STATE1 - CURRENT_STATE
+			CURRENT_STATE returns SUB_STATE as next state.
+	after : MASTER_STATE2 - SUB_STATE
 */
-TEST_F(StateMacineSubStateUnitTest, exit_to_sub_state_1)
+TEST_F(StateMachineSubStateUnitTest, exit_to_sub_state_1)
 {
 	MockSubState* subState = new MockSubState(masterState2, MockObjectId::SUB_STATE);
 
 	EXPECT_CALL(*currentState, handleEvent(Ref(context), Ref(*e), Ref(*currentState), _))
-		.WillOnce(Return(State::S_EVENT_IGNORED));
-	EXPECT_CALL(*currentState, handleIgnoredEvent(Ref(context), Ref(*e)))
-		.WillOnce(Return(currentState->S_EVENT_IGNORED));
-	EXPECT_CALL(*currentState, entry(_, _, _)).Times(0);
-	EXPECT_CALL(*currentState, exit(Ref(context), Ref(*e), _)).Times(1);
-	EXPECT_CALL(*masterState1, handleEvent(Ref(context), Ref(*e), Ref(*currentState), _))
 		.WillOnce(DoAll(SetArgPointee<3>(subState), Return(S_OK)));
+	EXPECT_CALL(*currentState, entry(_, _, _)).Times(0);
+	EXPECT_CALL(*currentState, exit(Ref(context), Ref(*e), Ref(*subState))).Times(1);
 	EXPECT_CALL(*masterState1, entry(_, _, _)).Times(0);
-	EXPECT_CALL(*masterState1, exit(Ref(context), Ref(*e), _)).Times(1);
+	EXPECT_CALL(*masterState1, exit(Ref(context), Ref(*e), Ref(*subState))).Times(1);
 	EXPECT_CALL(*masterState2, entry(_, _, _)).Times(0);
 	EXPECT_CALL(*masterState2, exit(_, _, _)).Times(0);
-	EXPECT_CALL(*subState, entry(Ref(context), Ref(*e), _)).Times(1);
+	EXPECT_CALL(*subState, entry(Ref(context), Ref(*e), Ref(*currentState))).Times(1);
 	EXPECT_CALL(*subState, exit(_, _, _)).Times(0);
 
 	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(*e));
@@ -279,7 +277,41 @@ TEST_F(StateMacineSubStateUnitTest, exit_to_sub_state_1)
 	EXPECT_TRUE(e->isHandled);
 }
 
-TEST_F(StateMacineSubStateUnitTest, event_ignored)
+/*
+	before: MASTER_STATE2 - MASTER_STATE1 - CURRENT_STATE
+			MASTER_STATE1 returns SUB_STATE as next state.
+	after : MASTER_STATE2 - SUB_STATE
+*/
+TEST_F(StateMachineSubStateUnitTest, exit_to_sub_state_2)
+{
+	MockSubState* subState = new MockSubState(masterState2, MockObjectId::SUB_STATE);
+
+	EXPECT_CALL(*currentState, handleEvent(Ref(context), Ref(*e), Ref(*currentState), _))
+		.WillOnce(Return(State::S_EVENT_IGNORED));
+	EXPECT_CALL(*currentState, handleIgnoredEvent(Ref(context), Ref(*e)))
+		.WillOnce(Return(currentState->S_EVENT_IGNORED));
+	EXPECT_CALL(*currentState, entry(_, _, _)).Times(0);
+	EXPECT_CALL(*currentState, exit(Ref(context), Ref(*e), Ref(*subState))).Times(1);
+	EXPECT_CALL(*masterState1, handleEvent(Ref(context), Ref(*e), Ref(*currentState), _))
+		.WillOnce(DoAll(SetArgPointee<3>(subState), Return(S_OK)));
+	EXPECT_CALL(*masterState1, entry(_, _, _)).Times(0);
+	EXPECT_CALL(*masterState1, exit(Ref(context), Ref(*e), Ref(*subState))).Times(1);
+	EXPECT_CALL(*masterState2, entry(_, _, _)).Times(0);
+	EXPECT_CALL(*masterState2, exit(_, _, _)).Times(0);
+	EXPECT_CALL(*subState, entry(Ref(context), Ref(*e), Ref(*currentState))).Times(1);
+	EXPECT_CALL(*subState, exit(_, _, _)).Times(0);
+
+	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(*e));
+
+	EXPECT_EQ(subState, context.getCurrentState());
+	EXPECT_TRUE(MockObject::deleted(MockObjectId::CURRENT_STATE));
+	EXPECT_TRUE(MockObject::deleted(MockObjectId::MASTER_STATE1));
+	EXPECT_FALSE(MockObject::deleted(MockObjectId::MASTER_STATE2));
+	EXPECT_FALSE(MockObject::deleted(MockObjectId::SUB_STATE));
+	EXPECT_TRUE(e->isHandled);
+}
+
+TEST_F(StateMachineSubStateUnitTest, event_ignored)
 {
 	State::S_EVENT_IGNORED = 16;
 

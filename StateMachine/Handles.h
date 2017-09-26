@@ -1,6 +1,7 @@
 #pragma once
 
 #include <StateMachine/Object.h>
+#include <StateMachine/State.h>
 #include <list>
 #include <memory>
 #include <mutex>
@@ -40,7 +41,7 @@ public:
 	StateMachine* getStateMachine();
 
 	Context& context;
-	std::shared_ptr<State> currentState;
+	std::unique_ptr<State> currentState;
 	std::unique_ptr<StateMachineImpl> stateMachine;
 
 	// true if the state machine is handling event in this context.
@@ -112,7 +113,7 @@ public:
 class SubStateHandle : public StateHandle
 {
 public:
-	SubStateHandle() {}
+	SubStateHandle(State* masterState) : masterState(masterState) {}
 	virtual ~SubStateHandle() {}
 
 	virtual bool isSubState() const override { return true; }
@@ -123,11 +124,9 @@ public:
 	// Returns master state.
 	virtual State* getRawMasterState() const override { return masterState.get(); }
 
-	void setMasterState(State* masterState);
-
 protected:
 	friend class StateMachineImpl;
-	std::shared_ptr<State> masterState;
+	std::unique_ptr<State> masterState;
 };
 
 } // namespace state_machine

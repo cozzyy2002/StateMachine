@@ -12,9 +12,7 @@ State::State(State* masterState /*= nullptr*/)
 	if(!masterState) {
 		m_hState.reset(new StateHandle());
 	} else {
-		auto h(new SubStateHandle());
-		h->setMasterState(masterState);
-		m_hState.reset(h);
+		m_hState.reset(new SubStateHandle(masterState));
 	}
 }
 

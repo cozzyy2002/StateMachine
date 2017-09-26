@@ -21,8 +21,8 @@ public:
 protected:
 	Context& context;
 
-	std::shared_ptr<State>* findState(std::shared_ptr<State>& currentState, State* pState);
-	HRESULT for_each_state(std::shared_ptr<State>& currentState, std::function<HRESULT(std::shared_ptr<State>& state)> func);
+	std::unique_ptr<State>* findState(std::unique_ptr<State>& currentState, State* pState);
+	HRESULT for_each_state(std::unique_ptr<State>& currentState, std::function<HRESULT(std::unique_ptr<State>& state)> func);
 
 	log4cplus::Logger logger;
 

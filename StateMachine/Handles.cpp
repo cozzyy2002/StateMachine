@@ -1,6 +1,5 @@
 #include "stdafx_local.h"
 #include <StateMachine/Event.h>
-#include <StateMachine/State.h>
 #include <StateMachine/Context.h>
 
 #include "StateMachineImpl.h"
@@ -11,8 +10,8 @@ using namespace state_machine;
 static auto logger = log4cplus::Logger::getInstance(LOG4CPLUS_TEXT("state_machine.Handle"));
 
 /*
-Inner class to let state machine call userState->entry().
-Used to initialize user context.
+	Inner class to let state machine call userState->entry().
+	Used to initialize user context.
 */
 class RootState : public State
 {
@@ -273,9 +272,4 @@ State* StateHandle::backToMaster() const
 State* SubStateHandle::backToMaster() const
 {
 	return getRawMasterState();
-}
-
-void SubStateHandle::setMasterState(State* masterState)
-{
-	this->masterState.reset(masterState);
 }

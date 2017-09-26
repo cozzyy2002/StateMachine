@@ -64,32 +64,33 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 	// Lock this scope(If necessary)
 	std::unique_ptr<std::lock_guard<std::mutex>> _lock(context.getStateLock());
 
-	// Current state is contained by Context object in the Event.
+	// Current state is contained by ContextHandle object.
 	auto& currentState(hContext->currentState);
 
-	std::shared_ptr<State> nextState;
-	bool callEntry(false);
+	State* pNextState = nullptr;
+	std::unique_ptr<State> nextState;
+	std::unique_ptr<State>* nextMasterState(nullptr);
+	auto callEntry(false);
 	auto hr(State::S_EVENT_IGNORED);
 	e.isHandled = false;
 
 	// Call State::handleEvent()
 	// If event is ignored and the state is sub state, delegate handling event to master state.
 	// Note: Do not use HR_ASSERT_OK() macro to prevent log from long source code when error occurs.
-	auto hr_for = for_each_state(currentState, [&](std::shared_ptr<State>& state)
+	auto hr_for = for_each_state(currentState, [&](std::unique_ptr<State>& state)
 	{
-		LOG4CPLUS_DEBUG(logger, "Calling " << state->toString() << "::handleEvent()");
-		State* pNextState = nullptr;
+		LOG4CPLUS_DEBUG(logger, "Calling handleEvent() of " << state->toString());
 		hr = HR_EXPECT_OK(state->handleEvent(context, e, *currentState, &pNextState));
 		// Set Event::isHandled.
 		// If state transition occurs, assume that the event is handled even if S_EVENT_IGNORED was returned.
 		// Setting true by State::handleEvent() is prior to above condition.
 		if(!e.isHandled) e.isHandled = ((hr != State::S_EVENT_IGNORED) || pNextState);
 		if(pNextState) {
-			auto nextMasterState = findState(currentState, pNextState);
+			nextMasterState = findState(currentState, pNextState);
 			if(nextMasterState) {
 				// Back to existing master state.
 				HR_ASSERT(state->isSubState(), E_UNEXPECTED);
-				nextState = *nextMasterState;
+				//nextState = *nextMasterState;
 			} else {
 				// Exit to newly created state.
 				// Note: Object returned to pNextState might be deleted,
@@ -99,11 +100,11 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 			}
 		}
 		if(FAILED(hr)) {
-			LOG4CPLUS_DEBUG(logger, "Calling " << state->toString() << "::handleError()");
+			LOG4CPLUS_DEBUG(logger, "Calling handleError() of " << state->toString());
 			HR_ASSERT_OK(state->handleError(context, e, hr));
 		}
 		if(!e.isHandled) {
-			LOG4CPLUS_DEBUG(logger, "Calling " << state->toString() << "::handleIgnoredEvent()");
+			LOG4CPLUS_DEBUG(logger, "Calling handleIgnoredEvent() of " << state->toString());
 			HR_ASSERT_OK(state->handleIgnoredEvent(context, e));
 			return S_FOR_EACH_CONTINUE;
 		} else {
@@ -112,35 +113,49 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 	});
 	if(FAILED(hr_for)) return hr_for;
 
-	if(SUCCEEDED(hr) && nextState) {
-		LOG4CPLUS_INFO(logger, "Next state is " << nextState->toString());
+	if(SUCCEEDED(hr) && pNextState) {
+		LOG4CPLUS_INFO(logger, "Next state is " << pNextState->toString());
 		// State transition occurred.
 		// Transition to other state or master state of current state.
 		// Call exit() of current state and master state if any.
-		hr = for_each_state(currentState, [this, &e, &nextState](std::shared_ptr<State>& state)
+		hr = for_each_state(currentState, [this, &e, pNextState](std::unique_ptr<State>& state)
 		{
 			// If the state is next state or master state of next state,
 			// don't call it's exit().
-			if((state.get() == nextState.get()) ||
-			   (state.get() == nextState->getMasterState()))
+			if((state.get() == pNextState) ||
+			   (state.get() == pNextState->getMasterState()))
 			{
 				return S_FOR_EACH_BREAK;
 			}
 
-			LOG4CPLUS_DEBUG(logger, "Calling " << state->toString() << "::exit()");
-			HR_ASSERT_OK(state->exit(context, e, *nextState));
+			LOG4CPLUS_DEBUG(logger, "Calling exit() of " << state->toString());
+			HR_ASSERT_OK(state->exit(context, e, *pNextState));
 			return S_FOR_EACH_CONTINUE;
 		});
 		if(FAILED(hr)) return hr;
 
 		// Preserve current state as previous state until calling entry() of next stete.
 		// Note: Current state and it's master state(which is not next state) will be deleted when current state is updated.
-		auto previousState(currentState);
-		currentState = nextState;
+		auto previousState(std::move(currentState));
+		currentState = std::move(nextState ? nextState : *nextMasterState);
 		if(callEntry) {
-			LOG4CPLUS_DEBUG(logger, "Calling " << currentState->toString() << "::entry()");
+			LOG4CPLUS_DEBUG(logger, "Calling entry() of " << currentState->toString());
 			HR_ASSERT_OK(currentState->entry(context, e, *previousState));
 		}
+
+		// Privent master state(s) of previous state from being deleted.
+		for_each_state(previousState, [this, &currentState](std::unique_ptr<State>& state)
+		{
+			if(state->isSubState()) {
+				if(findState(currentState, state->getMasterState())) {
+					state->getHandle<SubStateHandle>()->masterState.release();
+					return S_FOR_EACH_BREAK;
+				}
+			} else {
+				return S_FOR_EACH_BREAK;
+			}
+			return S_FOR_EACH_CONTINUE;
+		});
 	}
 
 	LOG4CPLUS_DEBUG(logger, e.toString()
@@ -151,10 +166,10 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 }
 
 // Find state in master state of current state.
-std::shared_ptr<State>* StateMachineImpl::findState(std::shared_ptr<State>& currentState, State* pState)
+std::unique_ptr<State>* StateMachineImpl::findState(std::unique_ptr<State>& currentState, State* pState)
 {
-	std::shared_ptr<State>* ret = nullptr;
-	for_each_state(currentState, [pState, &ret](std::shared_ptr<State>& state)
+	std::unique_ptr<State>* ret = nullptr;
+	for_each_state(currentState, [pState, &ret](std::unique_ptr<State>& state)
 	{
 		if(pState == state.get()) {
 			ret = &state;
@@ -166,7 +181,7 @@ std::shared_ptr<State>* StateMachineImpl::findState(std::shared_ptr<State>& curr
 }
 
 // Applies specified function to each state within master state(s) of current state.
-HRESULT StateMachineImpl::for_each_state(std::shared_ptr<State>& currentState, std::function<HRESULT(std::shared_ptr<State>& state)> func)
+HRESULT StateMachineImpl::for_each_state(std::unique_ptr<State>& currentState, std::function<HRESULT(std::unique_ptr<State>& state)> func)
 {
 	auto hr(S_FALSE);
 	for(auto state(&currentState);
