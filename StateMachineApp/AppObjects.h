@@ -33,11 +33,11 @@ protected:
 	virtual void modifyString(std::tstring& _string) override { CAppObject::modifyString(_string); }
 };
 
-class CAppState : public SubState, public CAppObject
+class CAppState : public State, public CAppObject
 {
 public:
-	CAppState(LPCTSTR name, bool _isSubState)
-		: CAppObject(name), m_isSubState(_isSubState) {}
+	CAppState(LPCTSTR name, CAppState* masterState = nullptr)
+		: CAppObject(name), State(masterState) {}
 	virtual ~CAppState() {}
 
 	HRESULT handleEvent(Context& context, Event& e, State& currentState, State** nextState) override;
@@ -46,13 +46,10 @@ public:
 	HRESULT entry(Context& context, Event& e, State& previousState) override;
 	HRESULT exit(Context& context, Event& e, State& nextState) override;
 
-	virtual bool isSubState() const override { return m_isSubState; }
-	CAppState* getMasterState() const { return isSubState() ? SubState::getMasterState<CAppState>() : nullptr; }
+	CAppState* getMasterState() const { return State::getMasterState<CAppState>(); }
 
 protected:
 	virtual void modifyString(std::tstring& _string) override { CAppObject::modifyString(_string); }
-
-	bool m_isSubState;
 };
 
 struct StateMethod

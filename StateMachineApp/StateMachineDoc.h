@@ -39,7 +39,7 @@ public:
 // Operations
 public:
 	CAppContext* createContext(LPCTSTR name);
-	CAppState* createState(LPCTSTR name, BOOL isSubState);
+	CAppState* createState(LPCTSTR name, CAppState* masterState = nullptr);
 	HRESULT start(LPCTSTR stateName, CAppEvent* e = nullptr);
 
 	bool parse(LPCTSTR source);
