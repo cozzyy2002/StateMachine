@@ -34,23 +34,26 @@ public:
 };
 
 // Comment state started by "/*" and ended by "*/"
-class CCommentState : public state_machine::SubState
+class CCommentState : public state_machine::State
 {
 public:
+	CCommentState(CParserState* masterState) : State(masterState) {}
 	virtual HRESULT handleEvent(state_machine::Context& context, state_machine::Event& e, State& currentState, State** nextState) override;
 };
 
 // Comment state started by "//" and ended by end of line(EOL)
-class CSingleLineCommentState : public state_machine::SubState
+class CSingleLineCommentState : public state_machine::State
 {
 public:
+	CSingleLineCommentState(CParserState* masterState) : State(masterState) {}
 	virtual HRESULT handleEvent(state_machine::Context& context, state_machine::Event& e, State& currentState, State** nextState) override;
 };
 
 // Literal state enclosed by single/double quotation mark.
-class CLiteralState : public state_machine::SubState
+class CLiteralState : public state_machine::State
 {
 public:
+	CLiteralState(CParserState* masterState) : State(masterState) {}
 	virtual HRESULT handleEvent(state_machine::Context& context, state_machine::Event& e, State& currentState, State** nextState) override;
 };
 

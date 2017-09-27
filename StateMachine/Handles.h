@@ -106,8 +106,6 @@ public:
 
 	// Always returns no master state.
 	virtual State* getRawMasterState() const { return nullptr; }
-
-	State* subState;
 };
 
 class SubStateHandle : public StateHandle

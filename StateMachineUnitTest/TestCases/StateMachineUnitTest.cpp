@@ -90,6 +90,32 @@ TEST_F(StateMachineUnitTest, transition)
 	EXPECT_TRUE(e->isHandled);
 }
 
+TEST_F(StateMachineUnitTest, transition_to_sub_state_and_back)
+{
+	auto nextState = new MockSubState(currentState, MockObjectId::NEXT_STATE);
+	EXPECT_CALL(*currentState, handleEvent(Ref(context), Ref(*e), Ref(*currentState), _))
+		.WillOnce(DoAll(SetArgPointee<3>(nextState), Return(S_OK)));
+	EXPECT_CALL(*nextState, handleEvent(Ref(context), Ref(*e), Ref(*nextState), _))
+		.WillOnce(DoAll(SetArgPointee<3>(nextState->backToMaster()), Return(S_OK)));
+	EXPECT_CALL(*currentState, entry(_, _, _)).Times(0);
+	EXPECT_CALL(*currentState, exit(_, _, _)).Times(0);
+	EXPECT_CALL(*nextState, entry(Ref(context), Ref(*e), Ref(*currentState))).Times(1);
+	EXPECT_CALL(*nextState, exit(Ref(context), Ref(*e), Ref(*currentState))).Times(1);
+
+	// Master state -> Sub state
+	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(*e));
+	EXPECT_TRUE(e->isHandled);
+
+	// Sub state -> Master state.
+	e->isHandled = false;
+	ASSERT_HRESULT_SUCCEEDED(testee.handleEvent(*e));
+	EXPECT_TRUE(e->isHandled);
+
+	EXPECT_EQ(currentState, context.getCurrentState());
+	EXPECT_FALSE(MockObject::deleted(MockObjectId::CURRENT_STATE));
+	EXPECT_TRUE(MockObject::deleted(MockObjectId::NEXT_STATE));
+}
+
 TEST_F(StateMachineUnitTest, transition_error)
 {
 	auto nextState = new MockState(MockObjectId::NEXT_STATE);

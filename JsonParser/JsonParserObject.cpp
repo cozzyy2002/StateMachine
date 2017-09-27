@@ -73,7 +73,7 @@ HRESULT CParserState::handleEvent(state_machine::Context& _context, state_machin
 		if(option->removeComment) {
 			if(context->previousCharacter == '/') {
 				// "/*": Start of comment.
-				*nextState = new CCommentState();
+				*nextState = new CCommentState(this);
 				isOut = false;
 			}
 		}
@@ -82,14 +82,14 @@ HRESULT CParserState::handleEvent(state_machine::Context& _context, state_machin
 		if(option->removeComment) {
 			if(context->previousCharacter == '/') {
 				// "//": Start of single line comment.
-				*nextState = new CSingleLineCommentState();
+				*nextState = new CSingleLineCommentState(this);
 			}
 			isOut = false;
 		}
 		break;
 	case '\"':
 		// Start of literal string.
-		*nextState = new CLiteralState();
+		*nextState = new CLiteralState(this);
 		break;
 	case '\t':
 		// Note: Expand tab affects only outside of literal.

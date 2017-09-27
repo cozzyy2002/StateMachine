@@ -90,7 +90,6 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 			if(nextMasterState) {
 				// Back to existing master state.
 				HR_ASSERT(state->isSubState(), E_UNEXPECTED);
-				//nextState = *nextMasterState;
 			} else {
 				// Exit to newly created state.
 				// Note: Object returned to pNextState might be deleted,
@@ -156,6 +155,11 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 			}
 			return S_FOR_EACH_CONTINUE;
 		});
+
+		// Privent previous state from being deleted.
+		if(findState(currentState, previousState.get())) {
+			previousState.release();
+		}
 	}
 
 	LOG4CPLUS_DEBUG(logger, e.toString()
