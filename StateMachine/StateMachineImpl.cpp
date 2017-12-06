@@ -80,7 +80,7 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 	auto hr_for = for_each_state(currentState, [&](std::unique_ptr<State>& state)
 	{
 		LOG4CPLUS_DEBUG(logger, "Calling handleEvent() of " << state->toString());
-		hr = HR_EXPECT_OK(state->handleEvent(context, e, *currentState, &pNextState));
+		hr = state->handleEvent(context, e, *currentState, &pNextState);
 		// Set Event::isHandled.
 		// If state transition occurs, assume that the event is handled even if S_EVENT_IGNORED was returned.
 		// Setting true by State::handleEvent() is prior to above condition.
@@ -89,7 +89,10 @@ HRESULT StateMachineImpl::handleEvent(Event& e)
 			nextMasterState = findState(currentState, pNextState);
 			if(nextMasterState) {
 				// Back to existing master state.
-				HR_ASSERT(state->isSubState(), E_UNEXPECTED);
+				if(!state->isSubState()) {
+					LOG4CPLUS_FATAL(logger, "No master state to return: " << typeid(*state.get()).name());
+					return E_UNEXPECTED;
+				}
 			} else {
 				// Exit to newly created state.
 				// Note: Object returned to pNextState might be deleted,
